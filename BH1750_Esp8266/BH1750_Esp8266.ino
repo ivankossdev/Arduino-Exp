@@ -38,9 +38,15 @@ void loop() {
   if (lightMeter.measurementReady()) {
     float lux = lightMeter.readLightLevel();
     
-    if(lux < 60){
+    if(lux > 40 && lux < 60){
       digitalWrite(LED_BUILTIN, LOW);
       delay(250);
+    }
+    else if(lux < 40){
+      digitalWrite(LED_BUILTIN, LOW);
+      delay(25);
+      digitalWrite(LED_BUILTIN, HIGH);
+      delay(50);
     }
     else{
       digitalWrite(LED_BUILTIN, HIGH);
