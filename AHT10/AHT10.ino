@@ -4,7 +4,7 @@ Adafruit_AHTX0 aht;
 
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
-  Serial.begin(9600);
+  Serial.begin(115200);
   Serial.println("Adafruit AHT10/AHT20 demo!");
 
   if (! aht.begin()) {
