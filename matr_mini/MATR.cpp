@@ -58,6 +58,6 @@ void MATR::clearDisplay() {
   }
 }
 
-void MATR::insertToDisplay(uint8_t data) {
-  displayArray[0] = data;
+void MATR::insertToDisplay(uint8_t adr, uint8_t data) {
+  displayArray[adr] = data;
 }
