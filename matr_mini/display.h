@@ -9,7 +9,7 @@ class Display : public MATR{
   using MATR::MATR;
   uint8_t ReverseChar(uint8_t ch);
   uint8_t *GetSimvolArray(uint8_t ch);
-  void insertToDispArray(uint8_t *array);
+  void insertToDispBuffer(uint8_t *array);
 };
 
 #endif

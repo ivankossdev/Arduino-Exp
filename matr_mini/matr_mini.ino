@@ -18,16 +18,16 @@ void setup() {}
 void loop() {
   
   for(uint8_t i = 0; i <= 9; i++){
-    matr.insertToDispArray(matr.GetSimvolArray(i));
+    matr.insertToDispBuffer(matr.GetSimvolArray(i));
     matr.showDisplay();
-    delay(250);
+    delay(175);
     matr.clearDisplay();
   }
 
   matr.clearDisplay();
   matr.showDisplay();
   delay(1000);
-  matr.insertToDispArray(fig1);
+  matr.insertToDispBuffer(fig1);
   matr.showDisplay();
   delay(1000);
   matr.clearDisplay();

@@ -42,7 +42,7 @@ void MATR::send(byte data) {
 
 void MATR::showDisplay() {
   for (uint8_t i = 0; i < 8; i++) {
-    sendData(i, displayArray[i]);
+    sendData(i, displayBuffer[i]);
     digitalWrite(dataPin, LOW);
     digitalWrite(clockPin, LOW);
     digitalWrite(clockPin, HIGH);
@@ -54,10 +54,6 @@ void MATR::showDisplay() {
 
 void MATR::clearDisplay() {
   for (uint8_t i = 0; i < 8; i++) {
-    displayArray[i] = 0x00;
+    displayBuffer[i] = 0x00;
   }
-}
-
-void MATR::insertToDisplay(uint8_t adr, uint8_t data) {
-  displayArray[adr] = data;
 }

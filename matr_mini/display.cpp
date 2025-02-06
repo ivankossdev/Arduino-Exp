@@ -27,8 +27,8 @@ uint8_t * Display::GetSimvolArray(uint8_t ch){
   return bufer;
 }
 
-void Display::insertToDispArray(uint8_t *array){
+void Display::insertToDispBuffer(uint8_t *array){
   for(int i = 0, r = 7; i < 8; i++, r--){
-    insertToDisplay(r, ReverseChar(array[i])); // 
+    displayBuffer[r] = ReverseChar(array[i]);
   }
 }
