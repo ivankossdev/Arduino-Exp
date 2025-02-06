@@ -33,12 +33,23 @@ void Display::insertToDispBuffer(uint8_t *array){
   }
 }
 
+void Display::insertToDispBuffer(uint8_t *array, int sh){
+  for(int i = 0, r = 7; i < 8; i++, r--){
+    displayBuffer[r] = reverseChar(array[i] << sh);
+  }
+}
+
 void Display::inserDigiatl(uint8_t dig){
   insertToDispBuffer(getSimvolArray(dig));
 }
 
 void Display::insertShape(uint8_t *array){
   insertToDispBuffer(array);
+}
+
+void Display::insertShiftShape(uint8_t *array, int sh){
+  if(sh > 8) sh = 0;
+  insertToDispBuffer(array, sh);
 }
 
 

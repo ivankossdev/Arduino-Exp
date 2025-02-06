@@ -4,6 +4,7 @@
 #include "Arduino.h"
 
 class MATR {
+  
 public:
   MATR(uint8_t _intensity = 4, byte dataPin = D7, byte clockPin = D5);
   uint8_t intensity;

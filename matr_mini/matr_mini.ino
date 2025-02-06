@@ -27,12 +27,21 @@ void loop() {
   matr.clearDisplay();
   matr.showDisplay();
   delay(1000);
+
+  matr.clearDisplay();
   matr.insertShape(arrowRight);
   matr.showDisplay();
   delay(1000);
+
+  matr.clearDisplay();
+  matr.insertShiftShape(arrowRight, 1); 
+  matr.showDisplay();
+  delay(1000);
+
   matr.clearDisplay();
   matr.showDisplay();
   delay(1000);
+
 }
 
 
