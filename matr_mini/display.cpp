@@ -1,7 +1,7 @@
 #include "display.h"
 #include "font.h"
 
-uint8_t Display::ReverseChar(uint8_t ch) {
+uint8_t Display::reverseChar(uint8_t ch) {
   uint8_t rv = 0;
   for(int i = 0, t = 7; i < 8; i++, t--){
       rv |= ((ch >> i) & 0x01) << t;
@@ -10,7 +10,7 @@ uint8_t Display::ReverseChar(uint8_t ch) {
   return rv;
 }
 
-uint8_t * Display::GetSimvolArray(uint8_t ch){
+uint8_t * Display::getSimvolArray(uint8_t ch){
   uint8_t *bufer = (uint8_t *)calloc(8, sizeof(uint8_t));
   switch(ch){
     case 0: bufer = (uint8_t *)s_0; break;
@@ -29,6 +29,17 @@ uint8_t * Display::GetSimvolArray(uint8_t ch){
 
 void Display::insertToDispBuffer(uint8_t *array){
   for(int i = 0, r = 7; i < 8; i++, r--){
-    displayBuffer[r] = ReverseChar(array[i]);
+    displayBuffer[r] = reverseChar(array[i]);
   }
 }
+
+void Display::inserDigiatl(uint8_t dig){
+  insertToDispBuffer(getSimvolArray(dig));
+}
+
+void Display::insertShape(uint8_t *array){
+  insertToDispBuffer(array);
+}
+
+
+
