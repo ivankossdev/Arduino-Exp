@@ -12,6 +12,8 @@ class Display : public MATR{
     void inserDigiatl(uint8_t dig, int sh);
     void insertShape(uint8_t *array);
     void insertShiftShape(uint8_t *array, int sh);
+    void scrollLeft(int scr);
+    void scrollRight(int scr);
 
   protected:
     uint8_t reverseChar(uint8_t ch);

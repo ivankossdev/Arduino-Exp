@@ -56,5 +56,21 @@ void Display::insertShiftShape(uint8_t *array, int sh){
   insertToDispBuffer(array, sh);
 }
 
+void Display::scrollLeft(int scr){
+  if(scr > 8) scr = 0;
+  for(int i = 0; i < 8; i++){
+    displayBuffer[i] = displayBuffer[i] >> scr;
+  }
+  showDisplay();
+}
+
+void Display::scrollRight(int scr){
+  if(scr > 8) scr = 0;
+  for(int i = 0; i < 8; i++){
+    displayBuffer[i] = displayBuffer[i] << scr;
+  }
+  showDisplay();
+}
+
 
 
