@@ -43,6 +43,10 @@ void Display::inserDigiatl(uint8_t dig){
   insertToDispBuffer(getSimvolArray(dig));
 }
 
+void Display::inserDigiatl(uint8_t dig, int sh){
+  insertToDispBuffer(getSimvolArray(dig), sh);
+}
+
 void Display::insertShape(uint8_t *array){
   insertToDispBuffer(array);
 }

@@ -9,6 +9,7 @@ class Display : public MATR{
   public: 
     using MATR::MATR;
     void inserDigiatl(uint8_t dig);
+    void inserDigiatl(uint8_t dig, int sh);
     void insertShape(uint8_t *array);
     void insertShiftShape(uint8_t *array, int sh);
 
