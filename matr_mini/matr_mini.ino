@@ -4,11 +4,23 @@
 Display matr(1); //set intensity=1
 
 void scrollRightArrow();
+void digtalCounter();
 
-void setup() {}
+void setup() {
+
+}
 
 void loop() {
-  scrollRightArrow();
+  // scrollRightArrow();
+  matr.insertShape((uint8_t *)arrowRight);
+  matr.showDisplay();
+  delay(80);
+  for(int i = 0; i < 8; i++){
+    matr.scrollRightLoop();
+    delay(80);
+  }
+  matr.clearDisplay();
+  delay(1000);
 }
 
 void scrollRightArrow(){
@@ -23,6 +35,14 @@ void scrollRightArrow(){
 
   matr.clearDisplay();
   delay(1000);
+}
+
+void digtalCounter(){
+  for(int i = 0; i < 10; i++){
+    matr.inserDigiatl(i);
+    matr.showDisplay();
+    delay(500);
+  }
 }
 
 

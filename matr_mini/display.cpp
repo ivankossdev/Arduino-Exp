@@ -72,5 +72,23 @@ void Display::scrollRight(int scr){
   showDisplay();
 }
 
+void Display::scrollRightLoop(){
+  uint8_t tmp = 0;
+
+  for(int i = 7; i >= 0; i--){
+    tmp = displayBuffer[i] >> 7;
+    displayBuffer[i] = displayBuffer[i] << 1;
+    displayBuffer[i] |= tmp;
+  }
+
+  showDisplay();
+}
+
+
+
+
+
+
+
 
 
