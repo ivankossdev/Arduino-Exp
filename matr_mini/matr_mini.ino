@@ -3,26 +3,26 @@
 
 Display matr(1); //set intensity=1
 
+void scrollRightArrow();
+
 void setup() {}
 
 void loop() {
-  
+  scrollRightArrow();
+}
+
+void scrollRightArrow(){
+  matr.insertShape((uint8_t *)arrowRight);
+  matr.showDisplay();
+  delay(1000);
+
   for(uint8_t i = 0; i <= 9; i++){
-    matr.inserDigiatl(i, 1);
-    matr.showDisplay();
-    delay(250);
-    matr.clearDisplay();
+    matr.scrollRight(1);
+    delay(80);
   }
 
-  matr.insertShape((uint8_t *)arrowRight);
-
-  matr.scrollLeft(1);
-  delay(1000);
-
-  matr.scrollRight(1);
-  delay(1000);
-
   matr.clearDisplay();
+  delay(1000);
 }
 
 
