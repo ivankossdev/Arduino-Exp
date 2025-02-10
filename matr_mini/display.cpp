@@ -110,8 +110,9 @@ void Display::scrollRightLoop(){
   showDisplay();
 }
 
-void printChar(char ch){
-
+void Display::printChar(char ch){
+  insertToDispBuffer(getSimvolArray(ch));
+  showDisplay();
 }
 
 
