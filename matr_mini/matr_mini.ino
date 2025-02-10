@@ -3,17 +3,30 @@
 
 Display matr(1); //set intensity=1
 
-void scrollRightArrow();
+void scrollRightDispaly();
 void digtalCounter();
-void printSerialChars(char *str);
 
 void setup() {}
 
 void loop() {
-  printSerialChars((char *)"abcdefghijklmnoprstuvwxqyz");
+  scrollLeftString((char *)"abcdefghijklmnoprstuvwxqyz");
 }
 
-void scrollRightArrow(){
+void scrollLeftString(char *str){
+  unsigned long d = 100; int i = 0;
+  do{
+    matr.printChar(str[i]);
+    delay(d * 2);
+    for(int _i = 0; _i < 8; _i++){
+      matr.scrollLeft(1);
+      delay(d);
+    }
+    i++;
+    delay(d * 4);
+  }while(str[i] != '\0');
+}
+
+void scrollRightDispaly(){
   matr.insertShape((uint8_t *)arrowRight);
   matr.showDisplay();
   delay(80);
@@ -31,15 +44,6 @@ void digtalCounter(){
     matr.showDisplay();
     delay(500);
   }
-}
-
-void printSerialChars(char *str){
-  int i = 0;
-  do{
-    matr.printChar(str[i]);
-    delay(500);
-    i++;
-  }while(str[i] != '\0');
 }
 
 
