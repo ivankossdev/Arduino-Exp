@@ -13,16 +13,42 @@ uint8_t Display::reverseChar(uint8_t ch) {
 uint8_t * Display::getSimvolArray(uint8_t ch){
   uint8_t *bufer = (uint8_t *)calloc(8, sizeof(uint8_t));
   switch(ch){
-    case 0: bufer = (uint8_t *)s_0; break;
-    case 1: bufer = (uint8_t *)s_1; break;
-    case 2: bufer = (uint8_t *)s_2; break;
-    case 3: bufer = (uint8_t *)s_3; break;
-    case 4: bufer = (uint8_t *)s_4; break;
-    case 5: bufer = (uint8_t *)s_5; break;
-    case 6: bufer = (uint8_t *)s_6; break;
-    case 7: bufer = (uint8_t *)s_7; break;
-    case 8: bufer = (uint8_t *)s_8; break;
-    case 9: bufer = (uint8_t *)s_9; break;
+    case '0': bufer = (uint8_t *)s_0; break;
+    case '1': bufer = (uint8_t *)s_1; break;
+    case '2': bufer = (uint8_t *)s_2; break;
+    case '3': bufer = (uint8_t *)s_3; break;
+    case '4': bufer = (uint8_t *)s_4; break;
+    case '5': bufer = (uint8_t *)s_5; break;
+    case '6': bufer = (uint8_t *)s_6; break;
+    case '7': bufer = (uint8_t *)s_7; break;
+    case '8': bufer = (uint8_t *)s_8; break;
+    case '9': bufer = (uint8_t *)s_9; break;
+    case 'a': bufer = (uint8_t *)s_a; break;
+    case 'b': bufer = (uint8_t *)s_b; break;
+    case 'c': bufer = (uint8_t *)s_c; break;
+    case 'd': bufer = (uint8_t *)s_d; break;
+    case 'e': bufer = (uint8_t *)s_e; break;
+    case 'f': bufer = (uint8_t *)s_f; break;
+    case 'g': bufer = (uint8_t *)s_g; break;
+    case 'h': bufer = (uint8_t *)s_h; break;
+    case 'i': bufer = (uint8_t *)s_i; break;
+    case 'j': bufer = (uint8_t *)s_j; break;
+    case 'k': bufer = (uint8_t *)s_k; break;
+    case 'l': bufer = (uint8_t *)s_l; break;
+    case 'm': bufer = (uint8_t *)s_m; break;
+    case 'n': bufer = (uint8_t *)s_n; break;
+    case 'o': bufer = (uint8_t *)s_o; break;
+    case 'p': bufer = (uint8_t *)s_p; break;
+    case 'r': bufer = (uint8_t *)s_r; break;
+    case 's': bufer = (uint8_t *)s_s; break;
+    case 't': bufer = (uint8_t *)s_t; break;
+    case 'u': bufer = (uint8_t *)s_u; break;
+    case 'v': bufer = (uint8_t *)s_v; break;
+    case 'w': bufer = (uint8_t *)s_w; break;
+    case 'q': bufer = (uint8_t *)s_q; break;
+    case 'x': bufer = (uint8_t *)s_x; break;
+    case 'y': bufer = (uint8_t *)s_y; break;
+    case 'z': bufer = (uint8_t *)s_z; break;
   }
   return bufer;
 }
@@ -82,6 +108,10 @@ void Display::scrollRightLoop(){
   }
 
   showDisplay();
+}
+
+void printChar(char ch){
+
 }
 
 

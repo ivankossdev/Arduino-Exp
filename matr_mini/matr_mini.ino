@@ -6,12 +6,9 @@ Display matr(1); //set intensity=1
 void scrollRightArrow();
 void digtalCounter();
 
-void setup() {
-
-}
+void setup() {}
 
 void loop() {
-  // scrollRightArrow();
   matr.insertShape((uint8_t *)arrowRight);
   matr.showDisplay();
   delay(80);
@@ -39,7 +36,7 @@ void scrollRightArrow(){
 
 void digtalCounter(){
   for(int i = 0; i < 10; i++){
-    matr.inserDigiatl(i);
+    matr.inserDigiatl(i | 0x30);
     matr.showDisplay();
     delay(500);
   }
