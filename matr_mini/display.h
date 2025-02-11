@@ -24,10 +24,10 @@ class Display : public MATR{
     void insertToDispBuffer(uint8_t *array);
     void insertToDispBuffer(uint8_t *array, int sh);
   private:
-    int getWidthShape(char * fig);
+    int getWidthShape(uint8_t * fig);
     char * createString(char myInt);
     void printSerialShape(uint8_t *fig);
-
+    void sliceShapeByCordY(uint8_t *shape);
 };
 
 #endif

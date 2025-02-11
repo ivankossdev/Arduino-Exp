@@ -124,7 +124,8 @@ void Display::scrollLeftString(char *str, unsigned long score){
   do{
     /* Показываем сивол на матрице */
     printChar(str[i]);
-    printSerialShape(getSimvolArray(str[i]));
+    sliceShapeByCordY(getSimvolArray(str[i]));
+    // printSerialShape(getSimvolArray(str[i]));
     delay(score * 2);
 
     /* Сдвигает символ строки на 8 позиций */
@@ -139,7 +140,7 @@ void Display::scrollLeftString(char *str, unsigned long score){
 }
 
 /* Рассчитывает ширину символа */
-int Display::getWidthShape(char * fig){
+int Display::getWidthShape(uint8_t  * fig){
     int shift = 0;
     /* Расчет ширины символа */
     while(1){
@@ -167,6 +168,18 @@ void Display::printSerialShape(uint8_t *fig){
     for(int i = 0; i < 8; i++)
         Serial.printf("%s\n", createString(fig[i]));
     Serial.printf("\n");
+}
+
+void Display::sliceShapeByCordY(uint8_t *shape){
+  int setZeroPozition = 8 - getWidthShape(shape);
+  uint8_t shapePositoin = 0; 
+    
+  for(int i = 0, r = 7; i < 8; i++, r--){
+    shapePositoin = (uint8_t)(shape[i] << setZeroPozition) ;
+    // displayBuffer[r] = reverseChar(shapePositoin & 0b10000000);
+    Serial.printf("%s\n", createString((shapePositoin & 0b10000000) >> 7));
+  }
+  Serial.printf("\n");
 }
 
 
