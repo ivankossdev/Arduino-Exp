@@ -24,6 +24,7 @@ class Display : public MATR{
     void insertToDispBuffer(uint8_t *array);
     void insertToDispBuffer(uint8_t *array, int sh);
     int GetWidthShape(char * fig);
+    char * CreateString(unsigned char myInt);
 };
 
 #endif
