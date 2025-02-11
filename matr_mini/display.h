@@ -16,6 +16,7 @@ class Display : public MATR{
     void scrollRight(int scr);
     void scrollRightLoop();
     void printChar(char ch);
+    void scrollLeftString(char *str, unsigned long score);
 
   protected:
     uint8_t reverseChar(uint8_t ch);

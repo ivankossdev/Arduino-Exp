@@ -115,6 +115,19 @@ void Display::printChar(char ch){
   showDisplay();
 }
 
+void Display::scrollLeftString(char *str, unsigned long score){
+  int i = 0;
+  do{
+    printChar(str[i]);
+    delay(score * 2);
+    for(int _i = 0; _i < 8; _i++){
+      scrollLeft(1);
+      delay(score);
+    }
+    delay(score * 4);
+    i++;
+  }while(str[i] != '\0');
+}
 
 
 
