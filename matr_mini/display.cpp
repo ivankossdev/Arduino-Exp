@@ -122,9 +122,9 @@ void Display::scrollLeftString(char *str, unsigned long score){
 
   /* Читает строку по символьно с 0 индекса */
   do{
+    /* Показываем сивол на матрице */
     printChar(str[i]);
-    w = GetWidthShape((char *)getSimvolArray(str[i]));
-    Serial.printf("char[%d] %c width = %d %s\n", i, str[i], w , CreateString((int)str[i]));
+    printSerialShape(getSimvolArray(str[i]));
     delay(score * 2);
 
     /* Сдвигает символ строки на 8 позиций */
@@ -135,10 +135,11 @@ void Display::scrollLeftString(char *str, unsigned long score){
     delay(score * 4);
     i++;
   }while(str[i] != '\0');
+  Serial.printf("\n");
 }
 
 /* Рассчитывает ширину символа */
-int Display::GetWidthShape(char * fig){
+int Display::getWidthShape(char * fig){
     int shift = 0;
     /* Расчет ширины символа */
     while(1){
@@ -151,15 +152,21 @@ int Display::GetWidthShape(char * fig){
     }
 }
 
-char * Display::CreateString(unsigned char myInt){
+char * Display::createString(char myInt){
     char buffer[2] = {'\0'}; 
-    char * outData = (char *)calloc(9, sizeof(unsigned char));
+    char * outData = (char *)calloc(9, sizeof(char));
 
     for(int item = 7; item >=0; item--){
         if(myInt >> item & 1) { sprintf(buffer, "@"); strncat(outData, buffer, 1);}
         else { sprintf(buffer, "."); strncat(outData, buffer, 1); };
     }
     return outData;
+}
+
+void Display::printSerialShape(uint8_t *fig){
+    for(int i = 0; i < 8; i++)
+        Serial.printf("%s\n", createString(fig[i]));
+    Serial.printf("\n");
 }
 
 
