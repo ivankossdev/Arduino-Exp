@@ -6,7 +6,7 @@ Display matr(1); //set intensity=1
 void scrollRightDispaly();
 void digtalCounter();
 
-char example[4] = "abc";
+char example[32] = "1ljt";
 
 void setup() {}
 

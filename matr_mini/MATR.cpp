@@ -12,6 +12,7 @@ MATR::MATR(uint8_t _intensity, byte dataPin, byte clockPin) {
 
   digitalWrite(dataPin, HIGH);
   digitalWrite(clockPin, HIGH);
+  Serial.begin(115200);
 }
 
 

@@ -119,6 +119,7 @@ void Display::scrollLeftString(char *str, unsigned long score){
   int i = 0;
   do{
     printChar(str[i]);
+    Serial.printf("char[%d] %c width = %d\n", i, str[i], GetWidthShape((char *)getSimvolArray(str[i])));
     delay(score * 2);
     for(int _i = 0; _i < 8; _i++){
       scrollLeft(1);
@@ -127,6 +128,20 @@ void Display::scrollLeftString(char *str, unsigned long score){
     delay(score * 4);
     i++;
   }while(str[i] != '\0');
+}
+
+/* Рассчитывает ширину символа */
+int Display::GetWidthShape(char * fig){
+    int shift = 0;
+    /* Расчет ширины символа */
+    while(1){
+        for(int i = 0; i < 8; i++){
+            if((fig[i] << shift) & 0b10000000) return 8 - shift;
+        }
+        shift++;
+        /* Значение по умолчанию */
+        if (shift >= 8) return 3; 
+    }
 }
 
 

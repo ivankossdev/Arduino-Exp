@@ -23,6 +23,7 @@ class Display : public MATR{
     uint8_t *getSimvolArray(uint8_t ch);
     void insertToDispBuffer(uint8_t *array);
     void insertToDispBuffer(uint8_t *array, int sh);
+    int GetWidthShape(char * fig);
 };
 
 #endif
