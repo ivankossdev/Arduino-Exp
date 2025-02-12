@@ -116,43 +116,6 @@ void Display::printChar(char ch){
   showDisplay();
 }
 
-/* Функция бегущей строки (в разработке) */
-void Display::scrollLeftString(char *str, unsigned long score){
-  int i = 0; int w = 0;
-
-  /* Читает строку по символьно с 0 индекса */
-  do{
-    /* Показываем сивол на матрице */
-    printChar(str[i]);
-    sliceShapeByCordY(getSimvolArray(str[i]), 7);
-    // printSerialShape(getSimvolArray(str[i]));
-    delay(score * 2);
-
-    /* Сдвигает символ строки на 8 позиций */
-    for(int _i = 0; _i < 8; _i++){
-      scrollLeft(1);
-      delay(score);
-    }
-    delay(score * 4);
-    i++;
-  }while(str[i] != '\0');
-  Serial.printf("\n");
-}
-
-/* Рассчитывает ширину символа */
-int Display::getWidthShape(uint8_t  * fig){
-    int shift = 0;
-    /* Расчет ширины символа */
-    while(1){
-        for(int i = 0; i < 8; i++){
-            if((fig[i] << shift) & 0b10000000) return 8 - shift;
-        }
-        shift++;
-        /* Значение по умолчанию */
-        if (shift >= 8) return 4; 
-    }
-}
-
 char * Display::createString(char myInt){
     char buffer[2] = {'\0'}; 
     char * outData = (char *)calloc(9, sizeof(char));
@@ -170,19 +133,48 @@ void Display::printSerialShape(uint8_t *fig){
     Serial.printf("\n");
 }
 
+/* Рассчитывает ширину символа */
+int Display::getWidthShape(uint8_t  * fig){
+    int shift = 0;
+    /* Расчет ширины символа */
+    while(1){
+        for(int i = 0; i < 8; i++){
+            if((fig[i] << shift) & 0b10000000) return 8 - shift;
+        }
+        shift++;
+        /* Значение по умолчанию */
+        if (shift >= 8) return 4; 
+    }
+}
+
 void Display::sliceShapeByCordY(uint8_t *shape, int position){
   if(position > 7) position = 7;
   int setZeroPozition = 8 - getWidthShape(shape);
   uint8_t shapePositoin = 0; 
-    
+  int serialCount = 0;
   for(int i = 0, r = 7; i < 8; i++, r--){
-    shapePositoin = (uint8_t)(shape[i] << setZeroPozition) ;
-    // displayBuffer[r] |= reverseChar((shapePositoin & 0b10000000) >> position);
-    Serial.printf("%s\n", createString((shapePositoin & 0b10000000) >> position));
+    shapePositoin = (uint8_t)(shape[i] << setZeroPozition);
+    displayBuffer[r] |= reverseChar((shapePositoin & (0x01 << position)) >> position);
   }
-  Serial.printf("\n");
 }
 
+/* Функция бегущей строки (в разработке) */
+void Display::scrollLeftString(char *str, unsigned long score){
+  int i = 0; int w = 0;
+
+  /* Читает строку по символьно с 0 индекса */
+  do{
+    /* Сдвигает символ строки на 8 позиций */
+    w = 6 - getWidthShape(getSimvolArray(str[i]));
+    for(int _i = 7; _i > w; _i--){
+      scrollLeft(1);
+      sliceShapeByCordY(getSimvolArray(str[i]), _i);
+      showDisplay();
+      delay(score);
+    }
+    i++;
+  }while(str[i] != '\0');
+}
 
 
 
