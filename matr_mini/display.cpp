@@ -50,6 +50,32 @@ uint8_t * Display::getSimvolArray(uint8_t ch){
     case 'y': buffer = (uint8_t *)s_y; break;
     case 'z': buffer = (uint8_t *)s_z; break;
     case ' ': buffer = (uint8_t *)s_space; break;
+    case 'A': buffer = (uint8_t *)s_A; break;
+    case 'B': buffer = (uint8_t *)s_B; break;
+    case 'C': buffer = (uint8_t *)s_C; break;
+    case 'D': buffer = (uint8_t *)s_D; break;
+    case 'E': buffer = (uint8_t *)s_E; break;
+    case 'F': buffer = (uint8_t *)s_F; break;
+    case 'G': buffer = (uint8_t *)s_G; break;
+    case 'H': buffer = (uint8_t *)s_H; break;
+    case 'I': buffer = (uint8_t *)s_I; break;
+    case 'J': buffer = (uint8_t *)s_J; break;
+    case 'K': buffer = (uint8_t *)s_K; break;
+    case 'L': buffer = (uint8_t *)s_L; break;
+    case 'M': buffer = (uint8_t *)s_M; break;
+    case 'N': buffer = (uint8_t *)s_N; break;
+    case 'O': buffer = (uint8_t *)s_O; break;
+    case 'P': buffer = (uint8_t *)s_P; break;
+    case 'R': buffer = (uint8_t *)s_R; break;
+    case 'S': buffer = (uint8_t *)s_S; break;
+    case 'T': buffer = (uint8_t *)s_T; break;
+    case 'U': buffer = (uint8_t *)s_U; break;
+    case 'V': buffer = (uint8_t *)s_V; break;
+    case 'W': buffer = (uint8_t *)s_W; break;
+    case 'Q': buffer = (uint8_t *)s_Q; break;
+    case 'X': buffer = (uint8_t *)s_X; break;
+    case 'Y': buffer = (uint8_t *)s_Y; break;
+    case 'Z': buffer = (uint8_t *)s_Z; break;
   }
   return buffer;
 }
