@@ -6,7 +6,7 @@ Display matr(1); //set intensity=1
 void scrollRightDispaly();
 void digtalCounter();
 
-char example[32] = "Hello Led ";
+char example[256] = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin interdum. ";
 
 void setup() {}
 

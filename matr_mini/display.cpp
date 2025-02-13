@@ -50,6 +50,11 @@ uint8_t * Display::getSimvolArray(uint8_t ch){
     case 'y': buffer = (uint8_t *)s_y; break;
     case 'z': buffer = (uint8_t *)s_z; break;
     case ' ': buffer = (uint8_t *)s_space; break;
+    case '.': buffer = (uint8_t *)s_dot; break;
+    case ':': buffer = (uint8_t *)s_double_dot; break;
+    case '-': buffer = (uint8_t *)s_dash; break;
+    case ',': buffer = (uint8_t *)s_comma; break;
+    // case '': buffer = (uint8_t *); break;
     case 'A': buffer = (uint8_t *)s_A; break;
     case 'B': buffer = (uint8_t *)s_B; break;
     case 'C': buffer = (uint8_t *)s_C; break;
