@@ -1,24 +1,34 @@
+#include <EEPROM.h>
 #include "display.h"
 #include "img.h"
 
-Display matr(1); //set intensity=1
+Display matr(1);  //set intensity=1
 
 void scrollRightDispaly();
 void digtalCounter();
 
-char example[256] = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin interdum. ";
+char example[512] = {'\0'};
 
-void setup() {}
+void writeString();
+void readString();
+void clearString();
+
+void setup() {
+  Serial.begin(115200);
+  EEPROM.begin(512);
+  readString();
+}
 
 void loop() {
+  writeString();
   matr.scrollLeftString(example, 100);
 }
 
-void scrollRightDispaly(){
+void scrollRightDispaly() {
   matr.insertShape((uint8_t *)arrowRight);
   matr.showDisplay();
   delay(80);
-  for(int i = 0; i < 8; i++){
+  for (int i = 0; i < 8; i++) {
     matr.scrollRightLoop();
     delay(80);
   }
@@ -26,12 +36,51 @@ void scrollRightDispaly(){
   delay(1000);
 }
 
-void digtalCounter(){
-  for(int i = 0; i < 10; i++){
+void digtalCounter() {
+  for (int i = 0; i < 10; i++) {
     matr.inserDigiatl(i | 0x30);
     matr.showDisplay();
     delay(500);
   }
 }
 
+void writeString() {
+  if (Serial.available() > 0) {
+    clearString();
+    String str = Serial.readString();
+    if (str.length() <= 512) {
+      Serial.printf("str length = %d\n", str.length());
+      // str.trim();
+      int i = 0;
+      do {
+        EEPROM.write(i, str[i]);
+        i++;
+      } while (str[i] != '\0');
+      if (EEPROM.commit()) {
+        Serial.println("EEPROM successfully committed");
+        readString();
+      } else {
+        Serial.println("ERROR! EEPROM commit failed");
+      }
+    }
+  }
+}
 
+void readString() {
+  int i = 0;
+  
+  do {
+    if (i > 512) {
+      Serial.println("Error readString()");
+      i = 0;
+      break;
+    }
+    example[i] = (char)EEPROM.read(i);
+    i++;
+  } while (EEPROM.read(i) != 0);
+  example[i] = '\0';
+}
+
+void clearString() {
+  for (int i = 0; i < 512; i++) { EEPROM.write(i, 0); }
+}
