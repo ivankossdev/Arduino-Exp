@@ -29,6 +29,7 @@ class Display : public MATR{
     char * createString(char myInt);
     void printSerialShape(uint8_t *fig);
     void sliceShapeByCordY(uint8_t *shape, int position);
+    uint8_t *buffer = (uint8_t *)calloc(8, sizeof(uint8_t));
 };
 
 #endif

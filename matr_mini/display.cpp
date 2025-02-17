@@ -11,7 +11,7 @@ uint8_t Display::reverseChar(uint8_t ch) {
 }
 
 uint8_t * Display::getSimvolArray(uint8_t ch){
-  uint8_t *buffer = (uint8_t *)calloc(8, sizeof(uint8_t));
+  // uint8_t *buffer = (uint8_t *)calloc(8, sizeof(uint8_t));
   switch(ch){
     case '0': buffer = (uint8_t *)s_0; break;
     case '1': buffer = (uint8_t *)s_1; break;

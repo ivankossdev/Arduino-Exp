@@ -46,16 +46,23 @@ void digtalCounter() {
 
 void writeString() {
   if (Serial.available() > 0) {
+    
     clearString();
     String str = Serial.readString();
+
     if (str.length() <= 512) {
-      Serial.printf("str length = %d\n", str.length());
-      // str.trim();
+
+      unsigned int len = str.length();
+      Serial.printf("str length = %d\n", len);
+      
       int i = 0;
       do {
         EEPROM.write(i, str[i]);
         i++;
+        if(str[i] == '\r' || str[i] == '\n') break;
       } while (str[i] != '\0');
+      str[i] = '\0';
+      
       if (EEPROM.commit()) {
         Serial.println("EEPROM successfully committed");
         readString();
@@ -77,8 +84,9 @@ void readString() {
     }
     example[i] = (char)EEPROM.read(i);
     i++;
-  } while (EEPROM.read(i) != 0);
+  } while (EEPROM.read(i) != '\0');
   example[i] = '\0';
+  Serial.printf("%s\n", example);
 }
 
 void clearString() {
