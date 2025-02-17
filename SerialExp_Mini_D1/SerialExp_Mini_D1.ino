@@ -28,48 +28,41 @@ void writeString() {
   if (Serial.available() > 0) {
     clearString();
     String str = Serial.readString();
-    str.trim();
-    int i = 0;
-    do {
-      EEPROM.write(i, str[i]);
-      i++;
-    } while (str[i] != '\0');
-    if (EEPROM.commit()) {
-      Serial.println("EEPROM successfully committed");
-    } else {
-      Serial.println("ERROR! EEPROM commit failed");
+    if (str.length() <= 512) {
+      Serial.printf("str length = %d\n", str.length());
+      str.trim();
+      int i = 0;
+      do {
+        EEPROM.write(i, str[i]);
+        i++;
+      } while (str[i] != '\0');
+      if (EEPROM.commit()) {
+        Serial.println("EEPROM successfully committed");
+      } else {
+        Serial.println("ERROR! EEPROM commit failed");
+      }
     }
   }
 }
 
-void readString(){
+void readString() {
   int i = 0;
-  char str[] = {'\0'};
-  do{
-    if(i > 512){
+  char str[512] = { '\0' };
+  do {
+    if (i > 512) {
       Serial.println("Error readString()");
       i = 0;
       break;
     }
     str[i] = (char)EEPROM.read(i);
     i++;
-  }while(EEPROM.read(i) != 0);
+  } while (EEPROM.read(i) != 0);
   str[i] = '\0';
   Serial.println(str);
-
 }
 
-void clearString(){
+void clearString() {
   for (int i = 0; i < 512; i++) { EEPROM.write(i, 0); }
 }
 
-//Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-
-
-
-
-
-
-
-
-
+//Lorem ipsum dolor sit amet, consectetur adipiscing elit.
