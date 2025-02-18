@@ -172,9 +172,9 @@ int Display::getWidthShape(uint8_t  * fig){
         for(int i = 0; i < 8; i++){
             if((fig[i] << shift) & 0b10000000) return 8 - shift;
         }
-        shift++;
         /* Значение по умолчанию */
         if (shift >= 8) return 4; 
+        shift++;
     }
 }
 
