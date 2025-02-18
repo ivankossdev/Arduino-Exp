@@ -158,12 +158,6 @@ char * Display::createString(char myInt){
     return outData;
 }
 
-void Display::printSerialShape(uint8_t *fig){
-    for(int i = 0; i < 8; i++)
-        Serial.printf("%s\n", createString(fig[i]));
-    Serial.printf("\n");
-}
-
 /* Рассчитывает ширину символа */
 int Display::getWidthShape(uint8_t  * fig){
     int shift = 0;
