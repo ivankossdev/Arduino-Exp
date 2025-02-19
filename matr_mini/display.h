@@ -3,11 +3,13 @@
 
 #include "MATR.h"
 #include "Arduino.h"
+#include "MemHandler.h"
 
 class Display : public MATR{
   
   public: 
     using MATR::MATR;
+    Memory memory;
     void inserDigiatl(uint8_t dig);
     void inserDigiatl(uint8_t dig, int sh);
     void insertShape(uint8_t *array);
@@ -16,7 +18,7 @@ class Display : public MATR{
     void scrollRight(int scr);
     void scrollRightLoop();
     void printChar(char ch);
-    void scrollLeftString(char *str, unsigned long score);
+    void scrollLeftString(unsigned long score);
 
   protected:
     uint8_t reverseChar(uint8_t ch);

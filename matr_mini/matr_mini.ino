@@ -1,10 +1,7 @@
-// #include <EEPROM.h>
 #include "display.h"
 #include "img.h"
-#include "MemHandler.h"
 
 Display matr(1);  //set intensity=1
-Memory memory;
 
 void scrollRightDispaly();
 void digtalCounter();
@@ -12,8 +9,7 @@ void digtalCounter();
 void setup() {}
 
 void loop() {
-  memory.writeString();
-  matr.scrollLeftString(memory.example, 100);
+  matr.scrollLeftString(100);
 }
 
 void scrollRightDispaly() {

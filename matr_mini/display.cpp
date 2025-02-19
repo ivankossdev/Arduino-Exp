@@ -183,22 +183,23 @@ void Display::sliceShapeByCordY(uint8_t *shape, int position){
   }
 }
 
-/* Функция бегущей строки (в разработке) */
-void Display::scrollLeftString(char *str, unsigned long score){
+/* Функция бегущей строки */
+void Display::scrollLeftString(unsigned long score){
   int i = 0; int w = 0;
 
   /* Читает строку по символьно с 0 индекса */
   do{
+    memory.writeString();
     /* Сдвигает символ строки на 8 позиций */
-    w = 6 - getWidthShape(getSimvolArray(str[i]));
+    w = 6 - getWidthShape(getSimvolArray(memory.example[i]));
     for(int _i = 7; _i > w; _i--){
       scrollLeft(1);
-      sliceShapeByCordY(getSimvolArray(str[i]), _i);
+      sliceShapeByCordY(getSimvolArray(memory.example[i]), _i);
       showDisplay();
       delay(score);
     }
     i++;
-  }while(str[i] != '\0');
+  }while(memory.example[i] != '\0');
 }
 
 
