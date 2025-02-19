@@ -13,10 +13,6 @@ void Memory::writeString() {
     String str = Serial.readString();
 
     if (str.length() <= 512) {
-
-      unsigned int len = str.length();
-      Serial.printf("str length = %d\n", len);
-      
       int i = 0;
       do {
         EEPROM.write(i, str[i]);
@@ -26,12 +22,13 @@ void Memory::writeString() {
       str[i] = '\0';
       
       if (EEPROM.commit()) {
-        Serial.println("EEPROM committed");
+        Serial.println("eeprom write");
         readString();
       } else {
-        Serial.println("ERROR! EEPROM commit failed");
+        Serial.println("eeprom error");
       }
     }
+
   }
 }
 
@@ -47,6 +44,7 @@ void Memory::readString() {
     example[i] = (char)EEPROM.read(i);
     i++;
   } while (EEPROM.read(i) != '\0');
+  
   example[i] = '\0';
   Serial.printf("%s\n", example);
 }
