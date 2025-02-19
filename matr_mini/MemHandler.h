@@ -8,10 +8,10 @@ class Memory{
 
   public:
     Memory();
-    void writeString();
+    bool writeString();
     void readString();
     void clearString();
-    char example[512] = {'\0'};
+    char buffer[512] = {'\0'};
 };
 
 #endif

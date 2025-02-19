@@ -6,9 +6,11 @@ Memory::Memory(){
   readString();
 }
 
-void Memory::writeString() {
+bool Memory::writeString() {
+  bool write = false;
+
   if (Serial.available() > 0) {
-    
+    write = true;
     clearString();
     String str = Serial.readString();
 
@@ -30,6 +32,8 @@ void Memory::writeString() {
     }
 
   }
+
+  return write;
 }
 
 void Memory::readString() {
@@ -41,12 +45,12 @@ void Memory::readString() {
       i = 0;
       break;
     }
-    example[i] = (char)EEPROM.read(i);
+    buffer[i] = (char)EEPROM.read(i);
     i++;
   } while (EEPROM.read(i) != '\0');
-  
-  example[i] = '\0';
-  Serial.printf("%s\n", example);
+
+  buffer[i] = '\0';
+  Serial.printf("%s\n", buffer);
 }
 
 void Memory::clearString() {

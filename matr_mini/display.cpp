@@ -189,7 +189,11 @@ void Display::scrollLeftString(unsigned long score){
 
   /* Читает строку по символьно с 0 индекса */
   do{
-    memory.writeString();
+    /* Записывает новоу строку в eeprom по com порту */
+    if(memory.writeString()){
+      clearDisplay();
+      break;
+    }
     /* Сдвигает символ строки на 8 позиций */
     w = 6 - getWidthShape(getSimvolArray(memory.example[i]));
     for(int _i = 7; _i > w; _i--){
