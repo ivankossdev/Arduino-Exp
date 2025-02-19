@@ -11,7 +11,7 @@ uint8_t Display::reverseChar(uint8_t ch) {
 }
 
 uint8_t * Display::getSimvolArray(uint8_t ch){
-  // uint8_t *buffer = (uint8_t *)calloc(8, sizeof(uint8_t));
+  
   switch(ch){
     case '0': buffer = (uint8_t *)s_0; break;
     case '1': buffer = (uint8_t *)s_1; break;
@@ -54,7 +54,6 @@ uint8_t * Display::getSimvolArray(uint8_t ch){
     case ':': buffer = (uint8_t *)s_double_dot; break;
     case '-': buffer = (uint8_t *)s_dash; break;
     case ',': buffer = (uint8_t *)s_comma; break;
-    // case '': buffer = (uint8_t *); break;
     case 'A': buffer = (uint8_t *)s_A; break;
     case 'B': buffer = (uint8_t *)s_B; break;
     case 'C': buffer = (uint8_t *)s_C; break;
@@ -81,6 +80,7 @@ uint8_t * Display::getSimvolArray(uint8_t ch){
     case 'X': buffer = (uint8_t *)s_X; break;
     case 'Y': buffer = (uint8_t *)s_Y; break;
     case 'Z': buffer = (uint8_t *)s_Z; break;
+    case '!': buffer = (uint8_t *)s_0x21; break;
   }
   return buffer;
 }
