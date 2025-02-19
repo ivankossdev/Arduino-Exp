@@ -195,15 +195,15 @@ void Display::scrollLeftString(unsigned long score){
       break;
     }
     /* Сдвигает символ строки на 8 позиций */
-    w = 6 - getWidthShape(getSimvolArray(memory.example[i]));
+    w = 6 - getWidthShape(getSimvolArray(memory.buffer[i]));
     for(int _i = 7; _i > w; _i--){
       scrollLeft(1);
-      sliceShapeByCordY(getSimvolArray(memory.example[i]), _i);
+      sliceShapeByCordY(getSimvolArray(memory.buffer[i]), _i);
       showDisplay();
       delay(score);
     }
     i++;
-  }while(memory.example[i] != '\0');
+  }while(memory.buffer[i] != '\0');
 }
 
 
