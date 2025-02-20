@@ -49,11 +49,6 @@ uint8_t * Display::getSimvolArray(uint8_t ch){
     case 'x': buffer = (uint8_t *)s_x; break;
     case 'y': buffer = (uint8_t *)s_y; break;
     case 'z': buffer = (uint8_t *)s_z; break;
-    case ' ': buffer = (uint8_t *)s_space; break;
-    case '.': buffer = (uint8_t *)s_dot; break;
-    case ':': buffer = (uint8_t *)s_double_dot; break;
-    case '-': buffer = (uint8_t *)s_dash; break;
-    case ',': buffer = (uint8_t *)s_comma; break;
     case 'A': buffer = (uint8_t *)s_A; break;
     case 'B': buffer = (uint8_t *)s_B; break;
     case 'C': buffer = (uint8_t *)s_C; break;
@@ -80,7 +75,17 @@ uint8_t * Display::getSimvolArray(uint8_t ch){
     case 'X': buffer = (uint8_t *)s_X; break;
     case 'Y': buffer = (uint8_t *)s_Y; break;
     case 'Z': buffer = (uint8_t *)s_Z; break;
+    case ' ': buffer = (uint8_t *)s_0x20; break;
     case '!': buffer = (uint8_t *)s_0x21; break;
+    case '\"': buffer = (uint8_t *)s_0x22; break;
+    case '#': buffer = (uint8_t *)s_0x23; break;
+    case '$': buffer = (uint8_t *)s_0x24; break;
+    case '%': buffer = (uint8_t *)s_0x25; break;
+    case '*': buffer = (uint8_t *)s_0x2a; break;
+    case ',': buffer = (uint8_t *)s_0x2c; break;
+    case '-': buffer = (uint8_t *)s_0x2d; break;
+    case '.': buffer = (uint8_t *)s_0x2e; break;
+    case ':': buffer = (uint8_t *)s_0x3a; break;
   }
   return buffer;
 }
