@@ -105,7 +105,7 @@ uint8_t * Display::getAsciiArray(uint8_t ch){
   return buffer;
 }
 
-uint8_t * Display::getCyrillicArray(uint8_t ch){
+uint8_t * Display::getCyrillicArray(unsigned short int ch){
 	switch(ch){
         case 0xd090: buffer = (uint8_t *)cyr_d090; break; // А
         case 0xd091: buffer = (uint8_t *)cyr_d091; break; // Б
@@ -293,7 +293,7 @@ void Display::scrollLeftString(unsigned long score){
     for(int _i = 7; _i > w; _i--){
       scrollLeft(1);
       /* Проверка символа memory.buffer[i] ACII или нет */
-      if((memory.buffer[i] >> 8) & 1){
+      if(memory.buffer[i] == 0xd0 || memory.buffer[i] == 0xd1){
         arrNum |=  memory.buffer[i] << 8; i++; 
         arrNum |= memory.buffer[i] & 0xff;
         w = 6 - getWidthShape(getCyrillicArray(arrNum));
@@ -307,7 +307,6 @@ void Display::scrollLeftString(unsigned long score){
       showDisplay();
       delay(score);
     }
-    Serial.printf("%x %d %d\n", memory.buffer[i], i, arrNum);
     i++;
   }while(memory.buffer[i] != '\0');
 }
