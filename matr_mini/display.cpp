@@ -92,6 +92,15 @@ uint8_t * Display::getSimvolArray(uint8_t ch){
     case '.': buffer = (uint8_t *)s_0x2e; break;
     case '/': buffer = (uint8_t *)s_0x2f; break;
     case ':': buffer = (uint8_t *)s_0x3a; break;
+    case ';': buffer = (uint8_t *)s_0x3b; break;
+    case '<': buffer = (uint8_t *)s_0x3c; break;
+    case '=': buffer = (uint8_t *)s_0x3d; break;
+    case '>': buffer = (uint8_t *)s_0x3e; break;
+    case '?': buffer = (uint8_t *)s_0x3f; break;
+    case '@': buffer = (uint8_t *)s_0x40; break;
+    case '\\': buffer = (uint8_t *)s_0x5c; break;
+    case '^': buffer = (uint8_t *)s_0x5e; break;
+    case '|': buffer = (uint8_t *)s_0x7c; break;
   }
   return buffer;
 }
