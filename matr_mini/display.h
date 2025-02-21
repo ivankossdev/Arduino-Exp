@@ -22,7 +22,8 @@ class Display : public MATR{
 
   protected:
     uint8_t reverseChar(uint8_t ch);
-    uint8_t *getSimvolArray(uint8_t ch);
+    uint8_t *getAsciiArray(uint8_t ch);
+    uint8_t *getCyrillicArray(uint8_t ch);
     void insertToDispBuffer(uint8_t *array);
     void insertToDispBuffer(uint8_t *array, int sh);
     
