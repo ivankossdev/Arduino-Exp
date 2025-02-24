@@ -5,7 +5,7 @@
 #define bias 0x13     // LCD bias mode 1:48: Try 0x12 or 0x13 or 0x14 usually
 
 // LCD Nokia 5110 pinout left to right
-// RST / CE / DC / DIN / CLK / VCC/ LIGHT / GND 
+// RST | CE | DC | DIN | CLK | VCC | LIGHT | GND 
 // GPIO setup software SPI
 #define RST D4 // 4-RST
 #define CE D3  // 3-SCE
@@ -15,11 +15,6 @@
 
 // The constructor object, create an instance of the object
 NOKIA5110_TEXT mylcd(RST, CE, DC, DIN, CLK);
-
-// TEST delays setup
-#define mydelay1  1000
-#define mydelay2  2000
-#define mydelay5  5000
 
 void setup() {
   delay(50);
@@ -36,13 +31,10 @@ void loop() {
 void Test10(void)
 {
   mylcd.LCDgotoXY(0, 0); 
-  mylcd.printf("0123456789");
-  mylcd.LCDgotoXY(0, 1);
-  mylcd.printf("abcde");
-  
-  delay(mydelay1);
-  mylcd.LCDClear(0x00);
-  delay(mydelay1);
-
+  for(int i = 0; i <=9; i++){
+    mylcd.printf("count = %d", i);
+    delay(250);
+    mylcd.LCDClear(0x00);
+  }
 }
 
