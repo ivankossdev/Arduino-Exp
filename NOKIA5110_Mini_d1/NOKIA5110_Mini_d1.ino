@@ -30,11 +30,11 @@ void loop() {
 //  TEST 10 Print function
 void Test10(void)
 {
-  mylcd.LCDgotoXY(0, 0); 
   for(int i = 0; i <=9; i++){
-    mylcd.printf("count = %d", i);
+    mylcd.LCDgotoXY(25, 1); 
+    mylcd.printf("i=%d", i);
     delay(250);
-    mylcd.LCDClear(0x00);
+    // mylcd.LCDClear(0x00);
   }
 }
 
