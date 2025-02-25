@@ -4,12 +4,12 @@
 #include <ESP8266mDNS.h>
 #include <NOKIA5110_TEXT.h>
 
-#define inverse  false
-#define contrast 0xbf 
-#define bias 0x13     
+#define inverse false
+#define contrast 0xbf
+#define bias 0x13
 #define RST D4  // 4-RST
-#define CE  D3  // 3-SCE
-#define DC  D5  // 5-D/C
+#define CE D3   // 3-SCE
+#define DC D5   // 5-D/C
 #define DIN D6  // 6-DN
 #define CLK D7  // 7-SCLK
 
@@ -24,7 +24,7 @@ const char* password = STAPSK;
 
 ESP8266WebServer server(80);
 
-void showInfo(){
+void showInfo() {
   mylcd.LCDClear(0x00);
   mylcd.LCDgotoXY(0, 0);
   mylcd.printf("Status OK.");
@@ -55,8 +55,8 @@ void handleNotFound() {
 void setup(void) {
   /* INIT LCD */
   delay(50);
-  mylcd.LCDInit(inverse, contrast, bias); // init the lCD
-  mylcd.LCDClear(0x00); // clear whole screen
+  mylcd.LCDInit(inverse, contrast, bias);  // init the lCD
+  mylcd.LCDClear(0x00);                    // clear whole screen
   mylcd.LCDFont(LCDFont_Default);
   /* INIT Serial */
   Serial.begin(115200);
@@ -103,6 +103,19 @@ void setup(void) {
     mylcd.LCDgotoXY(0, 1);
     mylcd.printf("Action OFF");
     delay(1000);
+    showInfo();
+  });
+
+  server.on("/motion", []() {
+    server.send(200, "text/plain", "Evidence: \nCamera motion");
+    mylcd.LCDClear(0x00);
+    mylcd.LCDgotoXY(0, 0);
+    mylcd.printf("Evidence: ");
+    mylcd.LCDgotoXY(0, 1);
+    mylcd.printf("Camera 1");
+    mylcd.LCDgotoXY(0, 2);
+    mylcd.printf("Motion");
+    delay(2000);
     showInfo();
   });
 
