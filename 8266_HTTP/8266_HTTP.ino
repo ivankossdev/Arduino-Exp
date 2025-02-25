@@ -25,7 +25,15 @@ const char* password = STAPSK;
 ESP8266WebServer server(80);
 
 void handleRoot() {
-  server.send(200, "text/plain", "Start page Web server!\r\n");
+  
+  server.send(200, "text/plain", "Status OK.\r\n");
+  mylcd.LCDClear(0x00);
+  mylcd.LCDgotoXY(0, 0);
+  mylcd.printf("Status OK.");
+  mylcd.LCDgotoXY(0, 1);
+  mylcd.printf("IP: ");
+  mylcd.LCDgotoXY(0, 2);
+  mylcd.print(WiFi.localIP());
 }
 
 void handleNotFound() {
@@ -47,7 +55,7 @@ void setup(void) {
   mylcd.LCDInit(inverse, contrast, bias); // init the lCD
   mylcd.LCDClear(0x00); // clear whole screen
   mylcd.LCDFont(LCDFont_Default);
-
+  /* INIT Serial */
   Serial.begin(115200);
   /* INIT WIFI */
   WiFi.mode(WIFI_STA);
@@ -65,18 +73,28 @@ void setup(void) {
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
 
+
+
   if (MDNS.begin("esp8266")) { Serial.println("MDNS responder started"); }
 
   server.on("/", handleRoot);
 
-  server.on("/ledon", []() {
-    server.send(200, "text/plain", "led on");
-   
+  server.on("/action_on", []() {
+    server.send(200, "text/plain", "Evidence: \nAction ON");
+    mylcd.LCDClear(0x00);
+    mylcd.LCDgotoXY(0, 0);
+    mylcd.printf("Evidence: ");
+    mylcd.LCDgotoXY(0, 1);
+    mylcd.printf("Action ON");
   });
 
-  server.on("/ledoff", []() {
-    server.send(200, "text/plain", "led on");
-    
+  server.on("/action_off", []() {
+    server.send(200, "text/plain", "Evidence: \nAction OFF");
+    mylcd.LCDClear(0x00);
+    mylcd.LCDgotoXY(0, 0);
+    mylcd.printf("Evidence: ");
+    mylcd.LCDgotoXY(0, 1);
+    mylcd.printf("Action OFF");
   });
 
   server.onNotFound(handleNotFound);
