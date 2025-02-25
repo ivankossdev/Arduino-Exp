@@ -7,11 +7,11 @@
 // LCD Nokia 5110 pinout left to right
 // RST | CE | DC | DIN | CLK | VCC | LIGHT | GND 
 // GPIO setup software SPI
-#define RST D4 // 4-RST
-#define CE D3  // 3-SCE
-#define DC D5  // 5-D/C
-#define DIN D6 // 6-DN
-#define CLK D7 // 7-SCLK
+#define RST D4  // 4-RST
+#define CE  D3  // 3-SCE
+#define DC  D5  // 5-D/C
+#define DIN D6  // 6-DN
+#define CLK D7  // 7-SCLK
 
 // The constructor object, create an instance of the object
 NOKIA5110_TEXT mylcd(RST, CE, DC, DIN, CLK);
@@ -30,10 +30,15 @@ void loop() {
 //  TEST 10 Print function
 void Test10(void)
 {
-  for(int i = 0; i <=9; i++){
-    mylcd.LCDgotoXY(25, 1); 
-    mylcd.printf("i=%d", i);
-    delay(250);
+  int c0 = 0, c1 = 0, c2 = 0;
+
+  for(int i = 0; i <=999 ; i++){
+    mylcd.LCDgotoXY(15, 1); 
+    c2 = i / 100;
+    c1 = i / 10 % 10;
+    c0 = i % 10; 
+    mylcd.printf("cnt-%d%d%d", c2, c1, c0);
+    delay(500);
     // mylcd.LCDClear(0x00);
   }
 }
