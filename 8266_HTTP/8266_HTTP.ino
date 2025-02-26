@@ -1,26 +1,8 @@
-#include <ESP8266WiFi.h>
+#include "wifi.h"
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
-#include <NOKIA5110_TEXT.h>
-
-#define inverse false
-#define contrast 0xbf
-#define bias 0x13
-#define RST D4  // 4-RST
-#define CE D3   // 3-SCE
-#define DC D5   // 5-D/C
-#define DIN D6  // 6-DN
-#define CLK D7  // 7-SCLK
-
-NOKIA5110_TEXT mylcd(RST, CE, DC, DIN, CLK);
-#ifndef STASSID
-#define STASSID "HUAWEI-V4XQZZ_HiLink"
-#define STAPSK "12345678"
-#endif
-
-const char* ssid = STASSID;
-const char* password = STAPSK;
+#include "display.h"
 
 ESP8266WebServer server(80);
 
@@ -53,34 +35,23 @@ void handleNotFound() {
 }
 
 void setup(void) {
-  /* INIT LCD */
-  delay(50);
-  mylcd.LCDInit(inverse, contrast, bias);  // init the lCD
-  mylcd.LCDClear(0x00);                    // clear whole screen
-  mylcd.LCDFont(LCDFont_Default);
-  /* INIT Serial */
+
+  displayInit();
   Serial.begin(115200);
-  /* INIT WIFI */
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
-  Serial.println("");
+  wifiInit();
 
   // Wait for connection
   mylcd.LCDgotoXY(0, 0);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    Serial.print(".");
     mylcd.print(".");
   }
-  Serial.println("");
-  Serial.print("Connected to ");
-  Serial.println(ssid);
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
-  showInfo();
 
-
-  if (MDNS.begin("esp8266")) { Serial.println("MDNS responder started"); }
+  if (MDNS.begin("esp8266")) {
+    mylcd.LCDClear(0x00);
+    mylcd.printf("MDNS responder started");
+    delay(3000);
+  }
 
   server.on("/", handleRoot);
 
@@ -182,7 +153,11 @@ void setup(void) {
   /////////////////////////////////////////////////////////
 
   server.begin();
-  Serial.println("HTTP server started");
+  mylcd.LCDClear(0x00);
+  mylcd.LCDgotoXY(0, 0);
+  mylcd.print("HTTP server started");
+  delay(3000);
+  showInfo();
 }
 
 void loop(void) {
