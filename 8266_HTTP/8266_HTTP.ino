@@ -1,20 +1,8 @@
 #include "wifi.h"
 #include <WiFiClient.h>
-#include <ESP8266WebServer.h>
+#include "server.h"
 #include <ESP8266mDNS.h>
 #include "display.h"
-
-ESP8266WebServer server(80);
-
-void showInfo() {
-  mylcd.LCDClear(0x00);
-  mylcd.LCDgotoXY(0, 0);
-  mylcd.printf("Status OK.");
-  mylcd.LCDgotoXY(0, 1);
-  mylcd.printf("IP: ");
-  mylcd.LCDgotoXY(0, 2);
-  mylcd.print(WiFi.localIP());
-}
 
 void handleRoot() {
   server.send(200, "text/plain", "Status OK.\r\n");
@@ -54,42 +42,9 @@ void setup(void) {
   }
 
   server.on("/", handleRoot);
-
-  server.on("/action_on", []() {
-    server.send(200, "text/plain", "Evidence: \nAction ON");
-    mylcd.LCDClear(0x00);
-    mylcd.LCDgotoXY(0, 0);
-    mylcd.printf("Evidence: ");
-    mylcd.LCDgotoXY(0, 1);
-    mylcd.printf("Action ON");
-    delay(1000);
-    showInfo();
-  });
-
-  server.on("/action_off", []() {
-    server.send(200, "text/plain", "Evidence: \nAction OFF");
-    mylcd.LCDClear(0x00);
-    mylcd.LCDgotoXY(0, 0);
-    mylcd.printf("Evidence: ");
-    mylcd.LCDgotoXY(0, 1);
-    mylcd.printf("Action OFF");
-    delay(1000);
-    showInfo();
-  });
-
-  server.on("/motion", []() {
-    server.send(200, "text/plain", "Evidence: \nCamera motion");
-    mylcd.LCDClear(0x00);
-    mylcd.LCDgotoXY(0, 0);
-    mylcd.printf("Evidence: ");
-    mylcd.LCDgotoXY(0, 1);
-    mylcd.printf("Camera 1");
-    mylcd.LCDgotoXY(0, 2);
-    mylcd.printf("Motion");
-    delay(2000);
-    showInfo();
-  });
-
+  server.on("/action_on", actionOn);
+  server.on("/action_off", actionOff);
+  server.on("/motion", motion);
   server.onNotFound(handleNotFound);
 
   /////////////////////////////////////////////////////////
