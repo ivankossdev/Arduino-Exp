@@ -14,13 +14,8 @@
 #define DIN D6  // 6-DN
 #define CLK D7  // 7-SCLK
 
-NOKIA5110_TEXT mylcd(RST, CE, DC, DIN, CLK);
+static NOKIA5110_TEXT mylcd(RST, CE, DC, DIN, CLK);
 
-void displayInit(){
-  delay(50);
-  mylcd.LCDInit(inverse, contrast, bias); 
-  mylcd.LCDClear(0x00); 
-  mylcd.LCDFont(LCDFont_Default); 
-}
+void displayInit();
 
 #endif

@@ -5,8 +5,8 @@
 #define STASSID "HUAWEI-V4XQZZ_HiLink"
 #define STAPSK "12345678"
 
-const char* ssid = STASSID;
-const char* password = STAPSK;
+static const char* ssid = STASSID;
+static const char* password = STAPSK;
 
 void wifiInit() {
   WiFi.mode(WIFI_STA);
