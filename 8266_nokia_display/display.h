@@ -2,6 +2,7 @@
 #ifndef _DISPLAY_H
 #define _DISPLAY_H
 #include <NOKIA5110_TEXT.h>
+#include <cstring>
 
 #define inverse  false
 #define contrast 0xbf     // default is 0xBF set in LCDinit, Try 0xB1 <-> 0xBF, if your display is too dark/dim
@@ -17,5 +18,7 @@
 static NOKIA5110_TEXT mylcd(RST, CE, DC, DIN, CLK);
 
 void displayInit();
+void Count();
+void printNextString(char *str);
 
 #endif
