@@ -42,7 +42,11 @@ void NextRowString(char *str) {
       } else if (c > 96 && c <= 192) {
         posY++;
         Serial.printf("string-5 %d Y=%d\n", c, posY);
+      } else if (c > 192 && c <= 384) {
+        posY++;
+        Serial.printf("string-6 %d Y=%d\n", c, posY);
       }
+      
       mylcd.LCDgotoXY(posX, posY);
       c++;
     }
