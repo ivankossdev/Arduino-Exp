@@ -19,6 +19,6 @@ static NOKIA5110_TEXT mylcd(RST, CE, DC, DIN, CLK);
 
 void displayInit();
 void Count();
-void printNextString(char *str);
+void NextRowString(char *str);
 
 #endif

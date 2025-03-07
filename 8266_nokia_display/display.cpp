@@ -5,6 +5,7 @@ void displayInit() {
   mylcd.LCDInit(inverse, contrast, bias);
   mylcd.LCDClear(0x00);
   mylcd.LCDFont(LCDFont_Default);
+  Serial.begin(115200);
 }
 
 void Count() {
@@ -21,49 +22,33 @@ void Count() {
   }
 }
 
-struct YPos {
-  bool str1;
-  bool str2;
-  bool str3;
-  bool str4;
-  bool str5;
-  bool str6;
-};
-
-void printNextString(char *str) {
-  int c = 0, posY = 0;
-  YPos ypos;
-  ypos.str1 = true;
-  ypos.str2 = true;
-  ypos.str3 = true;
-  ypos.str4 = true;
-  ypos.str5 = true;
-  ypos.str6 = true;
-
-  mylcd.LCDgotoXY(0, posY);
+void NextRowString(char *str) {
+  int c = 0, posX = 1, posY = 0;
 
   do {
     if (str[c] == '\n') {
       if (c <= 12) {
-        posY = 0;
-        posY++;
+        posY++; 
+        Serial.printf("string-1 %d Y=%d\n", c, posY);
       } else if (c > 12 && c <= 24) {
-        posY = 1;
         posY++;
+        Serial.printf("string-2 %d Y=%d\n", c - 12, posY);
       } else if (c > 24 && c <= 48) {
-        posY = 2;
         posY++;
+        Serial.printf("string-3 %d Y=%d\n", c, posY);
       } else if (c > 48 && c <= 96) {
-        posY = 3;
         posY++;
+        Serial.printf("string-4 %d Y=%d\n", c, posY);
+      } else if (c > 96 && c <= 192) {
+        posY++;
+        Serial.printf("string-5 %d Y=%d\n", c, posY);
       }
-      // mylcd.LCDClear(0x00);
-      mylcd.LCDgotoXY(0, posY);
+      mylcd.LCDgotoXY(posX, posY);
       c++;
     }
-
-    mylcd.printf("%c", str[c]);
+    mylcd.LCDCharacter(str[c]);
     delay(100);
     c++;
   } while (str[c] != '\0');
+  Serial.printf("\n");
 }
