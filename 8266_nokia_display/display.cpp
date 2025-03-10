@@ -27,10 +27,11 @@ void NextRowString(char *str) {
 
   do {
     if (lenstr < 12) {
-      Serial.printf("Data %c str lenstr = %d\n", str[c], lenstr);
       lenstr++;
-    }
-    else{
+    } else {
+      posY++;
+      posX = 0;
+      Serial.printf("block else %c, 0x%x, %d \n", str[c], str[c], lenstr);
       lenstr = 0;
     }
 
@@ -40,7 +41,6 @@ void NextRowString(char *str) {
       c++;
       lenstr = 0;
     }
-
 
     mylcd.LCDgotoXY(posX++ * WIDTH_CHAR, posY);
     mylcd.LCDCharacter(str[c]);

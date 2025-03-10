@@ -3,15 +3,14 @@
 
 void setup() {
   displayInit();
-  delay(1000);
-  NextRowString((char *)"1234567890abс\n123\n1234\n12345\n123456");
-  delay(5000);
-  mylcd.LCDClear(0x00);
-  delay(1000);
 }
 
 void loop() {
-  drawStar();
+  NextRowString((char *)"adc123456789512\n123\n1234\n12345\n123456");
+  delay(5000);
+  mylcd.LCDClear(0x00);
+  delay(1000);
+  // drawStar();
 }
 
 void drawStar() {
