@@ -23,36 +23,30 @@ void Count() {
 }
 
 void NextRowString(char *str) {
-  int c = 0, posX = 1, posY = 0;
+  int c = 0, posX = 0, posY = 0, lenstr = 0;
 
   do {
-    if (str[c] == '\n') {
-      if (c <= 12) {
-        posY++; 
-        Serial.printf("string-1 %d Y=%d\n", c, posY);
-      } else if (c > 12 && c <= 24) {
-        posY++;
-        Serial.printf("string-2 %d Y=%d\n", c - 12, posY);
-      } else if (c > 24 && c <= 48) {
-        posY++;
-        Serial.printf("string-3 %d Y=%d\n", c, posY);
-      } else if (c > 48 && c <= 96) {
-        posY++;
-        Serial.printf("string-4 %d Y=%d\n", c, posY);
-      } else if (c > 96 && c <= 192) {
-        posY++;
-        Serial.printf("string-5 %d Y=%d\n", c, posY);
-      } else if (c > 192 && c <= 384) {
-        posY++;
-        Serial.printf("string-6 %d Y=%d\n", c, posY);
-      }
-      
-      mylcd.LCDgotoXY(posX, posY);
-      c++;
+    if (lenstr < 12) {
+      Serial.printf("Data %c str lenstr = %d\n", str[c], lenstr);
+      lenstr++;
     }
+    else{
+      lenstr = 0;
+    }
+
+    if (str[c] == '\n') {
+      posY++;
+      posX = 0;
+      c++;
+      lenstr = 0;
+    }
+
+
+    mylcd.LCDgotoXY(posX++ * WIDTH_CHAR, posY);
     mylcd.LCDCharacter(str[c]);
+
     delay(100);
+
     c++;
   } while (str[c] != '\0');
-  Serial.printf("\n");
 }

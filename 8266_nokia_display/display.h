@@ -15,6 +15,8 @@
 #define DIN D6  // 6-DN
 #define CLK D7  // 7-SCLK
 
+#define WIDTH_CHAR 7
+
 static NOKIA5110_TEXT mylcd(RST, CE, DC, DIN, CLK);
 
 void displayInit();
