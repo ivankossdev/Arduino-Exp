@@ -6,7 +6,7 @@ void setup() {
 }
 
 void loop() {
-  NextRowString((char *)"adc123456789512\n123\n1234\n12345\n123456");
+  NextRowString((char *)"adc123456789Hello led\n1234567890a\n1234\n12345\n123456");
   delay(5000);
   mylcd.LCDClear(0x00);
   delay(1000);

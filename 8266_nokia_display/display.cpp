@@ -31,7 +31,6 @@ void NextRowString(char *str) {
     } else {
       posY++;
       posX = 0;
-      Serial.printf("block else %c, 0x%x, %d \n", str[c], str[c], lenstr);
       lenstr = 0;
     }
 
