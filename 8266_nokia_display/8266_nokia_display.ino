@@ -7,7 +7,7 @@ void setup() {
 }
 
 void loop() {
-  testShow((char *)"abc123456789abc123456789abc123456789abc123456789abc123456789abc123456789zxc987654321zxc987654321zxc987654321zxc987654321zxc987654321zxc987654321Hello led!!!");
+  testShow((char *)"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum pulvinar, tortor sit amet gravida mollis, mi lorem venenatis nunc, at auctor purus velit sed mauris. Suspendisse id sagittis massa, suscipit dignissim massa. Class aptent taciti leo.");
   drawStar();
 }
 

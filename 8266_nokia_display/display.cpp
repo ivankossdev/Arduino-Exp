@@ -30,7 +30,6 @@ void NextRowString(char *str) {
       delay(1000);
       mylcd.LCDClear(0x00);
       posX = 0; posY = -1; overflow = 0;
-
     }
     if (lenstr < 12) {
       lenstr++;
