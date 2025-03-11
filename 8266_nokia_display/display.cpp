@@ -23,13 +23,13 @@ void Count() {
 }
 
 void NextRowString(char *str) {
-  int c = 0, posX = 0, posY = 0, lenstr = 0;
-  bool overflow = true;
+  int c = 0, posX = 0, posY = 0, lenstr = 0, overflow = 0;
 
   do {
-    if((c > 71) && overflow){
+    if(overflow > 71){
+      delay(1000);
       mylcd.LCDClear(0x00);
-      posX = 0; posY = -1; overflow = false;
+      posX = 0; posY = -1; overflow = 0;
 
     }
     if (lenstr < 12) {
@@ -52,7 +52,7 @@ void NextRowString(char *str) {
     mylcd.LCDgotoXY(posX++ * WIDTH_CHAR, posY);
     mylcd.LCDCharacter(str[c]);
     delay(100);
-
+    overflow++;
     c++;
     
   } while (str[c] != '\0');
