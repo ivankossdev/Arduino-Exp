@@ -4,11 +4,10 @@
 
 void setup() {
   displayInit();
-  for(int i = 0; i < 2; i++) Serial.printf("\n");
 }
 
 void loop() {
-  testShow((char *)"abc123456789abc123456789abc123456789abc123456789abc123456789abc123456789");
+  testShow((char *)"abc123456789abc123456789abc123456789abc123456789abc123456789abc123456789zxc987654321");
   drawStar();
 }
 
