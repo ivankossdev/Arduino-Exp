@@ -1,12 +1,14 @@
 #include "display.h"
 #include "ESP8266WiFi.h"
+#include <cstring>
 
 void setup() {
   displayInit();
+  for(int i = 0; i < 2; i++) Serial.printf("\n");
 }
 
 void loop() {
-  testShow();
+  testShow((char *)"abc123456789abc123456789abc123456789abc123456789abc123456789abc123456789");
   drawStar();
 }
 
@@ -18,13 +20,14 @@ void drawStar() {
     }
     delay(100);
   }
+  
   delay(5000);
   mylcd.LCDClear(0x00);
   delay(1000);
 }
 
-void testShow() {
-  NextRowString((char *)"adc123456789Hello led 1234567890a\n1234\n12345\n123456");
+void testShow(char *str) {
+  NextRowString(str);
   delay(5000);
   mylcd.LCDClear(0x00);
   delay(1000);
