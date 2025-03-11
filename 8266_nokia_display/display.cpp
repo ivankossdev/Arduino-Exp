@@ -5,7 +5,6 @@ void displayInit() {
   mylcd.LCDInit(inverse, contrast, bias);
   mylcd.LCDClear(0x00);
   mylcd.LCDFont(LCDFont_Default);
-  Serial.begin(115200);
 }
 
 void Count() {

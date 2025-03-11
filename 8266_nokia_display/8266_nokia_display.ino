@@ -6,11 +6,8 @@ void setup() {
 }
 
 void loop() {
-  NextRowString((char *)"adc123456789Hello led\n1234567890a\n1234\n12345\n123456");
-  delay(5000);
-  mylcd.LCDClear(0x00);
-  delay(1000);
-  // drawStar();
+  testShow();
+  drawStar();
 }
 
 void drawStar() {
@@ -21,6 +18,13 @@ void drawStar() {
     }
     delay(100);
   }
+  delay(5000);
+  mylcd.LCDClear(0x00);
+  delay(1000);
+}
+
+void testShow() {
+  NextRowString((char *)"adc123456789Hello led 1234567890a\n1234\n12345\n123456");
   delay(5000);
   mylcd.LCDClear(0x00);
   delay(1000);
