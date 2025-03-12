@@ -7,8 +7,10 @@ void setup() {
 }
 
 void loop() {
-  testShow((char *)"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum pulvinar, tortor sit amet gravida mollis, mi lorem venenatis nunc, at auctor purus velit sed mauris. Suspendisse id sagittis massa, suscipit dignissim massa. Class aptent taciti leo.");
-  drawStar();
+  
+  // testShow((char *)"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum pulvinar, tortor sit amet gravida mollis, mi lorem venenatis nunc, at auctor purus velit sed mauris. Suspendisse id sagittis massa, suscipit dignissim massa. Class aptent taciti leo.");
+  testShow((char *)"1--12345678 2--12345678 3--12345678 4--12345678 5--12345678 6--12345678 7--12345678 8--12345678 ");
+  // drawStar();
 }
 
 void drawStar() {
@@ -27,7 +29,7 @@ void drawStar() {
 
 void testShow(char *str) {
   NextRowString(str);
-  delay(5000);
+  delay(2000);
   mylcd.LCDClear(0x00);
   delay(1000);
 }
