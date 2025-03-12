@@ -5,7 +5,6 @@ void displayInit() {
   mylcd.LCDInit(inverse, contrast, bias);
   mylcd.LCDClear(0x00);
   mylcd.LCDFont(LCDFont_Default);
-  // Serial.begin(115200);
 }
 
 void Count() {
@@ -37,19 +36,22 @@ void NextRowString(char *str) {
       lenstr++;
     } else {
       posY++;
-      // Serial.printf("block else [ overflow=%d ], [ posY=%d ], [posX=%d], [ lensrt=%d ], [ str[%d]=0x%x ]\n", 
-      //               overflow, posY, posX, lenstr, c, str[c]);
       posX = 0;
       lenstr = 1;
     }
 
     if (str[c] == '\n') {
-      // Serial.printf("[ overflow=%d ], [ posY=%d ], [posX=%d], [ lensrt=%d ], [ str[%d]=0x%x ]\n", 
-      //               overflow, posY, posX, lenstr, c, str[c+1]);
       posY++;
+      if (posY == 6 && overflow < OVERFLOW_DISPLAY) {
+        delay(2000);
+        mylcd.LCDClear(0x00);
+        posY = 0;
+        overflow = 0;
+      }
       posX = 0;
       c++;
       lenstr = 1;
+      if(str[c] == '\0') break;
     }
 
     mylcd.LCDgotoXY(posX++ * WIDTH_CHAR, posY);
@@ -59,5 +61,4 @@ void NextRowString(char *str) {
     c++;
 
   } while (str[c] != '\0');
-  // Serial.printf("\n\n");
 }
