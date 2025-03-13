@@ -8,7 +8,7 @@ void setup() {
 
 void loop() {
   
-  testShow((char *)"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum pulvinar, tortor sit amet gravida mollis, mi lorem venenatis nunc, at auctor purus velit sed mauris. Suspendisse id sagittis massa, suscipit dignissim massa. Class aptent taciti leo.");
+  testShow(false, (char *)"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum pulvinar, tortor sit amet gravida mollis, mi lorem venenatis nunc, at auctor purus velit sed mauris. Suspendisse id sagittis massa, suscipit dignissim massa. Class aptent taciti leo.");
   drawStar();
 }
 
@@ -26,8 +26,8 @@ void drawStar() {
   delay(1000);
 }
 
-void testShow(char *str) {
-  NextRowString(str);
+void testShow(bool delay_, char *str) {
+  NextRowString(delay_,str);
   delay(2000);
   mylcd.LCDClear(0x00);
   delay(1000);

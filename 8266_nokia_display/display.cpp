@@ -21,7 +21,7 @@ void Count() {
   }
 }
 
-void NextRowString(char *str) {
+void NextRowString(bool delay_, char *str) {
   int c = 0, posX = 0, posY = 0, lenstr = 0, overflow = 0;
 
   do {
@@ -56,7 +56,7 @@ void NextRowString(char *str) {
 
     mylcd.LCDgotoXY(posX++ * WIDTH_CHAR, posY);
     mylcd.LCDCharacter(str[c]);
-    delay(100);
+    if(delay_) delay(100);
     overflow++;
     c++;
 
