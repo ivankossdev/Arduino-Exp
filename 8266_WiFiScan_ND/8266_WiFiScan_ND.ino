@@ -32,7 +32,7 @@ void loop() {
   // Serial.println(F("Starting WiFi scan..."));
 
   mylcd.LCDClear(0x00);
-  NextRowString(true, (char *)"Starting WiFi scan...");
+  NextRowString(true, (char *)"WiFi scan...");
 
   scanResult = WiFi.scanNetworks(/*async=*/false, /*hidden=*/true);
 
@@ -44,9 +44,6 @@ void loop() {
     
     foundClear();
     mylcd.LCDClear(0x00);
-    sprintf(found, PSTR("%d networks found:\n"), scanResult);
-    NextRowString(true, found);
-    delay(2000);
 
     // Print unsorted scan results
     for (int8_t i = 0; i < scanResult; i++) {
@@ -78,12 +75,10 @@ void loop() {
 
       foundClear();
       mylcd.LCDClear(0x00);
-      sprintf(found, PSTR("%02d:\n[CH %02d]\n[%02X:%02X:%02X:%02X:%02X:%02X]\n%ddBm %c %c %-11s %3S\n%s\n"), i, 
-      channel, bssid[0], bssid[1], bssid[2], bssid[3], bssid[4], bssid[5], 
-      rssi, (encryptionType == ENC_TYPE_NONE) ? ' ' : '*', hidden ? 'H' : 'V', phyMode.c_str(), wps, ssid.c_str());
-      NextRowString(true, found);
+      sprintf(found, "%02d:[CH %02d]\n%ddBm\n%s", i, channel, rssi, ssid.c_str());
+      NextRowString(false, found);
+      delay(2000);
       // Serial.printf(PSTR("  %02d: [CH %02d] [%02X:%02X:%02X:%02X:%02X:%02X] %ddBm %c %c %-11s %3S %s\n"), i, channel, bssid[0], bssid[1], bssid[2], bssid[3], bssid[4], bssid[5], rssi, (encryptionType == ENC_TYPE_NONE) ? ' ' : '*', hidden ? 'H' : 'V', phyMode.c_str(), wps, ssid.c_str());
-      
       yield();
     }
   } else {
