@@ -1,10 +1,16 @@
 #include <ESP8266WiFi.h>
 #include "display.h"
+#include <cstring>
 
+char found[512] = {'\0'};
+
+void foundClear(){
+  for(int i = 0; i < 512; i++) found[i] = '\0';
+}
 void setup() {
   displayInit();
   Serial.begin(115200);
-  Serial.println(F("\nESP8266 WiFi scan example"));
+  // Serial.println(F("\nESP8266 WiFi scan example"));
 
   // Set WiFi to station mode
   WiFi.mode(WIFI_STA);
@@ -23,25 +29,24 @@ void loop() {
   bool hidden;
   int scanResult;
 
-  Serial.println(F("Starting WiFi scan..."));
+  // Serial.println(F("Starting WiFi scan..."));
+
   mylcd.LCDClear(0x00);
-  mylcd.LCDgotoXY(0, 0);
-  mylcd.printf("Starting");
-  mylcd.LCDgotoXY(0, 1);
-  mylcd.printf("WiFi scan...");
+  NextRowString(true, (char *)"Starting WiFi scan...");
 
   scanResult = WiFi.scanNetworks(/*async=*/false, /*hidden=*/true);
 
   if (scanResult == 0) {
-    Serial.println(F("No networks found"));
+    // Serial.println(F("No networks found"));
+    NextRowString(true, (char *)"No networks found");
   } else if (scanResult > 0) {
-    Serial.printf(PSTR("%d networks found:\n"), scanResult);
-
+    // Serial.printf(PSTR("%d networks found:\n"), scanResult);
+    
+    foundClear();
     mylcd.LCDClear(0x00);
-    mylcd.LCDgotoXY(0, 0);
-    mylcd.printf(PSTR("%d networks"), scanResult);
-    mylcd.LCDgotoXY(0, 1);
-    mylcd.printf("found");
+    sprintf(found, PSTR("%d networks found:\n"), scanResult);
+    NextRowString(true, found);
+    delay(2000);
 
     // Print unsorted scan results
     for (int8_t i = 0; i < scanResult; i++) {
@@ -70,11 +75,22 @@ void loop() {
           wps = PSTR("WPS");
         }
       }
-      Serial.printf(PSTR("  %02d: [CH %02d] [%02X:%02X:%02X:%02X:%02X:%02X] %ddBm %c %c %-11s %3S %s\n"), i, channel, bssid[0], bssid[1], bssid[2], bssid[3], bssid[4], bssid[5], rssi, (encryptionType == ENC_TYPE_NONE) ? ' ' : '*', hidden ? 'H' : 'V', phyMode.c_str(), wps, ssid.c_str());
+
+      foundClear();
+      mylcd.LCDClear(0x00);
+      sprintf(found, PSTR("%02d:\n[CH %02d]\n[%02X:%02X:%02X:%02X:%02X:%02X]\n%ddBm %c %c %-11s %3S\n%s\n"), i, 
+      channel, bssid[0], bssid[1], bssid[2], bssid[3], bssid[4], bssid[5], 
+      rssi, (encryptionType == ENC_TYPE_NONE) ? ' ' : '*', hidden ? 'H' : 'V', phyMode.c_str(), wps, ssid.c_str());
+      NextRowString(true, found);
+      // Serial.printf(PSTR("  %02d: [CH %02d] [%02X:%02X:%02X:%02X:%02X:%02X] %ddBm %c %c %-11s %3S %s\n"), i, channel, bssid[0], bssid[1], bssid[2], bssid[3], bssid[4], bssid[5], rssi, (encryptionType == ENC_TYPE_NONE) ? ' ' : '*', hidden ? 'H' : 'V', phyMode.c_str(), wps, ssid.c_str());
+      
       yield();
     }
   } else {
-    Serial.printf(PSTR("WiFi scan error %d"), scanResult);
+    foundClear();
+    sprintf(found, PSTR("WiFi scan error %d"), scanResult);
+    NextRowString(true, found);
+    // Serial.printf(PSTR("WiFi scan error %d"), scanResult);
   }
 
   // Wait a bit before scanning again
