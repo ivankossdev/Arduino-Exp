@@ -62,3 +62,17 @@ void NextRowString(bool delay_, char *str) {
 
   } while (str[c] != '\0');
 }
+
+void drawStar() {
+  for (int i = 0; i < 12; i++) {
+    for (int y = 0; y < 6; y++) {
+      mylcd.LCDgotoXY(i * 7, y);
+      mylcd.LCDCharacter('*');
+    }
+    delay(100);
+  }
+  
+  delay(5000);
+  mylcd.LCDClear(0x00);
+  delay(1000);
+}
