@@ -20,7 +20,7 @@ void setup() {
 
 void loop() {
   mylcd.LCDgotoXY(0, 0);
-  mylcd.LCDCustomChar(epd_bitmap_, sizeof(epd_bitmap_) / sizeof(unsigned char), LCDPadding_None, true);
+  mylcd.LCDCustomChar(ex, sizeof(ex) / sizeof(unsigned char), LCDPadding_None, true);
   mylcd.LCDgotoXY(9, 0);
   mylcd.printf("2025/03/17");
 
@@ -31,6 +31,11 @@ void loop() {
     c0 = i % 10;
     mylcd.LCDgotoXY(9, 2);
     mylcd.printf("count %d%d", c1, c0);
-    delay(1000);
+    delay(250);
   }
+  delay(1000);
+
+  mylcd.LCDgotoXY(0, 0);
+  mylcd.LCDCustomChar(icon, sizeof(icon) / sizeof(unsigned char), LCDPadding_None, true);
+  delay(5000);
 }
