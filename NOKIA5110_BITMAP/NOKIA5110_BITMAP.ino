@@ -22,14 +22,14 @@ void loop() {
   mylcd.LCDgotoXY(0, 0);
   mylcd.LCDCustomChar(ex, sizeof(ex) / sizeof(unsigned char), LCDPadding_None, true);
   mylcd.LCDgotoXY(6, 2);
-  mylcd.printf("2025/03/17");
+  mylcd.printf("Film img");
 
   int c0 = 0, c1 = 0;
 
   for (int i = 0; i < 60; i++) {
     c1 = i / 10 % 10;
     c0 = i % 10;
-    mylcd.LCDgotoXY(9, 3);
+    mylcd.LCDgotoXY(6, 3);
     mylcd.printf("count %d%d", c1, c0);
     delay(250);
   }
