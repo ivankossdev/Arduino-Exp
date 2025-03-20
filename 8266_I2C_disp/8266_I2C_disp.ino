@@ -1,39 +1,40 @@
 #include "display.h"
-#include <Wire.h>
+#include "I2C.h"
 #include <cstring>
+
+
+#define DS3231 0x68
+#define MEMORY 0x57
+#define DELAY 2000
+
+char memDS3231[32] = {'\0'};
+
+void clearMem(int cnt, char *mem){
+  for(int i = 0; i < cnt; i++)
+    mem[i] = '\0';
+}
 
 void setup() {
   displayInit();
   Wire.begin();
-}
-
-void clearMessage(char *message){
-  for(int i = 0; i < 512; i++)
-    message[i] = '\0';
+  searchDevice();
 }
 
 void loop() {
-  char message[512] = {'\0'};
-  sprintf(message, "Search I2C:\n");
-  NextRowString(false, message);
-  delay(2000);
+  NextRowString(false, (char *)"Read byte\nby addr 0x68");
+  delay(DELAY);
   displayClear();
-  int found = 0;
-
-  for(int i = 0; i < 127; i++){
-    Wire.beginTransmission(i);
-
-    int result = Wire.endTransmission();
-
-    if(result == 0){
-      sprintf(message, "Found 0%x\naddress", i);
-      NextRowString(false, message);
-      delay(2000);
-      clearMessage(message);
-      displayClear();
-      found++;
-    }
+  Wire.requestFrom(DS3231, 2);
+  while (Wire.available()){
+    sprintf(memDS3231, "tx=0x%x", Wire.read());
+    NextRowString(false, memDS3231);
+    delay(DELAY);
   }
-  clearMessage(message);
-  delay(2000);
+  clearMem(32, memDS3231);
+  displayClear();
 }
+
+
+
+
+
