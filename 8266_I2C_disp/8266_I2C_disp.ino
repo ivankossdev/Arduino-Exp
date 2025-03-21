@@ -13,6 +13,9 @@ SysClock ds(DS3231);
 void setup() {
   displayInit();
   searchDevice();
+  ds.WriteToRegister(0, 15);
+  ds.WriteToRegister(1, 2);
+  ds.WriteToRegister(2, 16);
 }
 
 void loop() {

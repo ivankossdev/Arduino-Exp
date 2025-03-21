@@ -18,3 +18,10 @@ void SysClock::GetTime() {
     c++;
   }
 }
+
+void SysClock::WriteToRegister(uint8_t regAddr, uint8_t data){
+  Wire.beginTransmission(address);
+  Wire.write(regAddr);
+  Wire.write(conv.FromDecToEight((int)data));
+  Wire.endTransmission();
+}
