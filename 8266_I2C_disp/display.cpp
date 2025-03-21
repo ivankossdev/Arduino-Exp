@@ -7,7 +7,7 @@ void displayInit() {
   mylcd.LCDFont(LCDFont_Default);
 }
 
-void displayClear(){
+void displayClear() {
   mylcd.LCDClear(0x00);
 }
 
@@ -55,12 +55,12 @@ void NextRowString(bool delay_, char *str) {
       posX = 0;
       c++;
       lenstr = 1;
-      if(str[c] == '\0') break;
+      if (str[c] == '\0') break;
     }
 
     mylcd.LCDgotoXY(posX++ * WIDTH_CHAR, posY);
     mylcd.LCDCharacter(str[c]);
-    if(delay_) delay(100);
+    if (delay_) delay(100);
     overflow++;
     c++;
 
