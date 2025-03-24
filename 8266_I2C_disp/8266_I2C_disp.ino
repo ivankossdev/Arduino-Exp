@@ -41,13 +41,20 @@ void setSerial() {
     dsCmd = Serial.readString();
   }
   if (checkCMD(dsCmd)) {
-    Serial.printf("%s", dsCmd);
+    ds.SetTime(TimeDate::hr, TwoCharToInt(dsCmd[3], dsCmd[4]));
+    ds.SetTime(TimeDate::min, TwoCharToInt(dsCmd[5], dsCmd[6]));
+    ds.SetTime(TimeDate::sec, TwoCharToInt(dsCmd[7], dsCmd[8]));
   }
 }
 
 bool checkCMD(String cmd) {
-  if (cmd[0] == 's' && cmd[1] == 'e' && cmd[2] == 't')
+  cmd.trim();
+  if (cmd[0] == 's' && cmd[1] == 'e' && cmd[2] == 't' && cmd.length() == 9)
     return true;
   else
     return false;
+}
+
+uint8_t TwoCharToInt(char c1, char c0) {
+  return ((c1 & 0x0f) * 10) + (c0 & 0x0f);
 }
