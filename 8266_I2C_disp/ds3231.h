@@ -9,13 +9,14 @@ enum class TimeDate{
   hr
 };
 
-class SysClock {
+class SystemTime {
 public:
-  SysClock(uint8_t address_);
+  SystemTime(uint8_t address_);
   char memDS3231[32] = { '\0' };
   int timeString[3] = { '\0' };
   void GetTime();
   void SetTime(TimeDate param, uint8_t data);
+  void GetDate();
 private:
   uint8_t address;
   Convertor conv;

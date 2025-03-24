@@ -1,0 +1,31 @@
+#include "busset.h"
+Busset::Busset(){
+  Serial.begin(115200);
+  Serial.printf("Start programm\n"); 
+}
+
+void Busset::SetSerial() {
+  String dsCmd;
+  if (Serial.available() > 0) {
+    if (!dsCmd.isEmpty())
+      dsCmd.clear();
+    dsCmd = Serial.readString();
+  }
+  if (CheckCMD(dsCmd)) {
+    systime.SetTime(TimeDate::hr, TwoCharToInt(dsCmd[3], dsCmd[4]));
+    systime.SetTime(TimeDate::min, TwoCharToInt(dsCmd[5], dsCmd[6]));
+    systime.SetTime(TimeDate::sec, TwoCharToInt(dsCmd[7], dsCmd[8]));
+  }
+}
+
+bool Busset::CheckCMD(String cmd) {
+  cmd.trim();
+  if (cmd[0] == 's' && cmd[1] == 'e' && cmd[2] == 't' && cmd.length() == 9)
+    return true;
+  else
+    return false;
+}
+
+uint8_t Busset::TwoCharToInt(char c1, char c0) {
+  return ((c1 & 0x0f) * 10) + (c0 & 0x0f);
+}
