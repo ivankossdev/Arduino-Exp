@@ -3,18 +3,23 @@
 #include <Arduino.h>
 #include "convertor.h"
 
+enum class TimeDate{
+  sec, 
+  min,
+  hr
+};
+
 class SysClock {
 public:
   SysClock(uint8_t address_);
   char memDS3231[32] = { '\0' };
   int timeString[3] = { '\0' };
   void GetTime();
-  void WriteToRegister(uint8_t regAddr, uint8_t data);
-
-protected:
-  uint8_t address;
+  void SetTime(TimeDate param, uint8_t data);
 private:
+  uint8_t address;
   Convertor conv;
+  void WriteToRegister(uint8_t regAddr, uint8_t data);
 };
 
 #endif

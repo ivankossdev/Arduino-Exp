@@ -25,3 +25,11 @@ void SysClock::WriteToRegister(uint8_t regAddr, uint8_t data){
   Wire.write(conv.FromDecToEight((int)data));
   Wire.endTransmission();
 }
+
+void SysClock::SetTime(TimeDate param, uint8_t data){
+  switch (param){
+    case TimeDate::sec:WriteToRegister(0, data); break;
+    case TimeDate::min:WriteToRegister(1, data); break;
+    case TimeDate::hr:WriteToRegister(2, data); break;
+  }
+}
