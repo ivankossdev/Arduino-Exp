@@ -19,21 +19,42 @@ void SystemTime::GetTime() {
   }
 }
 
-void SystemTime::WriteToRegister(uint8_t regAddr, uint8_t data){
+void SystemTime::WriteToRegister(uint8_t regAddr, uint8_t data) {
   Wire.beginTransmission(address);
   Wire.write(regAddr);
   Wire.write(conv.FromDecToEight((int)data));
   Wire.endTransmission();
 }
 
-void SystemTime::SetTime(TimeDate param, uint8_t data){
-  switch (param){
-    case TimeDate::sec:WriteToRegister(0, data); break;
-    case TimeDate::min:WriteToRegister(1, data); break;
-    case TimeDate::hr:WriteToRegister(2, data); break;
+void SystemTime::SetTime(TimeDate param, uint8_t data) {
+  switch (param) {
+    case TimeDate::sec: WriteToRegister(0, data); break;
+    case TimeDate::min: WriteToRegister(1, data); break;
+    case TimeDate::hr: WriteToRegister(2, data); break;
   }
 }
 
-void SystemTime::GetDate(){
-  
+void SystemTime::GetDay() {
+ 
+  Wire.beginTransmission(address);
+  Wire.write(3);
+  Wire.endTransmission();
+  Wire.requestFrom(address, (size_t)1, true);
+
+  while (Wire.available()) {
+    Day = conv.FromEightToDec(Wire.read()) & 0x07;
+  }
 }
+
+void SystemTime::SetDay(uint8_t data){
+  WriteToRegister(3, data);
+}
+
+
+
+
+
+
+
+
+

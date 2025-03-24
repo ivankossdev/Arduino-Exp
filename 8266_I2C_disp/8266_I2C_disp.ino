@@ -15,11 +15,13 @@ Busset busset;
 void setup() {
   displayInit();
   searchDevice();
+  ds.SetDay(1);
 }
 
 void loop() {
   busset.SetSerial();
   ds.GetTime();
+  ds.GetDay();
   showTime();
 }
 
@@ -29,8 +31,9 @@ void clearMem(int cnt, char *mem) {
 }
 
 void showTime() {
-  sprintf(ds.memDS3231, "Local Time\n%d%d:%d%d:%d%d", format.TenFormat(ds.timeString[2]), format.OneFormat(ds.timeString[2]),
-          format.TenFormat(ds.timeString[1]), format.OneFormat(ds.timeString[1]), format.TenFormat(ds.timeString[0]), format.OneFormat(ds.timeString[0]));
+  sprintf(ds.memDS3231, "Local Time\n%d%d:%d%d:%d%d\nDay %d", format.TenFormat(ds.timeString[2]), format.OneFormat(ds.timeString[2]),
+          format.TenFormat(ds.timeString[1]), format.OneFormat(ds.timeString[1]), format.TenFormat(ds.timeString[0]), format.OneFormat(ds.timeString[0]), 
+          ds.Day);
   NextRowString(false, ds.memDS3231);
 }
 

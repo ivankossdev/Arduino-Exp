@@ -14,9 +14,11 @@ public:
   SystemTime(uint8_t address_);
   char memDS3231[32] = { '\0' };
   int timeString[3] = { '\0' };
+  int Day = 0; 
   void GetTime();
   void SetTime(TimeDate param, uint8_t data);
-  void GetDate();
+  void GetDay();
+  void SetDay(uint8_t data);
 private:
   uint8_t address;
   Convertor conv;
