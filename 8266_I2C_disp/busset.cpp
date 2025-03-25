@@ -14,9 +14,9 @@ void BusSet::SetSerial() {
 
   switch (CheckCMD(dsCmd)) {
     case SetCmd::time:
-      systime.SetTime(TimeDate::hr, TwoCharToInt(dsCmd[4], dsCmd[5]));
-      systime.SetTime(TimeDate::min, TwoCharToInt(dsCmd[6], dsCmd[7]));
-      systime.SetTime(TimeDate::sec, TwoCharToInt(dsCmd[8], dsCmd[9]));
+      systime.SetTime(TimeData::hr, TwoCharToInt(dsCmd[4], dsCmd[5]));
+      systime.SetTime(TimeData::min, TwoCharToInt(dsCmd[6], dsCmd[7]));
+      systime.SetTime(TimeData::sec, TwoCharToInt(dsCmd[8], dsCmd[9]));
       break;
     case SetCmd::day: systime.SetDay(dsCmd[4] & 0x0f); break;
     case SetCmd::date: systime.SetDate(TwoCharToInt(dsCmd[5], dsCmd[6])); break;

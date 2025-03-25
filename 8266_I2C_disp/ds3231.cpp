@@ -26,11 +26,11 @@ void SystemTime::WriteToRegister(uint8_t regAddr, uint8_t data) {
   Wire.endTransmission();
 }
 
-void SystemTime::SetTime(TimeDate param, uint8_t data) {
+void SystemTime::SetTime(TimeData param, uint8_t data) {
   switch (param) {
-    case TimeDate::sec: WriteToRegister(0, data); break;
-    case TimeDate::min: WriteToRegister(1, data); break;
-    case TimeDate::hr: WriteToRegister(2, data); break;
+    case TimeData::sec: WriteToRegister(0, data); break;
+    case TimeData::min: WriteToRegister(1, data); break;
+    case TimeData::hr: WriteToRegister(2, data); break;
   }
 }
 

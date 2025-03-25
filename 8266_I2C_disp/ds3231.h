@@ -3,7 +3,7 @@
 #include <Arduino.h>
 #include "convertor.h"
 
-enum class TimeDate{
+enum class TimeData{
   sec, 
   min,
   hr
@@ -17,7 +17,7 @@ public:
   int Day = 0; 
   int Date = 0;
   void GetTime();
-  void SetTime(TimeDate param, uint8_t data);
+  void SetTime(TimeData param, uint8_t data);
   void GetDay();
   void SetDay(uint8_t data);
   void GetDate();
