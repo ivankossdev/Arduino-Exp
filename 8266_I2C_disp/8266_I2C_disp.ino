@@ -15,7 +15,6 @@ BusSet busset;
 void setup() {
   displayInit();
   searchDevice();
-  ds.SetDay(1);
 }
 
 void loop() {
@@ -26,15 +25,11 @@ void loop() {
   showTime();
 }
 
-void clearMem(int cnt, char *mem) {
-  for (int i = 0; i < cnt; i++)
-    mem[i] = '\0';
-}
 
 void showTime() {
-  sprintf(ds.memDS3231, "Local Time\n%d%d:%d%d:%d%d\nDay  %d\nDate %d", format.TenFormat(ds.timeString[2]), format.OneFormat(ds.timeString[2]),
+  sprintf(ds.memDS3231, "Local Time\n%d%d:%d%d:%d%d\nDay  %d\nDate %d%d", format.TenFormat(ds.timeString[2]), format.OneFormat(ds.timeString[2]),
           format.TenFormat(ds.timeString[1]), format.OneFormat(ds.timeString[1]), format.TenFormat(ds.timeString[0]), format.OneFormat(ds.timeString[0]), 
-          ds.Day, ds.Date);
+          ds.Day, format.TenFormat(ds.Date), format.OneFormat(ds.Date));
   NextRowString(false, ds.memDS3231);
 }
 

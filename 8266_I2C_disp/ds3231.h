@@ -21,6 +21,7 @@ public:
   void GetDay();
   void SetDay(uint8_t data);
   void GetDate();
+  void SetDate(uint8_t data);
 private:
   uint8_t address;
   Convertor conv;

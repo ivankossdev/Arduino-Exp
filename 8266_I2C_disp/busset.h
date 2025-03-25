@@ -7,6 +7,7 @@
 enum class SetCmd{
   time,
   day,
+  date,
   mounth,
   year,
   nodata
