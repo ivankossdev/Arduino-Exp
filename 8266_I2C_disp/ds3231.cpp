@@ -76,3 +76,11 @@ void SystemTime::GetMonth() {
   ReadRegister(5, (size_t)1, OneRegisterData);
   Month = conv.FromEightToDec(OneRegisterData[0] & 0x1f);
 }
+
+void SystemTime::SetMonth(uint8_t data){
+  WriteToRegister(5, data & 0x1f);
+}
+
+
+
+

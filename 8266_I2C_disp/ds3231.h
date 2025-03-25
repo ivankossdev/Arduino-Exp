@@ -24,6 +24,7 @@ public:
   void GetDate();
   void SetDate(uint8_t data);
   void GetMonth();
+  void SetMonth(uint8_t data);
 private:
   uint8_t address;
   Convertor conv;
