@@ -1,29 +1,37 @@
 #include "ds3231.h"
 #include <Wire.h>
 
+void SystemTime::WriteToRegister(uint8_t regAddr, uint8_t data) {
+  Wire.beginTransmission(address);
+  Wire.write(regAddr);
+  Wire.write(conv.FromDecToEight((int)data));
+  Wire.endTransmission();
+}
+
+void SystemTime::ReadRegister(uint8_t regAddr, size_t size, int *data) {
+
+  int c = 0;
+  Wire.beginTransmission(address);
+  Wire.write(regAddr);
+  Wire.endTransmission();
+  Wire.requestFrom(address, (size_t)size, true);
+
+  while (Wire.available()) {
+    data[c] = Wire.read();
+    c++;
+  }
+}
+
 SystemTime::SystemTime(uint8_t address_) {
   this->address = address_;
   Wire.begin();
 }
 
 void SystemTime::GetTime() {
-  int c = 0;
-  Wire.beginTransmission(address);
-  Wire.write(0);
-  Wire.endTransmission();
-  Wire.requestFrom(address, (size_t)3, true);
-
-  while (Wire.available()) {
-    timeString[c] = conv.FromEightToDec(Wire.read());
-    c++;
+  ReadRegister(0, (size_t)3, timeString);
+  for (int i = 0; i < 3; i++) {
+    timeString[i] = conv.FromEightToDec(timeString[i]);
   }
-}
-
-void SystemTime::WriteToRegister(uint8_t regAddr, uint8_t data) {
-  Wire.beginTransmission(address);
-  Wire.write(regAddr);
-  Wire.write(conv.FromDecToEight((int)data));
-  Wire.endTransmission();
 }
 
 void SystemTime::SetTime(TimeData param, uint8_t data) {
@@ -35,17 +43,9 @@ void SystemTime::SetTime(TimeData param, uint8_t data) {
 }
 
 void SystemTime::GetDay() {
-
   int day = 0;
-
-  Wire.beginTransmission(address);
-  Wire.write(3);
-  Wire.endTransmission();
-  Wire.requestFrom(address, (size_t)1, true);
-
-  while (Wire.available()) {
-    day = conv.FromEightToDec(Wire.read()) & 0x07;
-  }
+  ReadRegister(3, (size_t)1, OneRegisterData);
+  day = conv.FromEightToDec(OneRegisterData[0] & 0x07);
 
   switch (day) {
     case 1: Day = "Monday"; break;
@@ -64,29 +64,15 @@ void SystemTime::SetDay(uint8_t data) {
 }
 
 void SystemTime::GetDate() {
-  Wire.beginTransmission(address);
-  Wire.write(4);
-  Wire.endTransmission();
-  Wire.requestFrom(address, (size_t)1, true);
-
-  while (Wire.available()) {
-    Date = conv.FromEightToDec(Wire.read() & 0x3f);
-  }
+  ReadRegister(4, (size_t)1, OneRegisterData);
+  Date = conv.FromEightToDec(OneRegisterData[0] & 0x3f);
 }
 
 void SystemTime::SetDate(uint8_t data) {
   WriteToRegister(4, data & 0x3f);
 }
 
-void SystemTime::GetMonth(){
-  Wire.beginTransmission(address);
-  Wire.write(5);
-  Wire.endTransmission();
-  Wire.requestFrom(address, (size_t)1, true);
-
-  while (Wire.available()) {
-    Month = conv.FromEightToDec(Wire.read() & 0x1f);
-  }
+void SystemTime::GetMonth() {
+  ReadRegister(5, (size_t)1, OneRegisterData);
+  Month = conv.FromEightToDec(OneRegisterData[0] & 0x1f);
 }
-
-

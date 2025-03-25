@@ -27,7 +27,10 @@ public:
 private:
   uint8_t address;
   Convertor conv;
+  int OneRegisterData[1] = {'\0'};
   void WriteToRegister(uint8_t regAddr, uint8_t data);
+  void ReadRegister(uint8_t regAddr, size_t size, int *data);
+  
 };
 
 #endif
