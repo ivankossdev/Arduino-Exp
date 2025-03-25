@@ -77,3 +77,16 @@ void SystemTime::GetDate() {
 void SystemTime::SetDate(uint8_t data) {
   WriteToRegister(4, data & 0x3f);
 }
+
+void SystemTime::GetMonth(){
+  Wire.beginTransmission(address);
+  Wire.write(5);
+  Wire.endTransmission();
+  Wire.requestFrom(address, (size_t)1, true);
+
+  while (Wire.available()) {
+    Month = conv.FromEightToDec(Wire.read() & 0x1f);
+  }
+}
+
+
