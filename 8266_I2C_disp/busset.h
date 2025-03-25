@@ -12,9 +12,9 @@ enum class SetCmd{
   nodata
 };
 
-class Busset {
+class BusSet {
 public:
-  Busset();
+  BusSet();
   void SetSerial();
 private:
   SystemTime systime{ DS3231 };

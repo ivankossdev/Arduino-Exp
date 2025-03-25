@@ -50,6 +50,16 @@ void SystemTime::SetDay(uint8_t data){
   WriteToRegister(3, data);
 }
 
+void SystemTime::GetDate(){
+  Wire.beginTransmission(address);
+  Wire.write(4);
+  Wire.endTransmission();
+  Wire.requestFrom(address, (size_t)1, true);
+
+  while (Wire.available()) {
+    Date = conv.FromEightToDec(Wire.read() & 0x1f);
+  }
+}
 
 
 

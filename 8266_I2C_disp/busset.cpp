@@ -1,10 +1,10 @@
 #include "busset.h"
-Busset::Busset() {
+BusSet::BusSet() {
   Serial.begin(115200);
   Serial.printf("Start programm\n");
 }
 
-void Busset::SetSerial() {
+void BusSet::SetSerial() {
   String dsCmd;
   if (Serial.available() > 0) {
     if (!dsCmd.isEmpty())
@@ -20,7 +20,7 @@ void Busset::SetSerial() {
   }
 }
 
-SetCmd Busset::CheckCMD(String cmd) {
+SetCmd BusSet::CheckCMD(String cmd) {
   cmd.trim();
   if (cmd[0] == 's' && cmd[1] == 'e' && cmd[2] == 't' && cmd[3] == 't' && cmd.length() == 10) {
     return SetCmd::time;
@@ -30,6 +30,6 @@ SetCmd Busset::CheckCMD(String cmd) {
   return SetCmd::nodata;
 }
 
-uint8_t Busset::TwoCharToInt(char c1, char c0) {
+uint8_t BusSet::TwoCharToInt(char c1, char c0) {
   return ((c1 & 0x0f) * 10) + (c0 & 0x0f);
 }

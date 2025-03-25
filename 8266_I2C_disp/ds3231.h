@@ -15,10 +15,12 @@ public:
   char memDS3231[32] = { '\0' };
   int timeString[3] = { '\0' };
   int Day = 0; 
+  int Date = 0;
   void GetTime();
   void SetTime(TimeDate param, uint8_t data);
   void GetDay();
   void SetDay(uint8_t data);
+  void GetDate();
 private:
   uint8_t address;
   Convertor conv;
