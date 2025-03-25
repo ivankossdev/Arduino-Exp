@@ -19,6 +19,10 @@ void setup() {
 
 void loop() {
   busset.SetSerial();
+  if(busset.isSet){
+    busset.isSet = false;
+    displayClear();
+  }
   ds.GetTime();
   ds.GetDay();
   ds.GetDate();
@@ -26,7 +30,7 @@ void loop() {
 }
 
 void showTime() {
-  sprintf(ds.memDS3231, "Local Time\n%d%d:%d%d:%d%d\nDay  %d\nDate %d%d", format.TenFormat(ds.timeString[2]), format.OneFormat(ds.timeString[2]),
+  sprintf(ds.memDS3231, "Local Time\n%d%d:%d%d:%d%d\n%s\nDate %d%d", format.TenFormat(ds.timeString[2]), format.OneFormat(ds.timeString[2]),
           format.TenFormat(ds.timeString[1]), format.OneFormat(ds.timeString[1]), format.TenFormat(ds.timeString[0]), format.OneFormat(ds.timeString[0]),
           ds.Day, format.TenFormat(ds.Date), format.OneFormat(ds.Date));
   NextRowString(false, ds.memDS3231);

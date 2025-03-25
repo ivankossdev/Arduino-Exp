@@ -35,22 +35,35 @@ void SystemTime::SetTime(TimeData param, uint8_t data) {
 }
 
 void SystemTime::GetDay() {
- 
+
+  int day = 0;
+
   Wire.beginTransmission(address);
   Wire.write(3);
   Wire.endTransmission();
   Wire.requestFrom(address, (size_t)1, true);
 
   while (Wire.available()) {
-    Day = conv.FromEightToDec(Wire.read()) & 0x07;
+    day = conv.FromEightToDec(Wire.read()) & 0x07;
+  }
+
+  switch (day) {
+    case 1: Day = "Monday"; break;
+    case 2: Day = "Tuesday"; break;
+    case 3: Day = "Wednesday"; break;
+    case 4: Day = "Thursday "; break;
+    case 5: Day = "Friday"; break;
+    case 6: Day = "Saturday"; break;
+    case 7: Day = "Sunday"; break;
+    default: Day = "Error param"; break;
   }
 }
 
-void SystemTime::SetDay(uint8_t data){
+void SystemTime::SetDay(uint8_t data) {
   WriteToRegister(3, data);
 }
 
-void SystemTime::GetDate(){
+void SystemTime::GetDate() {
   Wire.beginTransmission(address);
   Wire.write(4);
   Wire.endTransmission();
@@ -61,14 +74,6 @@ void SystemTime::GetDate(){
   }
 }
 
-void SystemTime::SetDate(uint8_t data){
+void SystemTime::SetDate(uint8_t data) {
   WriteToRegister(4, data & 0x3f);
 }
-
-
-
-
-
-
-
-

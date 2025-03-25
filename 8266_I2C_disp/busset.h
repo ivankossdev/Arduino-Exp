@@ -23,6 +23,7 @@ enum class SetCmd{
 class BusSet {
 public:
   BusSet();
+  bool isSet = false; 
   void SetSerial();
 private:
   SystemTime systime{ DS3231 };

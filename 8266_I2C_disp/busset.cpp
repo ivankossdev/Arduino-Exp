@@ -10,6 +10,7 @@ void BusSet::SetSerial() {
     if (!dsCmd.isEmpty())
       dsCmd.clear();
     dsCmd = Serial.readString();
+    isSet = true;
   }
 
   switch (CheckCMD(dsCmd)) {
@@ -21,6 +22,7 @@ void BusSet::SetSerial() {
     case SetCmd::day: systime.SetDay(dsCmd[4] & 0x0f); break;
     case SetCmd::date: systime.SetDate(TwoCharToInt(dsCmd[5], dsCmd[6])); break;
   }
+  
 }
 
 SetCmd BusSet::CheckCMD(String cmd) {

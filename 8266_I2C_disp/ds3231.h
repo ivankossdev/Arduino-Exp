@@ -14,7 +14,7 @@ public:
   SystemTime(uint8_t address_);
   char memDS3231[32] = { '\0' };
   int timeString[3] = { '\0' };
-  int Day = 0; 
+  String Day = "";
   int Date = 0;
   void GetTime();
   void SetTime(TimeData param, uint8_t data);
