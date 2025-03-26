@@ -28,6 +28,7 @@ public:
   void GetMonth();
   void SetMonth(uint8_t data);
   void GetYear();
+  void SetYear(uint8_t data);
 
 private:
   uint8_t address;

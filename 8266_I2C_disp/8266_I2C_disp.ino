@@ -28,6 +28,7 @@ void loop() {
   ds.GetDay();
   ds.GetDate();
   ds.GetMonth();
+  ds.GetYear();
   showTime();
 }
 

@@ -8,8 +8,9 @@
   CMD:
     Set time:  settm235959 (23:59:59)
     Set day:   setdy2      (day 1 - 7)
-    Set date:  setdt25    (1-31)
-    Set month: setmn04    (1 - 12)
+    Set date:  setdt25     (01-31)
+    Set month: setmn04     (01 - 12)
+    Set year:  setyr25     (00-99) 
 */
 
 enum class SetCmd{

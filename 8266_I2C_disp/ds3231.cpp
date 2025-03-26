@@ -92,4 +92,14 @@ void SystemTime::GetYear(){
   Year = conv.FromEightToDec(OneRegisterData[0]);
 }
 
+void SystemTime::SetYear(uint8_t data){
+   WriteToRegister(6, data);
+}
+
+
+
+
+
+
+
 
