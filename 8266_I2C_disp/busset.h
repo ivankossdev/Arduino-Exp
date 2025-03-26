@@ -6,8 +6,8 @@
 
 /*
   CMD:
-    Set time:  sett235959 (23:59:59)
-    Set day:   setd2      (day 1 - 7)
+    Set time:  settm235959 (23:59:59)
+    Set day:   setdy2      (day 1 - 7)
     Set date:  setdt25    (1-31)
     Set month: setmn04    (1 - 12)
 */
