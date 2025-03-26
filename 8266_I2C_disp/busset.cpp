@@ -19,7 +19,7 @@ void BusSet::SetSerial() {
       systime.SetTime(TimeData::min, TwoCharToInt(dsCmd[7], dsCmd[8]));
       systime.SetTime(TimeData::sec, TwoCharToInt(dsCmd[9], dsCmd[10]));
       break;
-    case SetCmd::day: systime.SetDay(dsCmd[4] & 0x0f); break;
+    case SetCmd::day: systime.SetDay(dsCmd[5] & 0x0f); break;
     case SetCmd::date: systime.SetDate(TwoCharToInt(dsCmd[5], dsCmd[6])); break;
     case SetCmd::month: systime.SetMonth(TwoCharToInt(dsCmd[5], dsCmd[6])); break;
   }
