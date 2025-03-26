@@ -52,7 +52,7 @@ void SystemTime::GetDay() {
   int day = 0;
   ReadRegister(3, (size_t)1, OneRegisterData);
   day = conv.FromEightToDec(OneRegisterData[0] & 0x07);
-
+  Day.clear();
   switch (day) {
     case 1: Day = "Monday"; break;
     case 2: Day = "Tuesday"; break;
