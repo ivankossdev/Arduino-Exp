@@ -22,6 +22,12 @@ void SystemTime::ReadRegister(uint8_t regAddr, size_t size, int *data) {
   }
 }
 
+void SystemTime::ClearMemStr(char *data, int cnt){
+  for (int cnt = 0; cnt < 32; cnt++){
+    data[cnt] = '\0';
+  }
+}
+
 SystemTime::SystemTime(uint8_t address_) {
   this->address = address_;
   Wire.begin();
@@ -81,6 +87,9 @@ void SystemTime::SetMonth(uint8_t data){
   WriteToRegister(5, data & 0x1f);
 }
 
-
+void SystemTime::GetYear(){
+  ReadRegister(6, (size_t)1, OneRegisterData);
+  Year = conv.FromEightToDec(OneRegisterData[0]);
+}
 
 

@@ -21,6 +21,7 @@ void loop() {
   busset.SetSerial();
   if(busset.isSet){
     busset.isSet = false;
+    ds.ClearMemStr(ds.memDS3231, 32);
     displayClear();
   }
   ds.GetTime();
@@ -30,9 +31,11 @@ void loop() {
   showTime();
 }
 
+
 void showTime() {
-  sprintf(ds.memDS3231, "%d%d:%d%d:%d%d\n%s\n%d%d/%d%d/2025", format.TenFormat(ds.timeString[2]), format.OneFormat(ds.timeString[2]),
+  sprintf(ds.memDS3231, "%d%d:%d%d:%d%d\n%s\n%d%d/%d%d/20%d%d", format.TenFormat(ds.timeString[2]), format.OneFormat(ds.timeString[2]),
           format.TenFormat(ds.timeString[1]), format.OneFormat(ds.timeString[1]), format.TenFormat(ds.timeString[0]), format.OneFormat(ds.timeString[0]),
-          ds.Day, format.TenFormat(ds.Date), format.OneFormat(ds.Date), format.TenFormat(ds.Month), format.OneFormat(ds.Month));
+          ds.Day, format.TenFormat(ds.Date), format.OneFormat(ds.Date), format.TenFormat(ds.Month), format.OneFormat(ds.Month), 
+          format.TenFormat(ds.Year), format.OneFormat(ds.Year));
   NextRowString(false, ds.memDS3231);
 }

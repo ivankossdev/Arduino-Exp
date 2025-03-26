@@ -17,6 +17,8 @@ public:
   String Day = "";
   int Date = 0;
   int Month = 0;
+  int Year = 0;
+  void ClearMemStr(char *data, int cnt);
   void GetTime();
   void SetTime(TimeData param, uint8_t data);
   void GetDay();
@@ -25,6 +27,8 @@ public:
   void SetDate(uint8_t data);
   void GetMonth();
   void SetMonth(uint8_t data);
+  void GetYear();
+
 private:
   uint8_t address;
   Convertor conv;
