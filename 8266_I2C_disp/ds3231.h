@@ -3,8 +3,8 @@
 #include <Arduino.h>
 #include "convertor.h"
 
-enum class TimeData{
-  sec, 
+enum class TimeData {
+  sec,
   min,
   hr
 };
@@ -18,6 +18,7 @@ public:
   int Date = 0;
   int Month = 0;
   int Year = 0;
+  char Temp[6] = { '0', '0', '.',  '0', '0'};
   void ClearMemStr(char *data, int cnt);
   void GetTime();
   void SetTime(TimeData param, uint8_t data);
@@ -29,14 +30,14 @@ public:
   void SetMonth(uint8_t data);
   void GetYear();
   void SetYear(uint8_t data);
+  void GetTemperature();
 
 private:
   uint8_t address;
   Convertor conv;
-  int OneRegisterData[1] = {'\0'};
+  int OneRegisterData[1] = { '\0' };
   void WriteToRegister(uint8_t regAddr, uint8_t data);
   void ReadRegister(uint8_t regAddr, size_t size, int *data);
-  
 };
 
 #endif

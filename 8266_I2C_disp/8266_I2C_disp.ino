@@ -25,6 +25,7 @@ void loop() {
   ds.GetDate();
   ds.GetMonth();
   ds.GetYear();
+  ds.GetTemperature();
   showTime();
 }
 
@@ -43,13 +44,14 @@ void displayClearToEvent() {
 }
 
 void showTime() {
-  sprintf(ds.memDS3231, "%d%d/%d%d/20%d%d\n%s\n%d%d:%d%d:%d%d",
+  sprintf(ds.memDS3231, "%d%d/%d%d/20%d%d\n%s\n%d%d:%d%d:%d%d\nT%sC",
           format.TenFormat(ds.Date), format.OneFormat(ds.Date),
           format.TenFormat(ds.Month), format.OneFormat(ds.Month),
           format.TenFormat(ds.Year), format.OneFormat(ds.Year),
           ds.Day,
           format.TenFormat(ds.timeString[2]), format.OneFormat(ds.timeString[2]),
           format.TenFormat(ds.timeString[1]), format.OneFormat(ds.timeString[1]),
-          format.TenFormat(ds.timeString[0]), format.OneFormat(ds.timeString[0]));
+          format.TenFormat(ds.timeString[0]), format.OneFormat(ds.timeString[0]),
+          ds.Temp);
   NextRowString(false, ds.memDS3231);
 }

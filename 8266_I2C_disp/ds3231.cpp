@@ -22,8 +22,8 @@ void SystemTime::ReadRegister(uint8_t regAddr, size_t size, int *data) {
   }
 }
 
-void SystemTime::ClearMemStr(char *data, int cnt){
-  for (int cnt = 0; cnt < 32; cnt++){
+void SystemTime::ClearMemStr(char *data, int cnt) {
+  for (int cnt = 0; cnt < 32; cnt++) {
     data[cnt] = '\0';
   }
 }
@@ -83,23 +83,27 @@ void SystemTime::GetMonth() {
   Month = conv.FromEightToDec(OneRegisterData[0] & 0x1f);
 }
 
-void SystemTime::SetMonth(uint8_t data){
+void SystemTime::SetMonth(uint8_t data) {
   WriteToRegister(5, data & 0x1f);
 }
 
-void SystemTime::GetYear(){
+void SystemTime::GetYear() {
   ReadRegister(6, (size_t)1, OneRegisterData);
   Year = conv.FromEightToDec(OneRegisterData[0]);
 }
 
-void SystemTime::SetYear(uint8_t data){
-   WriteToRegister(6, data);
+void SystemTime::SetYear(uint8_t data) {
+  WriteToRegister(6, data);
 }
 
+void SystemTime::GetTemperature() {
+  ReadRegister(0x11, (size_t)1, OneRegisterData);
+  int t0x11 = conv.FromEightToDec(OneRegisterData[0]);
+  Temp[0] = conv.TenFormat(t0x11) | 0x30;
+  Temp[1] = conv.OneFormat(t0x11) | 0x30;
 
-
-
-
-
-
-
+  ReadRegister(0x12, (size_t)1, OneRegisterData);
+  int t0x12 = conv.FromEightToDec((OneRegisterData[0] >> 6) * 25);
+  Temp[3] = conv.TenFormat(t0x12) | 0x30;
+  Temp[4] = conv.OneFormat(t0x12) | 0x30;
+}
