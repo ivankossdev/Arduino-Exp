@@ -103,7 +103,7 @@ void SystemTime::GetTemperature() {
   Temp[1] = conv.OneFormat(t0x11) | 0x30;
 
   ReadRegister(0x12, (size_t)1, OneRegisterData);
-  int t0x12 = conv.FromEightToDec((OneRegisterData[0] >> 6) * 25);
+  int t0x12 = (OneRegisterData[0] >> 6) * 25;
   Temp[3] = conv.TenFormat(t0x12) | 0x30;
   Temp[4] = conv.OneFormat(t0x12) | 0x30;
 }
