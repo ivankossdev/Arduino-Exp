@@ -11,7 +11,7 @@
 Convertor format;
 SystemTime ds(DS3231);
 BusSet busset;
-bool clearDspEvent = true;
+String chekDay = "";
 
 void setup() {
   displayInit();
@@ -35,12 +35,13 @@ void displayClearToEvent() {
     busset.isSet = false;
     displayClear();
     ds.ClearMemStr(ds.memDS3231, 32);
-  } else if (ds.timeString[1] == 0 && ds.timeString[0] == 0 && clearDspEvent) {
-    clearDspEvent = false;
-    displayClear();
-  } else if (ds.timeString[0] != 0 && !clearDspEvent) {
-    clearDspEvent = true;
   }
+  if (chekDay != ds.Day) {
+    displayClear();
+    ds.ClearMemStr(ds.memDS3231, 32);
+  }
+
+  chekDay = ds.Day;
 }
 
 void showTime() {
