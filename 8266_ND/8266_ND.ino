@@ -36,6 +36,8 @@ unsigned char ex[504] = {
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
+const int NEXT = 84;
+
 void clearEx() {
   for (int i = 0; i < 504; i++) {
     ex[i] = 0x00;
@@ -44,20 +46,23 @@ void clearEx() {
 
 void setup() {
   displayInit();
-  Serial.begin(115200);
+}
+
+void drawFullPixel(unsigned char pix){
+  for (int i = 0; i < 84; i++) {
+    ex[i + NEXT * 0] = pix;
+    ex[i + NEXT * 1] = pix;
+    ex[i + NEXT * 2] = pix;
+    ex[i + NEXT * 3] = pix;
+    ex[i + NEXT * 4] = pix;
+    ex[i + NEXT * 5] = pix;
+    mylcd.LCDCustomChar(ex, sizeof(ex) / sizeof(unsigned char), LCDPadding_None, true);
+    delay(50);
+  }
 }
 
 void loop() {
   mylcd.LCDgotoXY(0, 0);
-  for (int i = 0; i < 504; i++) {
-    ex[i] = 0xff;
-    mylcd.LCDCustomChar(ex, sizeof(ex) / sizeof(unsigned char), LCDPadding_None, true);
-    Serial.printf("i = %d\n", i);
-    delay(10);
-  }
-
-  delay(1000);
-  clearEx();
-  displayClear();
-  delay(1000);
+  drawFullPixel(0xff);
+  drawFullPixel(0x00);
 }
