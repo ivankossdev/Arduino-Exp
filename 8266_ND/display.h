@@ -25,4 +25,8 @@ void displayClear();
 void Count();
 void NextRowString(bool delay_, char *str);
 
+const int NEXT = 84;
+void clearEx();
+void drawFullPixel(unsigned char pix);
+
 #endif
