@@ -32,9 +32,13 @@ void drawFullPixel(unsigned char pix){
   }
 }
 
-void insertFig(unsigned char *arr, int lenArr, int posX){
+void insertFig(unsigned char *arr, int lenArr, int posX, int posY){
+  unsigned char netPosition = 0; 
   for(int i = posX; i < lenArr + posX; i++){
-    ex[i + NEXT * 0] = arr[i - posX];
+    ex[i + NEXT * 0] = arr[i - posX] << posY;
+    netPosition = arr[i - posX] >> (8 - posY);
+    ex[i + NEXT * 1] = netPosition;
+    netPosition = 0; 
   }
   mylcd.LCDCustomChar(ex, sizeof(ex) / sizeof(unsigned char), LCDPadding_None, true);
 }
