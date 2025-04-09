@@ -1,11 +1,11 @@
 #include "display.h"
 
 unsigned char ex[504] = { '\0' };
+
 void displayInit() {
   delay(50);
   mylcd.LCDInit(inverse, contrast, bias);
   mylcd.LCDClear(0x00);
-  mylcd.LCDFont(LCDFont_Default);
 }
 
 void displayClear() {
@@ -16,6 +16,7 @@ void clearEx() {
   for (int i = 0; i < 504; i++) {
     ex[i] = 0x00;
   }
+  mylcd.LCDCustomChar(ex, sizeof(ex) / sizeof(unsigned char), LCDPadding_None, true);
 }
 
 void drawFullPixel(unsigned char pix){
@@ -30,3 +31,20 @@ void drawFullPixel(unsigned char pix){
     delay(50);
   }
 }
+
+void insertFig(unsigned char *arr, int lenArr, int posX){
+  for(int i = posX; i < lenArr + posX; i++){
+    ex[i + NEXT * 0] = arr[i - posX];
+  }
+  mylcd.LCDCustomChar(ex, sizeof(ex) / sizeof(unsigned char), LCDPadding_None, true);
+}
+
+
+
+
+
+
+
+
+
+

@@ -1,11 +1,17 @@
 #include "display.h"
 
+unsigned char fig[8] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+
 void setup() {
   displayInit();
+  mylcd.LCDgotoXY(0, 0);
 }
 
 void loop() {
-  mylcd.LCDgotoXY(0, 0);
-  drawFullPixel(0xff);
-  drawFullPixel(0x00);
+  for(int i = 0; i < 8; i++){
+    insertFig(fig, 8, i * 10);
+    delay(500);
+    clearEx();
+    delay(500);
+  }
 }
