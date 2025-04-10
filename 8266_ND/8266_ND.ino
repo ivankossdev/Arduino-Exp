@@ -8,13 +8,22 @@ void setup() {
 }
 
 void loop() {
-  insertFig(fig, 8, 10, 5);
-    delay(1000);
-    clearEx();
-    delay(500);
-  // for(int i = 0; i < 8; i++){
-  //   insertFig(fig, 8, i * 10, 1);
-  //   delay(500);
-  //   clearEx();
-  // }
+
+  for (int y = 0; y < 18; y++) {
+    insertFig(fig, 8, 2, y);
+    delay(100);
+  }
+  // insertFig(fig, 8, 0, 0);
+  // delay(100);
+
+  // insertFig(fig, 8, 8, 8);
+  // delay(100);
+
+  // insertFig(fig, 8, 0, 9);
+  // delay(100);
+  
+  // insertFig(fig, 8, 8, 17);
+  delay(5000);
+
+  clearEx();
 }

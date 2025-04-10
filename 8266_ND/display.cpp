@@ -19,7 +19,7 @@ void clearEx() {
   mylcd.LCDCustomChar(ex, sizeof(ex) / sizeof(unsigned char), LCDPadding_None, true);
 }
 
-void drawFullPixel(unsigned char pix){
+void drawFullPixel(unsigned char pix) {
   for (int i = 0; i < 84; i++) {
     ex[i + NEXT * 0] = pix;
     ex[i + NEXT * 1] = pix;
@@ -32,23 +32,21 @@ void drawFullPixel(unsigned char pix){
   }
 }
 
-void insertFig(unsigned char *arr, int lenArr, int posX, int posY){
-  unsigned char netPosition = 0; 
-  for(int i = posX; i < lenArr + posX; i++){
-    ex[i + NEXT * 0] = arr[i - posX] << posY;
-    netPosition = arr[i - posX] >> (8 - posY);
-    ex[i + NEXT * 1] = netPosition;
-    netPosition = 0; 
+void insertFig(unsigned char *arr, int lenArr, int posX, int posY) {
+  unsigned char netPosition = 0;
+  for (int i = posX; i < lenArr + posX; i++) {
+    if (posY <= 8) {
+      ex[i + NEXT * 0] = arr[i - posX] << posY;
+      netPosition = arr[i - posX] >> (8 - posY);
+      ex[i + NEXT * 1] = netPosition;
+      netPosition = 0;
+
+    } else if (posY >= 9 && posY <= 17) {
+      ex[i + NEXT * 1] = arr[i - posX] << (posY - 9);
+      netPosition = arr[i - posX] >> (8 - (posY - 9));
+      ex[i + NEXT * 2] = netPosition;
+      netPosition = 0;
+    }
   }
   mylcd.LCDCustomChar(ex, sizeof(ex) / sizeof(unsigned char), LCDPadding_None, true);
 }
-
-
-
-
-
-
-
-
-
-
