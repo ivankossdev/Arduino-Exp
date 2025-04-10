@@ -9,21 +9,15 @@ void setup() {
 
 void loop() {
 
-  for (int y = 0; y < 18; y++) {
-    insertFig(fig, 8, 2, y);
-    delay(100);
+  for (int y = 0; y < 3; y++) {
+    for (int x = 5; x < 12; x++) {
+      insertFig(fig, 8, x * 5, y * 5);
+      delay(50);
+    }
   }
-  // insertFig(fig, 8, 0, 0);
-  // delay(100);
 
-  // insertFig(fig, 8, 8, 8);
-  // delay(100);
-
-  // insertFig(fig, 8, 0, 9);
-  // delay(100);
-  
-  // insertFig(fig, 8, 8, 17);
   delay(5000);
 
   clearEx();
+  delay(100);
 }
