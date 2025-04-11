@@ -8,7 +8,6 @@ void setup() {
 }
 
 void loop() {
-  
   test(fig);
 }
 
@@ -18,7 +17,7 @@ void test(unsigned char *img) {
       insertFig(img, 8, x * 5, y * 5);
     }
   }
-
+  mylcd.LCDCustomChar(ex, sizeof(ex) / sizeof(unsigned char), LCDPadding_None, true);
   delay(5000);
 
   clearEx();

@@ -79,5 +79,5 @@ void insertFig(unsigned char *arr, int lenArr, int posX, int posY) {
       shift = 0;
     }
   }
-  mylcd.LCDCustomChar(ex, sizeof(ex) / sizeof(unsigned char), LCDPadding_None, true);
+  // mylcd.LCDCustomChar(ex, sizeof(ex) / sizeof(unsigned char), LCDPadding_None, true);
 }
