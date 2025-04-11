@@ -42,12 +42,21 @@ void insertFig(unsigned char *arr, int lenArr, int posX, int posY) {
       netPosition = 0;
 
     } else if (posY >= 8 && posY < 16) {
-      shift = posY - 8; 
+      shift = posY - 8;
 
       ex[i + NEXT * 1] |= arr[i - posX] << (shift);
       netPosition = arr[i - posX] >> (8 - shift);
       ex[i + NEXT * 2] |= netPosition;
-      
+
+      netPosition = 0;
+      shift = 0;
+    } else if (posY >= 16 && posY < 24) {
+      shift = posY - 16;
+
+      ex[i + NEXT * 2] |= arr[i - posX] << (shift);
+      netPosition = arr[i - posX] >> (8 - shift);
+      ex[i + NEXT * 3] |= netPosition;
+
       netPosition = 0;
       shift = 0;
     }
