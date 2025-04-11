@@ -8,6 +8,7 @@ void setup() {
 }
 
 void loop() {
+  
   insertFig(fig, 8, 0, 0);  // insert x=0 y=0
   insertFig(fig, 8, 9, 0);  // insert x=9 y=0
   insertFig(fig, 8, 18, 0);  // insert x=18 y=0
@@ -19,6 +20,10 @@ void loop() {
   insertFig(fig, 8, 0, 18);  // insert x=0 y=18
   insertFig(fig, 8, 9, 18);  // insert x=9 y=18
   insertFig(fig, 8, 18, 18);  // insert x=18 y=18
+
+  insertFig(fig, 8, 0, 27);  // insert x=0 y=27
+  insertFig(fig, 8, 9, 27);  // insert x=9 y=27
+  insertFig(fig, 8, 18, 27);  // insert x=18 y=27
 
   delay(5000);
 
