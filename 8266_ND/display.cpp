@@ -68,6 +68,15 @@ void insertFig(unsigned char *arr, int lenArr, int posX, int posY) {
 
       netPosition = 0;
       shift = 0;
+    } else if (posY >= 32 && posY < 41) {
+      shift = posY - 32;
+
+      ex[i + NEXT * 4] |= arr[i - posX] << (shift);
+      netPosition = arr[i - posX] >> (8 - shift);
+      ex[i + NEXT * 5] |= netPosition;
+
+      netPosition = 0;
+      shift = 0;
     }
   }
   mylcd.LCDCustomChar(ex, sizeof(ex) / sizeof(unsigned char), LCDPadding_None, true);
