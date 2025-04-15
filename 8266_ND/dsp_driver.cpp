@@ -1,12 +1,12 @@
 #include "dsp_driver.h"
 
-void clearEx() {
+void DspDriver::clearEx() {
   for (int i = 0; i < 504; i++) {
     ex[i] = 0x00;
   }
 }
 
-void insertFig(unsigned char *arr, int lenArr, int posX, int posY) {
+void DspDriver::insertFig(unsigned char *arr, int lenArr, int posX, int posY) {
   unsigned char netPosition = 0, shift = 0;
   for (int i = posX; i < lenArr + posX; i++) {
     if (posY < 8) {

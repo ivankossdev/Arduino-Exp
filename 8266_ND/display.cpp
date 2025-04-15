@@ -1,6 +1,5 @@
 #include "display.h"
 
-unsigned char ex[504] = { '\0' };
 
 void displayInit() {
   delay(50);
