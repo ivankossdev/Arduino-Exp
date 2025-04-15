@@ -55,13 +55,13 @@ void DspDriver::insertFig(unsigned char *arr, int lenArr, int posX, int posY) {
   }
 }
 
-void DspDriver::shiftLeft(int posX){
+void DspDriver::shiftLeft() {
 
+  for (int i = 1; i <= 8; i++) {
+    ex[i - 1 + NEXT * 0] = ex[i + NEXT * 0];
+    ex[i + NEXT * 0] = 0x00;
+    
+    ex[i - 1 + NEXT * 1] = ex[i + NEXT * 1];
+    ex[i + NEXT * 1] = 0x00;
+  }
 }
-
-
-
-
-
-
-

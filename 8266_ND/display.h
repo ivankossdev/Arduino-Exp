@@ -15,8 +15,8 @@
 #define DIN D6  // 6-DN
 #define CLK D7  // 7-SCLK
 
-#define WIDTH_CHAR 7
-#define OVERFLOW_DISPLAY 71
+// #define WIDTH_CHAR 7
+// #define OVERFLOW_DISPLAY 71
 
 static NOKIA5110_TEXT mylcd(RST, CE, DC, DIN, CLK);
 

@@ -10,9 +10,22 @@ void setup() {
 }
 
 void loop() {
-  driver.insertFig(fig, 8, 1, 20);
+  driver.insertFig(fig, 8, 1, 0);
+  driver.insertFig(fig, 8, 10, 0);
+
+  driver.insertFig(fig, 8, 1, 8);
+  driver.insertFig(fig, 8, 10, 8);
+
   mylcd.LCDCustomChar(driver.ex, sizeof(driver.ex) / sizeof(unsigned char), LCDPadding_None, true);
-  delay(5000);
+  delay(2000);
+
+  for (int i = 0; i < 9; i++) {
+    driver.shiftLeft();
+    mylcd.LCDCustomChar(driver.ex, sizeof(driver.ex) / sizeof(unsigned char), LCDPadding_None, true);
+    delay(100);
+  }
+  delay(1000);
+
   driver.clearEx();
   mylcd.LCDCustomChar(driver.ex, sizeof(driver.ex) / sizeof(unsigned char), LCDPadding_None, true);
   delay(500);
