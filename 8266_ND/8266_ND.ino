@@ -20,15 +20,19 @@ void loop() {
   delay(2000);
 
   for (int i = 0; i < 9; i++) {
-    driver.shiftLeft();
+    driver.shiftLeft(0, 8);
+    mylcd.LCDCustomChar(driver.ex, sizeof(driver.ex) / sizeof(unsigned char), LCDPadding_None, true);
+    delay(100);
+  }
+  
+  for (int i = 0; i < 9; i++) {
+    driver.shiftLeft(1, 17);
     mylcd.LCDCustomChar(driver.ex, sizeof(driver.ex) / sizeof(unsigned char), LCDPadding_None, true);
     delay(100);
   }
   delay(1000);
 
   driver.clearEx();
-  mylcd.LCDCustomChar(driver.ex, sizeof(driver.ex) / sizeof(unsigned char), LCDPadding_None, true);
-  delay(500);
 }
 
 void test(unsigned char *img) {
