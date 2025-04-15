@@ -1,7 +1,7 @@
 #include "display.h"
 #include "dsp_driver.h"
 
-unsigned char fig[8] = { 0x55, 0xaa, 0x55, 0xaa, 0x55, 0xaa, 0x55, 0xaa };
+unsigned char fig[8] = { 0xff, 0xaa, 0x55, 0xaa, 0x55, 0xaa, 0x55, 0xff };
 DspDriver driver;
 
 void setup() {
@@ -10,7 +10,7 @@ void setup() {
 }
 
 void loop() {
-  driver.insertFig(fig, 8, 40, 20);
+  driver.insertFig(fig, 8, 1, 20);
   mylcd.LCDCustomChar(driver.ex, sizeof(driver.ex) / sizeof(unsigned char), LCDPadding_None, true);
   delay(5000);
   driver.clearEx();
