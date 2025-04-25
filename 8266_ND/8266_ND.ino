@@ -2,6 +2,7 @@
 #include "dsp_driver.h"
 
 unsigned char fig[8] = { 0x55, 0xaa, 0x55, 0xaa, 0x55, 0xaa, 0x55, 0xaa };
+
 DspDriver driver;
 
 void setup() {
@@ -10,6 +11,10 @@ void setup() {
 }
 
 void loop() {
+  Example0();
+}
+
+void Example0() {
   for (int x = 0; x < 10; x++) {
     for (int y = 0; y < 6; y++) {
       driver.insertFig(fig, 8, x * 8, y * 8);
@@ -25,7 +30,7 @@ void loop() {
     mylcd.LCDCustomChar(driver.ex, sizeof(driver.ex) / sizeof(unsigned char), LCDPadding_None, true);
     delay(50);
   }
-  
+
   delay(2000);
 
   for (int i = 0; i < 80; i++) {

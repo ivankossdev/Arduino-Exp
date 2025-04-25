@@ -6,7 +6,7 @@
 
 #define inverse  false
 #define contrast 0xbf     // default is 0xBF set in LCDinit, Try 0xB1 <-> 0xBF, if your display is too dark/dim
-#define bias 0x13         // LCD bias mode 1:48: Try 0x12 or 0x13 or 0x14 usually
+#define bias 0x14         // LCD bias mode 1:48: Try 0x12 or 0x13 or 0x14 usually
 
 /* Connection */
 #define RST D4  // 4-RST
