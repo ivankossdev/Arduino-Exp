@@ -8,7 +8,7 @@ public:
   unsigned char ex[504];
   void clearEx();
   void insertFig(unsigned char *arr, int lenArr, int posX, int posY);
-  void shiftLeft(int row, int endCount);
+  void shiftLeft(int row, int endCount = 83);
   void shifRigth(int row, int endCount = 83);
 };
 
