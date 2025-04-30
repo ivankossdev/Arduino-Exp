@@ -62,3 +62,8 @@ void DspDriver::shiftLeft(int row, int endCount) {
     ex[i + NEXT * row] = 0x00;
   }
 }
+
+void DspDriver::shifRigth(int row, int endCount){
+  
+}
+

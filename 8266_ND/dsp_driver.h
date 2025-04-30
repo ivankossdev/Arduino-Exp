@@ -9,6 +9,7 @@ public:
   void clearEx();
   void insertFig(unsigned char *arr, int lenArr, int posX, int posY);
   void shiftLeft(int row, int endCount);
+  void shifRigth(int row, int endCount);
 };
 
 #endif
