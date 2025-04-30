@@ -63,7 +63,6 @@ void DspDriver::shiftLeft(int row, int endCount) {
   }
 }
 
-void DspDriver::shifRigth(int row, int endCount){
-  
+void DspDriver::shifRigth(int row, int endCount) {
+  ex[endCount + NEXT * row] = 0xff;
 }
-

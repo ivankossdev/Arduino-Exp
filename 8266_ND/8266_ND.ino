@@ -13,7 +13,7 @@ void setup() {
 }
 
 void loop() {
-  ExShiftLift();
+  // ExShiftLift();
   ExShiftRight();
 }
 
@@ -58,16 +58,16 @@ void ExShiftRight() {
 
   delay(2000);
 
-  // Left shift example
-  // for (int i = 0; i < 80; i++) {
-  //   for (int i_ = 0; i_ < 6; i_++) {
-  //     driver.shiftLeft(i_, 80);
-  //   }
-  //   mylcd.LCDCustomChar(driver.ex, sizeof(driver.ex) / sizeof(unsigned char), LCDPadding_None, true);
-  //   delay(100);
-  // }
+  // Right shift example
+  for (int i = 0; i < 83; i++) {
+    for (int i_ = 0; i_ < 6; i_++) {
+      driver.shifRigth(i_, i);
+    }
+    mylcd.LCDCustomChar(driver.ex, sizeof(driver.ex) / sizeof(unsigned char), LCDPadding_None, true);
+    delay(100);
+  }
 
-  // delay(1000);
+  delay(2000);
 
   driver.clearEx();
   mylcd.LCDCustomChar(driver.ex, sizeof(driver.ex) / sizeof(unsigned char), LCDPadding_None, true);
