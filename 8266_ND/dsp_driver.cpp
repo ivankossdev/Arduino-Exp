@@ -64,5 +64,24 @@ void DspDriver::shiftLeft(int row, int endCount) {
 }
 
 void DspDriver::shifRigth(int row, int endCount) {
-  ex[endCount + NEXT * row] = 0xff;
+  unsigned char buffer = 0;
+  int i_ = 0;
+
+  if (endCount > 83) endCount = 83;
+
+  for (int i = endCount; i > 0; i--) {
+    i_ = i - 1;
+    if (i_ >= 0) {
+      ex[i + NEXT * row] = ex[i_ + NEXT * row];
+      ex[i_ + NEXT * row] = 0x00;
+    }
+  }
 }
+
+
+
+
+
+
+
+

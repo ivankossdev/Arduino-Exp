@@ -13,8 +13,8 @@ void setup() {
 }
 
 void loop() {
-  // ExShiftLift();
   ExShiftRight();
+  ExShiftLift();
 }
 
 void ExShiftLift() {
@@ -59,9 +59,9 @@ void ExShiftRight() {
   delay(2000);
 
   // Right shift example
-  for (int i = 0; i < 83; i++) {
-    for (int i_ = 0; i_ < 6; i_++) {
-      driver.shifRigth(i_, i);
+  for (int i = 0; i < 40; i++) {
+    for (int i_ = 0; i_ < 6; i_++) { // i_ < 6
+      driver.shifRigth(i_);
     }
     mylcd.LCDCustomChar(driver.ex, sizeof(driver.ex) / sizeof(unsigned char), LCDPadding_None, true);
     delay(100);
