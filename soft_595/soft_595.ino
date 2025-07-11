@@ -1,10 +1,7 @@
-
 /*Arduino board >>    << 595 board*/
 #define CLK 5  // --> 11 Clock 
 #define STcp 6 // --> 12 Storage Registet input 
 #define Data 9 // --> 14 Data pin
-
-
 
 void setup() {
   pinMode(CLK, OUTPUT); 
