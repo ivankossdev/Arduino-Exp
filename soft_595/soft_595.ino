@@ -1,8 +1,8 @@
 /*
   Arduino board >>    << 595 board default
-            CLK  5    --> 11 Clock 
-            STcp 6    --> 12 Storage Registet input 
-            Data 7    --> 14 Data pin
+            CLK  5    14 | DS    | Data pin
+            STcp 6    11 | SH_CP | Clock
+            Data 7    12 | ST_CP | Storage Registet input
 */
 #include "My595.h"
 
