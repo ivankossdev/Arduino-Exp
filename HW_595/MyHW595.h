@@ -9,6 +9,11 @@ Arduino  Leonardo
          MOSI 16    14 | DS    | Data pin
          SCK  15    11 | SH_CP | Clock
          SS   10    12 | ST_CP | Storage Registet input
+ESP8266
+         board ->    <- HC595
+         MOSI D7    14 | DS    | Data pin
+         SCK  D5    11 | SH_CP | Clock
+         SS   D4    12 | ST_CP | Storage Registet input
 */
 
 class MYHW595 {
