@@ -13,9 +13,8 @@ ESP8266
          SCK  D5    11 | SH_CP | Clock
          SS   D4    12 | ST_CP | Storage Registet input
 */
-// Connection
-#define SS D4
 
+#define SS D4
 #define delay_1 100
 #define delay_2 50
 
@@ -24,11 +23,14 @@ MYHW595 hw595(SS);
 void ShiftLeft();
 void ShiftRight();
 
-void setup() {}
+void setup() { 
+  
+}
 
 void loop() {
   ShiftLeft();
   delay(delay_1);
+
   ShiftRight();
   delay(delay_1);
 }
