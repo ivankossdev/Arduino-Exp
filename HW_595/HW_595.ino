@@ -1,4 +1,4 @@
-#include <SPI.h>
+#include "MyHW595.h"
 
 /*
 Leonardo
@@ -8,22 +8,13 @@ Arduino board ->    <- HC595
          SS   10    12 | ST_CP | Storage Registet input
 */
 
-const int latchPin = 10; // SS pin (ST_CP on HC595)
+MYHW595 hw595;
 
-void setup() {
-  pinMode(latchPin, OUTPUT);
-  SPI.begin();
-}
-
-void WriteByte(uint8_t data){
-  digitalWrite(latchPin, LOW);
-  SPI.transfer(data); 
-  digitalWrite(latchPin, HIGH);
-}
+void setup() { }
 
 void loop() {
   for(uint8_t i = 0; i < 8; i++){
-    WriteByte(1 << i);
+    hw595.WriteByte(1 << i);
     delay(100);
   }
 }
