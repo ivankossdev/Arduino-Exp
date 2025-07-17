@@ -23,6 +23,7 @@ Resistor connect
 
 MYHW595 hw595(SS);
 
+// Сдвигает 1 бит влево
 void ShiftLeft() {
   for (uint8_t i = 0; i < 8; i++) {
     int sensorValue = analogRead(A0);
@@ -31,6 +32,7 @@ void ShiftLeft() {
   }
 }
 
+// Сдвигает 1 бит вправо
 void ShiftRight(){
   for(int i = 7; i >= 0; i--){
     int sensorValue = analogRead(A0);
@@ -39,10 +41,15 @@ void ShiftRight(){
   }
 }
 
+/*
+  Example_1() функция считывает данные АЦП с A0 от 0-1024
+  и передает значение на сдвиговый регистр 74hc595 результат 
+*/
 void Example_1(){
-  int sensorValue = analogRead(A0);
-  int res = sensorValue / 4;
-  Serial.print("Analog value: ");
+  int sensorValue = analogRead(A0); // Читает значение на A0 
+  int res = sensorValue / 4;        // значение sensorValue / 4 нужно что бы правильно отображать данные на
+                                    // сдвиговом регистре 74hc595, его диапазон 1 байт 0-255
+  Serial.print("Analog value: ");   // Отправляет полученный результат на шину Serial RS232
   Serial.println(res);
   if(res >= 256) 
     res = 255;
@@ -51,7 +58,6 @@ void Example_1(){
 }
 
 void Example_2(){
-  
   ShiftLeft();
   ShiftRight();
 }
