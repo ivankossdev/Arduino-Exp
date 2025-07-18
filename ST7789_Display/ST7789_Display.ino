@@ -26,35 +26,35 @@ void setup(void) {
 }
 
 void loop() {
-  tft.fillScreen(BLACK);
+  tft.fillScreen(GREEN);
 
-  tft.drawChar(5, 100, 'H', 255, 0, 5),
-    tft.drawChar(35, 100, 'E', 255, 0, 5),
-    tft.drawChar(65, 100, 'L', 255, 0, 5),
-    tft.drawChar(95, 100, 'L', 255, 0, 5),
-    tft.drawChar(125, 100, 'O', 255, 0, 5),
-    tft.drawChar(155, 100, 'L', 255, 0, 5),
-    tft.drawChar(185, 100, 'E', 255, 0, 5),
-    tft.drawChar(215, 100, 'D', 255, 0, 5),
+  // tft.drawChar(5, 100, 'H', 255, 0, 5),
+  // tft.drawChar(35, 100, 'E', 255, 0, 5),
+  // tft.drawChar(65, 100, 'L', 255, 0, 5),
+  // tft.drawChar(95, 100, 'L', 255, 0, 5),
+  // tft.drawChar(125, 100, 'O', 255, 0, 5),
+  // tft.drawChar(155, 100, 'L', 255, 0, 5),
+  // tft.drawChar(185, 100, 'E', 255, 0, 5),
+  // tft.drawChar(215, 100, 'D', 255, 0, 5),
 
-    tft.drawChar(25, 150, 'H', RED, 0, 1),
-    tft.drawChar(35, 150, 'E', RED, 0, 1),
-    tft.drawChar(45, 150, 'L', RED, 0, 1),
-    tft.drawChar(55, 150, 'L', RED, 0, 1),
-    tft.drawChar(65, 150, 'O', RED, 0, 1),
-    tft.drawChar(75, 150, 'L', RED, 0, 1),
-    tft.drawChar(85, 150, 'E', RED, 0, 1),
-    tft.drawChar(95, 150, 'D', RED, 0, 1),
+  // tft.drawChar(25, 150, 'H', RED, 0, 1),
+  // tft.drawChar(35, 150, 'E', RED, 0, 1),
+  // tft.drawChar(45, 150, 'L', RED, 0, 1),
+  // tft.drawChar(55, 150, 'L', RED, 0, 1),
+  // tft.drawChar(65, 150, 'O', RED, 0, 1),
+  // tft.drawChar(75, 150, 'L', RED, 0, 1),
+  // tft.drawChar(85, 150, 'E', RED, 0, 1),
+  // tft.drawChar(95, 150, 'D', RED, 0, 1),
 
-    tft.drawChar(115, 150, 'H', RED, 0, 1),
-    tft.drawChar(125, 150, 'E', RED, 0, 1),
-    tft.drawChar(135, 150, 'L', RED, 0, 1),
-    tft.drawChar(145, 150, 'L', RED, 0, 1),
-    tft.drawChar(155, 150, 'O', RED, 0, 1),
-    tft.drawChar(165, 150, 'L', RED, 0, 1),
-    tft.drawChar(175, 150, 'E', RED, 0, 1),
-    tft.drawChar(185, 150, 'D', RED, 0, 1),
-    delay(2000);
+  // tft.drawChar(115, 150, 'H', RED, 0, 1),
+  // tft.drawChar(125, 150, 'E', RED, 0, 1),
+  // tft.drawChar(135, 150, 'L', RED, 0, 1),
+  // tft.drawChar(145, 150, 'L', RED, 0, 1),
+  // tft.drawChar(155, 150, 'O', RED, 0, 1),
+  // tft.drawChar(165, 150, 'L', RED, 0, 1),
+  // tft.drawChar(175, 150, 'E', RED, 0, 1),
+  // tft.drawChar(185, 150, 'D', RED, 0, 1),
+  // delay(2000);
 
   // a single pixel
 
@@ -65,9 +65,11 @@ void loop() {
   // testlines(YELLOW);
   // delay(500);
 
-  // // optimized lines
-  // testfastlines(RED, BLUE);
+  // optimized lines
+  testfastlines(WHITE, WHITE);
   // delay(500);
+
+  
 
   // testdrawrects(GREEN);
   // delay(500);

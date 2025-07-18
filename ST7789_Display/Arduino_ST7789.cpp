@@ -402,7 +402,7 @@ void Arduino_ST7789::drawFastHLine(int16_t x, int16_t y, int16_t w,
     spiwrite(hi);
     spiwrite(lo);
   }
-
+  delay(1);
   CS_HIGH();
   SPI_END_TRANSACTION();
 }
