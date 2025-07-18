@@ -1,19 +1,30 @@
-#include <Adafruit_GFX.h>    // Core graphics library by Adafruit
-#include <Arduino_ST7789.h> // Hardware-specific library for ST7789 (with or without CS pin)
 #include <SPI.h>
+#include <Adafruit_GFX.h>    // Core graphics library by Adafruit
+#include "Arduino_ST7789.h" // Hardware-specific library for ST7789 (with or without CS pin)
 
-#define TFT_DC    8
-#define TFT_RST   9 
-#define TFT_CS    10 // only for displays with CS pin
-#define TFT_MOSI  11   // for hardware SPI data pin (all of available pins)
-#define TFT_SCLK  13   // for hardware SPI sclk pin (all of available pins)
+#define TFT_DC    D3
+#define TFT_RST   D4 
+// #define TFT_CS    
+#define TFT_MOSI  D7   
+#define TFT_SCLK  D5   
+/*
+ESP8266
+board ->    <- HC595
+MOSI D7    14 | DS    | Data pin
+SCK  D5    11 | SH_CP | Clock
+SS   D4    12 | ST_CP | Storage Registet input
+*/
+
+
 
 //You can use different type of hardware initialization
 //using hardware SPI (11, 13 on UNO; 51, 52 on MEGA; ICSP-4, ICSP-3 on DUE and etc)
 //Arduino_ST7789 tft = Arduino_ST7789(TFT_DC, TFT_RST); //for display without CS pin
 //Arduino_ST7789 tft = Arduino_ST7789(TFT_DC, TFT_RST, TFT_CS); //for display with CS pin
 //or you can use software SPI on all available pins (slow)
+
 Arduino_ST7789 tft = Arduino_ST7789(TFT_DC, TFT_RST, TFT_MOSI, TFT_SCLK); //for display without CS pin
+
 //Arduino_ST7789 tft = Arduino_ST7789(TFT_DC, TFT_RST, TFT_MOSI, TFT_SCLK, TFT_CS); //for display with CS pin
 //Arduino_ST7789 tft = Arduino_ST7789(-1, TFT_RST, TFT_MOSI, TFT_SCLK, TFT_CS); //for display with CS pin and DC via 9bit SPI
 
@@ -21,48 +32,48 @@ Arduino_ST7789 tft = Arduino_ST7789(TFT_DC, TFT_RST, TFT_MOSI, TFT_SCLK); //for 
 float p = 3.1415926;
 
 void setup(void) {
-  Serial.begin(9600);
-  Serial.print("Hello! ST7789 TFT Test");
+  // Serial.begin(115200);
+  // Serial.print("Hello! ST7789 TFT Test");
 
   tft.init(240, 240);   // initialize a ST7789 chip, 240x240 pixels
 
-  Serial.println("Initialized");
+  // Serial.println("Initialized");
 
-  uint16_t time = millis();
+  // uint16_t time = millis();
   tft.fillScreen(BLACK);
-  time = millis() - time;
+  // time = millis() - time;
 }
 
 void loop()
 {  
     tft.fillScreen(BLACK);
 
-  tft.drawChar(5, 100, 'D', 255, 0, 5),
-  tft.drawChar(35, 100, 'U', 255, 0, 5),
-  tft.drawChar(65, 100, 'I', 255, 0, 5),
-  tft.drawChar(95, 100, 'N', 255, 0, 5),
+  tft.drawChar(5, 100, 'H', 255, 0, 5),
+  tft.drawChar(35, 100, 'E', 255, 0, 5),
+  tft.drawChar(65, 100, 'L', 255, 0, 5),
+  tft.drawChar(95, 100, 'L', 255, 0, 5),
   tft.drawChar(125, 100, 'O', 255, 0, 5),
-  tft.drawChar(155, 100, '.', 255, 0, 5),
-  tft.drawChar(185, 100, 'R', 255, 0, 5),
-  tft.drawChar(215, 100, 'U', 255, 0, 5),
+  tft.drawChar(155, 100, 'L', 255, 0, 5),
+  tft.drawChar(185, 100, 'E', 255, 0, 5),
+  tft.drawChar(215, 100, 'D', 255, 0, 5),
 
-  tft.drawChar(25, 150, 'D', RED, 0, 1),
-  tft.drawChar(35, 150, 'U', RED, 0, 1),
-  tft.drawChar(45, 150, 'I', RED, 0, 1),
-  tft.drawChar(55, 150, 'N', RED, 0, 1),
+  tft.drawChar(25, 150, 'H', RED, 0, 1),
+  tft.drawChar(35, 150, 'E', RED, 0, 1),
+  tft.drawChar(45, 150, 'L', RED, 0, 1),
+  tft.drawChar(55, 150, 'L', RED, 0, 1),
   tft.drawChar(65, 150, 'O', RED, 0, 1),
-  tft.drawChar(75, 150, '.', RED, 0, 1),
-  tft.drawChar(85, 150, 'R', RED, 0, 1),
-  tft.drawChar(95, 150, 'U', RED, 0, 1),
+  tft.drawChar(75, 150, 'L', RED, 0, 1),
+  tft.drawChar(85, 150, 'E', RED, 0, 1),
+  tft.drawChar(95, 150, 'D', RED, 0, 1),
 
-  tft.drawChar(115, 150, 'D', RED, 0, 1),
-  tft.drawChar(125, 150, 'U', RED, 0, 1),
-  tft.drawChar(135, 150, 'I', RED, 0, 1),
-  tft.drawChar(145, 150, 'N', RED, 0, 1),
+  tft.drawChar(115, 150, 'H', RED, 0, 1),
+  tft.drawChar(125, 150, 'E', RED, 0, 1),
+  tft.drawChar(135, 150, 'L', RED, 0, 1),
+  tft.drawChar(145, 150, 'L', RED, 0, 1),
   tft.drawChar(155, 150, 'O', RED, 0, 1),
-  tft.drawChar(165, 150, '.', RED, 0, 1),
-  tft.drawChar(175, 150, 'R', RED, 0, 1),
-  tft.drawChar(185, 150, 'U', RED, 0, 1),
+  tft.drawChar(165, 150, 'L', RED, 0, 1),
+  tft.drawChar(175, 150, 'E', RED, 0, 1),
+  tft.drawChar(185, 150, 'D', RED, 0, 1),
   delay(2000);
   
   // a single pixel
