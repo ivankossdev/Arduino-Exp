@@ -1,24 +1,17 @@
 #include <SPI.h>
 #include <Adafruit_GFX.h>
 #include "Arduino_ST7789.h"
-
-#define TFT_DC D3
-#define TFT_RST D4
-#define TFT_MOSI D7
-#define TFT_SCLK D5
-/*
-ESP8266
-board ->    <- HC595
-MOSI D7    14 | DS    | Data pin
-SCK  D5    11 | SH_CP | Clock
-SS   D4    12 | ST_CP | Storage Registet input
-*/
+                     // ESP8266
+                     // board ->    <- HC595
+                     // SS   D4    12 | ST_CP | Storage Registet input
+#define TFT_DC   D3  //
+#define TFT_RST  D4  //
+#define TFT_MOSI D7  // MOSI D7    14 | DS    | Data pin
+#define TFT_SCLK D5  // SCK  D5    11 | SH_CP | Clock 
 
 Arduino_ST7789 tft = Arduino_ST7789(TFT_DC, TFT_RST, TFT_MOSI, TFT_SCLK);  //for display without CS pin
 
-float p = 3.1415926;
-
-void setup(void) {
+void setup() {
   tft.init(240, 240);  // initialize a ST7789 chip, 240x240 pixels
   uint16_t time = millis();
   tft.fillScreen(BLACK);
@@ -26,77 +19,13 @@ void setup(void) {
 }
 
 void loop() {
-  tft.fillScreen(GREEN);
-
-  // tft.drawChar(5, 100, 'H', 255, 0, 5),
-  // tft.drawChar(35, 100, 'E', 255, 0, 5),
-  // tft.drawChar(65, 100, 'L', 255, 0, 5),
-  // tft.drawChar(95, 100, 'L', 255, 0, 5),
-  // tft.drawChar(125, 100, 'O', 255, 0, 5),
-  // tft.drawChar(155, 100, 'L', 255, 0, 5),
-  // tft.drawChar(185, 100, 'E', 255, 0, 5),
-  // tft.drawChar(215, 100, 'D', 255, 0, 5),
-
-  // tft.drawChar(25, 150, 'H', RED, 0, 1),
-  // tft.drawChar(35, 150, 'E', RED, 0, 1),
-  // tft.drawChar(45, 150, 'L', RED, 0, 1),
-  // tft.drawChar(55, 150, 'L', RED, 0, 1),
-  // tft.drawChar(65, 150, 'O', RED, 0, 1),
-  // tft.drawChar(75, 150, 'L', RED, 0, 1),
-  // tft.drawChar(85, 150, 'E', RED, 0, 1),
-  // tft.drawChar(95, 150, 'D', RED, 0, 1),
-
-  // tft.drawChar(115, 150, 'H', RED, 0, 1),
-  // tft.drawChar(125, 150, 'E', RED, 0, 1),
-  // tft.drawChar(135, 150, 'L', RED, 0, 1),
-  // tft.drawChar(145, 150, 'L', RED, 0, 1),
-  // tft.drawChar(155, 150, 'O', RED, 0, 1),
-  // tft.drawChar(165, 150, 'L', RED, 0, 1),
-  // tft.drawChar(175, 150, 'E', RED, 0, 1),
-  // tft.drawChar(185, 150, 'D', RED, 0, 1),
-  // delay(2000);
-
-  // a single pixel
-
-  // tft.drawPixel(tft.width() / 2, tft.height() / 2, GREEN);
-  // delay(500);
-
-  // // line draw test
-  // testlines(YELLOW);
-  // delay(500);
-
-  // optimized lines
+  tft.fillScreen(WHITE);
+  char message[] = "HELLOLED";
+  for(int i = 0, pos = 5; i < 8; i++, pos += 30){
+    tft.drawChar(pos, 100, message[i], 0, WHITE, 5);
+  }
   testfastlines(WHITE, WHITE);
-  // delay(500);
-
-  
-
-  // testdrawrects(GREEN);
-  // delay(500);
-
-  // testfillrects(YELLOW, MAGENTA);
-  // delay(500);
-
-  // tft.fillScreen(BLACK);
-  // testfillcircles(10, BLUE);
-  // testdrawcircles(10, WHITE);
-  // delay(500);
-
-  // testroundrects();
-  // delay(500);
-
-  // testtriangles();
-  // delay(500);
-
-  // mediabuttons();
-  // delay(500);
-
-  // tft.invertDisplay(true);
-  // delay(500);
-  // tft.invertDisplay(false);
-  // delay(500);
-  // tft.invertDisplay(true);
-  // delay(500);
+  testdrawcircles(5, 255);
 }
 
 void testlines(uint16_t color) {
@@ -218,64 +147,4 @@ void testroundrects() {
     }
     color += 100;
   }
-}
-
-void tftPrintTest() {
-  tft.setTextWrap(false);
-  tft.fillScreen(BLACK);
-  tft.setCursor(0, 30);
-  tft.setTextColor(RED);
-  tft.setTextSize(1);
-  tft.println("DUINO.RU");
-  tft.setTextColor(YELLOW);
-  tft.setTextSize(2);
-  tft.println("DUINO.RU");
-  tft.setTextColor(GREEN);
-  tft.setTextSize(3);
-  tft.println("DUINO.RU");
-  tft.setTextColor(BLUE);
-  tft.setTextSize(4);
-  tft.print(1234.567);
-  delay(1500);
-  tft.setCursor(0, 0);
-  tft.fillScreen(BLACK);
-  tft.setTextColor(WHITE);
-  tft.setTextSize(0);
-  tft.println("DUINO.RU");
-  tft.setTextSize(1);
-  tft.setTextColor(GREEN);
-  tft.print(p, 6);
-  tft.println(" Want pi?");
-  tft.println(" ");
-  tft.print(8675309, HEX);  // print 8,675,309 out in HEX!
-  tft.println(" Print HEX!");
-  tft.println(" ");
-  tft.setTextColor(WHITE);
-  tft.println("Sketch has been");
-  tft.println("running for: ");
-  tft.setTextColor(MAGENTA);
-  tft.print(millis() / 1000);
-  tft.setTextColor(WHITE);
-  tft.print(" seconds.");
-}
-
-void mediabuttons() {
-  // play
-  tft.fillScreen(BLACK);
-  tft.fillRoundRect(25, 10, 78, 60, 8, WHITE);
-  tft.fillTriangle(42, 20, 42, 60, 90, 40, RED);
-  delay(500);
-  // pause
-  tft.fillRoundRect(25, 90, 78, 60, 8, WHITE);
-  tft.fillRoundRect(39, 98, 20, 45, 5, GREEN);
-  tft.fillRoundRect(69, 98, 20, 45, 5, GREEN);
-  delay(500);
-  // play color
-  tft.fillTriangle(42, 20, 42, 60, 90, 40, BLUE);
-  delay(50);
-  // pause color
-  tft.fillRoundRect(39, 98, 20, 45, 5, RED);
-  tft.fillRoundRect(69, 98, 20, 45, 5, RED);
-  // play color
-  tft.fillTriangle(42, 20, 42, 60, 90, 40, GREEN);
 }
