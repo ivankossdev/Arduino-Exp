@@ -2,12 +2,10 @@
 #include <Adafruit_GFX.h>
 #include "Arduino_ST7789.h"
                      // ESP8266
-                     // board ->    <- HC595
-                     // SS   D4    12 | ST_CP | Storage Registet input
-#define TFT_DC   D3  //
+#define TFT_DC   D3  // 
 #define TFT_RST  D4  //
-#define TFT_MOSI D7  // MOSI D7    14 | DS    | Data pin
-#define TFT_SCLK D5  // SCK  D5    11 | SH_CP | Clock 
+#define TFT_MOSI D7  // MOSI D7    
+#define TFT_SCLK D5  // SCK  D5    
 
 Arduino_ST7789 tft = Arduino_ST7789(TFT_DC, TFT_RST, TFT_MOSI, TFT_SCLK);  //for display without CS pin
 
@@ -19,13 +17,17 @@ void setup() {
 }
 
 void loop() {
-  tft.fillScreen(WHITE);
-  char message[] = "HELLOLED";
-  for(int i = 0, pos = 5; i < 8; i++, pos += 30){
-    tft.drawChar(pos, 100, message[i], 0, WHITE, 5);
-  }
-  testfastlines(WHITE, WHITE);
-  testdrawcircles(5, 255);
+  // tft.fillScreen(BLACK);
+  // testdrawcircles(10, 255);
+  // char message[] = "HELLOLED";
+  // tft.fillScreen(BLACK);
+  // for(int i = 0, pos = 5; i < 8; i++, pos += 30){
+  //   tft.drawChar(pos, 100, message[i], RED, 0, 5);
+  // }
+  tft.fillScreen(BLACK);
+  char message[] = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non tortor id lacus malesuada sagittis at sit amet quam. Nulla sollicitudin, dui eu aliquet pharetra, felis ipsum tristique sapien, molestie dapibus lorem metus eget eros.";
+  testdrawtext(message, RED);
+  delay(2000);
 }
 
 void testlines(uint16_t color) {
@@ -64,6 +66,7 @@ void testlines(uint16_t color) {
 
 void testdrawtext(char *text, uint16_t color) {
   tft.setCursor(0, 0);
+  tft.setTextSize(2);
   tft.setTextColor(color);
   tft.setTextWrap(true);
   tft.print(text);
