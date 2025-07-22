@@ -28,6 +28,9 @@ void setup(void) {
   Serial.begin(115200);
   wifiInit();
 
+  pinMode(D0, OUTPUT);
+  digitalWrite(D0, LOW);
+
   // Wait for connection
   mylcd.LCDgotoXY(0, 0);
   while (WiFi.status() != WL_CONNECTED) {

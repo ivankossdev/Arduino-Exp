@@ -17,6 +17,7 @@ void actionOn() {
   mylcd.printf("Evidence: ");
   mylcd.LCDgotoXY(0, 1);
   mylcd.printf("Action ON");
+  digitalWrite(D0, HIGH);
   delay(1000);
   showInfo();
 }
@@ -28,6 +29,7 @@ void actionOff() {
   mylcd.printf("Evidence: ");
   mylcd.LCDgotoXY(0, 1);
   mylcd.printf("Action OFF");
+  digitalWrite(D0, LOW);
   delay(1000);
   showInfo();
 }
