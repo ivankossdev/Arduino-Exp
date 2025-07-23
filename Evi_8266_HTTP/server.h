@@ -10,5 +10,6 @@ void showInfo();
 void actionOn();
 void actionOff();
 void motion();
+void SendHTTP();
 
 #endif
