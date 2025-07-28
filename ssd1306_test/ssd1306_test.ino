@@ -3,73 +3,78 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
-#define SCREEN_WIDTH 128     // OLED display width, in pixels
-#define SCREEN_HEIGHT 64     // OLED display height, in pixels
+#define SCREEN_WIDTH 128  // OLED display width, in pixels
+#define SCREEN_HEIGHT 64  // OLED display height, in pixels
 
-                             // On an arduino LEONARDO:   2(SDA),  3(SCL), ...
-#define OLED_RESET     -1    // Reset pin # (or -1 if sharing Arduino reset pin)
+// On an arduino LEONARDO:   2(SDA),  3(SCL), ...
+#define OLED_RESET -1        // Reset pin # (or -1 if sharing Arduino reset pin)
 #define SCREEN_ADDRESS 0x3C  //< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
 
-  // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
-  if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+  if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
     Serial.println(F("SSD1306 allocation failed"));
-    for(;;); // Don't proceed, loop forever
+    for (;;)
+      ;
   }
 
   display.clearDisplay();
   display.display();
-
 }
 
 void loop() {
-  testscrolltext();
+  testScrolltext(&display);
+  countString(&display);
+}
 
-  display.clearDisplay();
-  display.display();
+void countString(Adafruit_SSD1306 *disp) {
+  disp->clearDisplay();
+  disp->display();
   delay(1000);
 
-  display.setTextSize(2);
-  display.setCursor(0, 0); 
-  for(int i = 0; i < 10; i++){
-    display.write(i + '0');
-    delay(100);
-    display.display();
+  disp->setTextSize(2);
+  disp->setCursor(0, 0);
+  for (int i = 0; i < 10; i++) {
+    disp->write(i + '0');
+    delay(10);
+    disp->display();
   }
   delay(1000);
-  display.clearDisplay();
-  display.display();
+  disp->clearDisplay();
+  disp->display();
   delay(1000);
 }
 
+void testScrolltext(Adafruit_SSD1306 *disp) {
+  disp->clearDisplay();
 
-void testscrolltext(void) {
-  display.clearDisplay();
-
-  display.setTextSize(2); // Draw 2X-scale text
-  display.setTextColor(SSD1306_WHITE);
-  display.setCursor(0, 24);
-  display.println(F("ivan.koss"));
-  display.display();      // Show initial text
+  disp->setTextSize(2);  // Draw 2X-scale text
+  disp->setTextColor(SSD1306_WHITE);
+  disp->setCursor(0, 24);
+  disp->println(F("hello led!"));
+  disp->display();  // Show initial text
   delay(100);
 
   // Scroll in various directions, pausing in-between:
-  display.startscrollright(0x00, 0x0F);
+  disp->startscrollright(0x00, 0x0F);
   delay(2000);
-  display.stopscroll();
+  disp->stopscroll();
   delay(1000);
-  display.startscrollleft(0x00, 0x0F);
+  disp->startscrollleft(0x00, 0x0F);
   delay(2000);
-  display.stopscroll();
+  disp->stopscroll();
   delay(1000);
-  display.startscrolldiagright(0x00, 0x07);
+  disp->startscrolldiagright(0x00, 0x07);
   delay(2000);
-  display.startscrolldiagleft(0x00, 0x07);
+  disp->startscrolldiagleft(0x00, 0x07);
   delay(2000);
-  display.stopscroll();
+  disp->stopscroll();
   delay(1000);
 }
 
+
+void showDot(Adafruit_SSD1306 *disp) {
+  disp->setTextSize(2);
+}
