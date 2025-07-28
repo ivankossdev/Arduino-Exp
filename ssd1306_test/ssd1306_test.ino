@@ -25,12 +25,15 @@ void setup() {
 }
 
 void loop() {
-  testScrolltext(&display);
+  // testScrolltext(&display);
+  showDot(&display);
   countString(&display);
 }
 
 void countString(Adafruit_SSD1306 *disp) {
+  disp->setTextColor(SSD1306_WHITE);
   disp->clearDisplay();
+  disp->setTextSize(2);
   disp->display();
   delay(1000);
 
@@ -38,8 +41,8 @@ void countString(Adafruit_SSD1306 *disp) {
   disp->setCursor(0, 0);
   for (int i = 0; i < 10; i++) {
     disp->write(i + '0');
-    delay(10);
     disp->display();
+    delay(100);
   }
   delay(1000);
   disp->clearDisplay();
@@ -74,7 +77,15 @@ void testScrolltext(Adafruit_SSD1306 *disp) {
   delay(1000);
 }
 
-
 void showDot(Adafruit_SSD1306 *disp) {
+  disp->setTextColor(SSD1306_WHITE);
+  disp->clearDisplay();
   disp->setTextSize(2);
+  disp->setCursor(0, 0);
+  for (uint8_t i = 0; i < 10; i++) {
+    disp->write('.');
+    delay(100);
+    disp->display();
+  }
+  delay(1000);
 }
