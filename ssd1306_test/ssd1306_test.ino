@@ -27,7 +27,11 @@ void setup() {
 void loop() {
   // testScrolltext(&display);
   showDot(&display);
-  countString(&display);
+  // countString(&display);
+  display.drawFastHLine(50, 50, 25, WHITE);
+  
+  display.display();
+  delay(1000);
 }
 
 void countString(Adafruit_SSD1306 *disp) {
