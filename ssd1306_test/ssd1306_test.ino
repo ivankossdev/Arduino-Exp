@@ -28,9 +28,16 @@ void loop() {
   // testScrolltext(&display);
   showDot(&display);
   // countString(&display);
-  display.drawFastHLine(50, 50, 25, WHITE);
-  
-  display.display();
+  for (uint16_t y = 0; y < 15; y++) {
+    display.drawFastHLine(0, y, 128, WHITE);
+    display.display();
+  }
+  delay(1000);
+
+  for (uint16_t x = 0; x < 128; x++) {
+    display.drawFastVLine(x, 0, 128, BLACK);
+    display.display();
+  }
   delay(1000);
 }
 
