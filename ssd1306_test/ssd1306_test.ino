@@ -26,19 +26,34 @@ void setup() {
 
 void loop() {
   // testScrolltext(&display);
-  showDot(&display);
+  // showDot(&display);
   // countString(&display);
-  for (uint16_t y = 0; y < 15; y++) {
-    display.drawFastHLine(0, y, 128, WHITE);
-    display.display();
-  }
-  delay(1000);
 
-  for (uint16_t x = 0; x < 128; x++) {
-    display.drawFastVLine(x, 0, 128, BLACK);
-    display.display();
-  }
+  progressBar(&display);
   delay(1000);
+  clearProgressBar(&display);
+  delay(1000);
+}
+
+void progressBar(Adafruit_SSD1306 *disp) {
+  disp->clearDisplay();
+  disp->drawFastHLine(0, 0, SCREEN_WIDTH - 1, WHITE);
+  disp->drawFastHLine(0, 15, SCREEN_WIDTH - 1, WHITE);
+  disp->drawFastVLine(0, 0, 15, WHITE);
+  disp->drawFastVLine(SCREEN_WIDTH - 1, 0, 15, WHITE);
+  disp->display();
+  for( int item = 2; item < 126; item++ ){
+    disp->drawFastVLine(item, 2, 12, WHITE);
+    disp->display();
+    delay(100);
+  }
+}
+
+void clearProgressBar(Adafruit_SSD1306 *disp){
+    for( int item = 2; item < 126; item++ ){
+    disp->drawFastVLine(item, 2, 12, BLACK);
+  }
+  disp->display();
 }
 
 void countString(Adafruit_SSD1306 *disp) {
@@ -70,8 +85,6 @@ void testScrolltext(Adafruit_SSD1306 *disp) {
   disp->println(F("hello led!"));
   disp->display();  // Show initial text
   delay(100);
-
-  // Scroll in various directions, pausing in-between:
   disp->startscrollright(0x00, 0x0F);
   delay(2000);
   disp->stopscroll();
