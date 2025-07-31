@@ -25,10 +25,6 @@ void setup() {
 }
 
 void loop() {
-  // testScrolltext(&display);
-  // showDot(&display);
-  // countString(&display);
-
   progressBar(&display);
   delay(1000);
   clearProgressBar(&display);
@@ -42,15 +38,17 @@ void progressBar(Adafruit_SSD1306 *disp) {
   disp->drawFastVLine(0, 0, 15, WHITE);
   disp->drawFastVLine(SCREEN_WIDTH - 1, 0, 15, WHITE);
   disp->display();
-  for( int item = 2; item < 126; item++ ){
-    disp->drawFastVLine(item, 2, 12, WHITE);
-    disp->display();
-    delay(100);
+
+  for (int item = 2; item < 127; item++) {
+    if ((item % 2) == 0) {
+      disp->drawFastVLine(item, 2, 12, WHITE);
+      disp->display();
+    }
   }
 }
 
-void clearProgressBar(Adafruit_SSD1306 *disp){
-    for( int item = 2; item < 126; item++ ){
+void clearProgressBar(Adafruit_SSD1306 *disp) {
+  for (int item = 2; item < 127; item++) {
     disp->drawFastVLine(item, 2, 12, BLACK);
   }
   disp->display();
