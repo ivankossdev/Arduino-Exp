@@ -4,8 +4,8 @@ void displayInit(Adafruit_SSD1306 *disp) {
 
   if (!disp->begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
     Serial.println(F("SSD1306 allocation failed"));
-    for (;;) 
-    ;
+    for (;;)
+      ;
   }
 
   disp->clearDisplay();
@@ -13,18 +13,27 @@ void displayInit(Adafruit_SSD1306 *disp) {
 }
 
 void progressBar(Adafruit_SSD1306 *disp) {
-  disp->clearDisplay();
   disp->drawFastHLine(0, 0, SCREEN_WIDTH - 1, WHITE);
   disp->drawFastHLine(0, 15, SCREEN_WIDTH - 1, WHITE);
   disp->drawFastVLine(0, 0, 15, WHITE);
   disp->drawFastVLine(SCREEN_WIDTH - 1, 0, 15, WHITE);
   disp->display();
 
+  disp->setCursor(0, 20);
+  disp->setTextColor(SSD1306_WHITE);
+  disp->setTextSize(2);
+
   for (int item = 2; item < 127; item++) {
     if ((item % 2) == 0) {
       disp->drawFastVLine(item, 2, 12, WHITE);
       disp->display();
     }
+
+    disp->setCursor(0, 20);
+    // disp->drawRect(80, 20, 40, 16, WHITE);
+    disp->fillRect(80, 20, 40, 16, BLACK);
+    disp->printf("Total: %d", item);
+    disp->display();
   }
 }
 
@@ -32,6 +41,9 @@ void clearProgressBar(Adafruit_SSD1306 *disp) {
   for (int item = 2; item < 127; item++) {
     disp->drawFastVLine(item, 2, 12, BLACK);
   }
+  disp->setCursor(0, 20);
+  disp->fillRect(80, 20, 40, 16, BLACK);
+  disp->printf("Total: %d", 0);
   disp->display();
 }
 
