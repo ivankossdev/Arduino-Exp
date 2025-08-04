@@ -12,6 +12,10 @@ void displayInit(Adafruit_SSD1306 *disp) {
   disp->display();
 }
 
+int proportion(int x){
+  return x * 100 / 125; 
+}
+
 void progressBar(Adafruit_SSD1306 *disp) {
   disp->drawFastHLine(0, 0, SCREEN_WIDTH - 1, WHITE);
   disp->drawFastHLine(0, 15, SCREEN_WIDTH - 1, WHITE);
@@ -32,7 +36,7 @@ void progressBar(Adafruit_SSD1306 *disp) {
     disp->setCursor(0, 20);
     // disp->drawRect(80, 20, 40, 16, WHITE);
     disp->fillRect(80, 20, 40, 16, BLACK);
-    disp->printf("Total: %d", item);
+    disp->printf("Total: %d", proportion(item));
     disp->display();
   }
 }
