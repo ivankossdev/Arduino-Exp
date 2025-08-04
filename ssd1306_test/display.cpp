@@ -35,8 +35,8 @@ void progressBar(Adafruit_SSD1306 *disp) {
 
     disp->setCursor(0, 20);
     // disp->drawRect(80, 20, 40, 16, WHITE);
-    disp->fillRect(80, 20, 40, 16, BLACK);
-    disp->printf("Total: %d", proportion(item));
+    disp->fillRect(70, 20, 50, 16, BLACK);
+    disp->printf("Total:%d%%", proportion(item));
     disp->display();
   }
 }
@@ -46,8 +46,8 @@ void clearProgressBar(Adafruit_SSD1306 *disp) {
     disp->drawFastVLine(item, 2, 12, BLACK);
   }
   disp->setCursor(0, 20);
-  disp->fillRect(80, 20, 40, 16, BLACK);
-  disp->printf("Total: %d", 0);
+  disp->fillRect(70, 20, 50, 16, BLACK);
+  disp->printf("Total:%d%%", 0);
   disp->display();
 }
 
