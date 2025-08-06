@@ -16,6 +16,18 @@ int proportion(int x){
   return x * 100 / 125; 
 }
 
+unsigned long previousMillis = 0;
+int i = 0;
+
+void MillisFunction(const long interval) {
+  unsigned long currentMillis = millis();
+  if (currentMillis - previousMillis >= interval) {
+    previousMillis = currentMillis;
+    Serial.printf("%d\n", i);
+    i++;
+  }
+}
+
 void progressBar(Adafruit_SSD1306 *disp) {
   disp->drawFastHLine(0, 0, SCREEN_WIDTH - 1, WHITE);
   disp->drawFastHLine(0, 15, SCREEN_WIDTH - 1, WHITE);
