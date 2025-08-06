@@ -12,8 +12,8 @@ void displayInit(Adafruit_SSD1306 *disp) {
   disp->display();
 }
 
-int proportion(int x){
-  return x * 100 / 125; 
+int proportion(int x) {
+  return x * 100 / 125;
 }
 
 unsigned long previousMillis = 0;
@@ -28,27 +28,19 @@ void MillisFunction(const long interval) {
   }
 }
 
-void progressBar(Adafruit_SSD1306 *disp) {
-  disp->drawFastHLine(0, 0, SCREEN_WIDTH - 1, WHITE);
-  disp->drawFastHLine(0, 15, SCREEN_WIDTH - 1, WHITE);
-  disp->drawFastVLine(0, 0, 15, WHITE);
-  disp->drawFastVLine(SCREEN_WIDTH - 1, 0, 15, WHITE);
-  disp->display();
+bool pbState = true;
+void progressBar(Adafruit_SSD1306 *disp, int item) {
+  if (pbState) {
+    disp->drawFastHLine(0, 0, SCREEN_WIDTH - 1, WHITE);
+    disp->drawFastHLine(0, 15, SCREEN_WIDTH - 1, WHITE);
+    disp->drawFastVLine(0, 0, 15, WHITE);
+    disp->drawFastVLine(SCREEN_WIDTH - 1, 0, 15, WHITE);
+    disp->display();
+    pbState = false;
+  }
 
-  disp->setCursor(0, 20);
-  disp->setTextColor(SSD1306_WHITE);
-  disp->setTextSize(2);
-
-  for (int item = 2; item < 127; item++) {
-    if ((item % 2) == 0) {
-      disp->drawFastVLine(item, 2, 12, WHITE);
-      disp->display();
-    }
-
-    disp->setCursor(0, 20);
-    // disp->drawRect(80, 20, 40, 16, WHITE);
-    disp->fillRect(70, 20, 50, 16, BLACK);
-    disp->printf("Total:%d%%", proportion(item));
+  if ((item % 2) == 0) {
+    disp->drawFastVLine(item, 2, 12, WHITE);
     disp->display();
   }
 }
@@ -57,6 +49,21 @@ void clearProgressBar(Adafruit_SSD1306 *disp) {
   for (int item = 2; item < 127; item++) {
     disp->drawFastVLine(item, 2, 12, BLACK);
   }
+  disp->display();
+}
+
+void showTotal(Adafruit_SSD1306 *disp, int item) {
+  disp->setCursor(0, 20);
+  disp->setTextColor(SSD1306_WHITE);
+  disp->setTextSize(2);
+  disp->setCursor(0, 20);
+  // disp->drawRect(80, 20, 40, 16, WHITE);
+  disp->fillRect(70, 20, 50, 16, BLACK);
+  disp->printf("Total:%d%%", proportion(item));
+  disp->display();
+}
+
+void clearTotal(Adafruit_SSD1306 *disp) {
   disp->setCursor(0, 20);
   disp->fillRect(70, 20, 50, 16, BLACK);
   disp->printf("Total:%d%%", 0);

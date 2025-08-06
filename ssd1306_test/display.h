@@ -14,8 +14,10 @@
 static Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 void displayInit(Adafruit_SSD1306 *disp);
-void progressBar(Adafruit_SSD1306 *disp);
+void progressBar(Adafruit_SSD1306 *disp, int item);
 void clearProgressBar(Adafruit_SSD1306 *disp);
+void showTotal(Adafruit_SSD1306 *disp, int item);
+void clearTotal(Adafruit_SSD1306 *disp);
 void countString(Adafruit_SSD1306 *disp);
 void testScrolltext(Adafruit_SSD1306 *disp);
 void showDot(Adafruit_SSD1306 *disp);
