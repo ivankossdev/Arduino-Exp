@@ -1,4 +1,5 @@
 #include "display.h"
+
 void displayInit(Adafruit_SSD1306 *disp) {
   Serial.begin(115200);
 
@@ -70,22 +71,19 @@ void clearTotal(Adafruit_SSD1306 *disp) {
   disp->display();
 }
 
-void countString(Adafruit_SSD1306 *disp) {
-  disp->setTextColor(SSD1306_WHITE);
-  disp->clearDisplay();
-  disp->setTextSize(2);
+void moveShape(Adafruit_SSD1306 *disp, int mvX){
+  if(mvX != 0)
+    disp->drawRect(mvX - 1, 42, 10, 10, BLACK);
+  disp->drawRect(mvX + 1, 42, 10, 10, BLACK);
+  disp->drawRect(mvX, 42, 10, 10, WHITE);
   disp->display();
-  delay(1000);
-
-  disp->setTextSize(2);
-  disp->setCursor(0, 0);
-  for (int i = 0; i < 10; i++) {
-    disp->write(i + '0');
-    disp->display();
-    delay(100);
-  }
-  delay(1000);
-  disp->clearDisplay();
-  disp->display();
-  delay(1000);
 }
+
+
+
+
+
+
+
+
+

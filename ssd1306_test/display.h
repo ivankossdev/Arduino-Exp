@@ -18,5 +18,6 @@ void progressBar(Adafruit_SSD1306 *disp, int item);
 void clearProgressBar(Adafruit_SSD1306 *disp);
 void showTotal(Adafruit_SSD1306 *disp, int item);
 void clearTotal(Adafruit_SSD1306 *disp);
+void moveShape(Adafruit_SSD1306 *disp, int mvX);
 
 #endif
