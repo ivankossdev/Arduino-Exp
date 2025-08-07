@@ -4,22 +4,19 @@ void setup() {
   displayInit(&display);
 }
 
-
-
 void loop() {
-  int mvX = 0;
-  for (int item = 0; item < 127; item++) {
-    progressBar(&display, item);
+  
+  for (int item = 2; item < 127; item++) {
+    progressBar(&display, item, Up);
     showTotal(&display, item);
-    moveShape(&display, mvX);
-    if (item < 63) {
-      mvX++;
-    } else {
-      mvX--;
-    }
   }
 
-  delay(1000);
+  delay(500);
+
+  for (int item = 126; item >= 2; item--) {
+    progressBar(&display, item, Down);
+    showTotal(&display, item);
+  }
 
   clearProgressBar(&display);
   clearTotal(&display);
