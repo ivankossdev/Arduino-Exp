@@ -30,7 +30,8 @@ void MillisFunction(const long interval) {
 }
 
 bool pbState = true;
-void progressBar(Adafruit_SSD1306 *disp, int item, UpDown ud) {
+
+void createContur(Adafruit_SSD1306 *disp) {
   if (pbState) {
     disp->drawFastHLine(0, 0, SCREEN_WIDTH - 1, WHITE);
     disp->drawFastHLine(0, 15, SCREEN_WIDTH - 1, WHITE);
@@ -39,15 +40,30 @@ void progressBar(Adafruit_SSD1306 *disp, int item, UpDown ud) {
     disp->display();
     pbState = false;
   }
+}
+
+void progressBar(Adafruit_SSD1306 *disp, int item, UpDown ud) {
+  createContur(disp);
 
   if ((item % 2) == 0) {
-    if (ud == Up) {
+    if (ud == up) {
       disp->drawFastVLine(item, 2, 12, WHITE);
-    } else if (ud == Down) {
+    } else if (ud == down) {
       disp->drawFastVLine(item, 2, 12, BLACK);
     }
   }
-  
+
+  disp->display();
+}
+
+void progressBarSet(Adafruit_SSD1306 *disp, int item){
+  createContur(disp);
+
+  for(int i = 2; i < item; i++){
+    
+    if ((i % 2) == 0)
+      disp->drawFastVLine(i, 2, 12, WHITE);
+  }
   disp->display();
 }
 

@@ -12,10 +12,12 @@
 #define SCREEN_ADDRESS 0x3C  //< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
 
 static Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-enum UpDown{ Up, Down };
+
+enum UpDown { up, down };
 
 void displayInit(Adafruit_SSD1306 *disp);
 void progressBar(Adafruit_SSD1306 *disp, int item, UpDown ud);
+void progressBarSet(Adafruit_SSD1306 *disp, int item);
 void clearProgressBar(Adafruit_SSD1306 *disp);
 void showTotal(Adafruit_SSD1306 *disp, int item);
 void clearTotal(Adafruit_SSD1306 *disp);
