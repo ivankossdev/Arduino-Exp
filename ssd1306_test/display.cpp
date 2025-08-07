@@ -39,15 +39,16 @@ void progressBar(Adafruit_SSD1306 *disp, int item, UpDown ud) {
     disp->display();
     pbState = false;
   }
-  if (ud == Up) {
-    if ((item % 2) == 0) {
+
+  if ((item % 2) == 0) {
+    if (ud == Up) {
       disp->drawFastVLine(item, 2, 12, WHITE);
-      disp->display();
+    } else if (ud == Down) {
+      disp->drawFastVLine(item, 2, 12, BLACK);
     }
-  } else if (ud == Down) {
-    disp->drawFastVLine(item, 2, 12, BLACK);
-    disp->display();
   }
+  
+  disp->display();
 }
 
 void clearProgressBar(Adafruit_SSD1306 *disp) {
