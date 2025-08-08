@@ -7,5 +7,5 @@ void setup() {
 }
 
 void loop() {
-  display.blinkRect(60, 30, 1000);
+  display.blinkRect(45, 30, 500);
 }
