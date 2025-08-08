@@ -22,3 +22,12 @@ void Display::blinkRect(int16_t x, int16_t y, unsigned long t) {
   display();
   delay(t);
 }
+
+void Display::shapeCircle(int16_t x0, int16_t y0){
+  drawCircle(x0, y0, 8, WHITE);
+  display();
+}
+
+
+
+
