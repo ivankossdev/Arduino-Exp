@@ -3,9 +3,9 @@
 Display display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET); 
 
 void setup() { 
-  display.Init();
+  display.init();
 }
 
 void loop() {
-  display.insRect(20, 30);
+  display.blinkRect(60, 30, 1000);
 }
