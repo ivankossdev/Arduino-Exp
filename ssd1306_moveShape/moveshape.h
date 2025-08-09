@@ -1,5 +1,5 @@
-#ifndef _DISPLAY_H
-#define _DISPLAY_H
+#ifndef _MOVESHAPE_H
+#define _MOVESHAPE_H
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
@@ -12,12 +12,11 @@
 #define OLED_RESET -1        // Reset pin # (or -1 if sharing Arduino reset pin)
 #define SCREEN_ADDRESS 0x3C  //< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
 
-class Display : private Adafruit_SSD1306{
+class MoveShape : private Adafruit_SSD1306{
   public:
     using Adafruit_SSD1306::Adafruit_SSD1306;
     void init();
-    void blinkRect(int16_t x, int16_t y, unsigned long t);
-    void shapeCircle(int16_t x0, int16_t y0);
+    void shovPosition(int x, int y);
 };
 
 #endif

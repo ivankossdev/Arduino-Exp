@@ -1,12 +1,14 @@
-#include "display.h"
+#include "moveshape.h"
 
-Display display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET); 
+MoveShape moveshape(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET); 
 
 void setup() { 
-  display.init();
+  moveshape.init();
 }
 
 void loop() {
-  display.blinkRect(45, 30, 500);
-  display.shapeCircle(20, 30);
+  for(int i = 0; i < 127; i++){
+    moveshape.shovPosition(i, i);
+    delay(100);
+  }
 }
