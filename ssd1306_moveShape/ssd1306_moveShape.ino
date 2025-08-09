@@ -2,28 +2,38 @@
 
 MoveShape moveshape(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
+void mvRight(){
+
+  do {
+    moveshape.dispCord();
+    moveshape.movement(moveshape.xPos, moveshape.yPos);
+    delay(10);
+    moveshape.xPos++;
+  } while (moveshape.xPos < 117);
+}
+
+void mvDown(){
+  do {
+    moveshape.dispCord();
+    moveshape.movement(moveshape.xPos, moveshape.yPos);
+    delay(10);
+    moveshape.yPos++;
+  } while (moveshape.yPos <= 54);
+}
+
+
 void setup() {
   moveshape.init();
 }
 
 void loop() {
-  int16_t xPos = 0, yPos = 16;
-  do {
-    moveshape.dispCord(xPos, yPos);
-    moveshape.movement(xPos, yPos);
-    delay(10);
-    xPos++;
-    yPos++;
-
-    if (yPos > 54) {
-      delay(250);
-      moveshape.clearSh(xPos, yPos);
-      yPos = 16;
-    }
-    if (xPos > 116) {
-      delay(250);
-      moveshape.clearSh(xPos, yPos);
-    }
-
-  } while (xPos < 117);
+  mvRight();
+  mvDown();
+  delay(1000);
+  moveshape.clearSh();
+  delay(1000);
+  moveshape.xPos = 0;
+  moveshape.yPos = 16;
 }
+
+

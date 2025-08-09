@@ -12,16 +12,18 @@
 #define OLED_RESET -1        // Reset pin # (or -1 if sharing Arduino reset pin)
 #define SCREEN_ADDRESS 0x3C  //< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
 
-class MoveShape : private Adafruit_SSD1306{
-  public:
-    using Adafruit_SSD1306::Adafruit_SSD1306;
-    void init();
-    void dispCord(int16_t x, int16_t y);
-    void movement(int16_t x, int16_t y);
-    void clearSh(int16_t x, int16_t y);
-  private:
-    int16_t xOldPos;
-    int16_t yOldPos;
+class MoveShape : private Adafruit_SSD1306 {
+public:
+  using Adafruit_SSD1306::Adafruit_SSD1306;
+  void init();
+  void dispCord();
+  void movement(int16_t x, int16_t y);
+  void clearSh();
+  int16_t xPos;
+  int16_t yPos;
+private:
+  int16_t xOldPos;
+  int16_t yOldPos;
 };
 
 #endif
