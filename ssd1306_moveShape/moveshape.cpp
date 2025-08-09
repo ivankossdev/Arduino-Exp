@@ -8,12 +8,13 @@ void MoveShape::init() {
     for (;;)
       ;
   }
-
+  this->xOldPos = 0;
+  this->yOldPos = 0;
   clearDisplay();
   display();
 }
 
-void MoveShape::shovPosition(int16_t x, int16_t y) {
+void MoveShape::dispCord(int16_t x, int16_t y) {
   fillRect(0, 0, 126, 16, BLACK);
   setTextSize(1);
   setTextColor(SSD1306_WHITE);
@@ -23,13 +24,14 @@ void MoveShape::shovPosition(int16_t x, int16_t y) {
 }
 
 void MoveShape::movement(int16_t x, int16_t y) {
-  if (x != 0)
-    fillRect(x - 1, y, 10, 10, BLACK);
+  if (this->xOldPos != x || this->yOldPos != y)
+    fillRect(x - 1, y - 1, 10, 10, BLACK);
+  this->xOldPos = x; this->yOldPos = y;
+
   fillRect(x, y, 10, 10, WHITE);
   display();
 }
 
 void MoveShape::clearSh(int16_t x, int16_t y) {
-  if (x != 0)
-    fillRect(x - 1, y, 10, 10, BLACK);
+  fillRect(x - 1, y - 1, 10, 10, BLACK);
 }

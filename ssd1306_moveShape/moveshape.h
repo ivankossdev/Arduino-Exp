@@ -16,9 +16,12 @@ class MoveShape : private Adafruit_SSD1306{
   public:
     using Adafruit_SSD1306::Adafruit_SSD1306;
     void init();
-    void shovPosition(int16_t x, int16_t y);
+    void dispCord(int16_t x, int16_t y);
     void movement(int16_t x, int16_t y);
     void clearSh(int16_t x, int16_t y);
+  private:
+    int16_t xOldPos;
+    int16_t yOldPos;
 };
 
 #endif
