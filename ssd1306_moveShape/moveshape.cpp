@@ -38,9 +38,19 @@ void MoveShape::movement(int16_t x, int16_t y) {
     fillRect(x - 1, y, 10, 10, BLACK);
   }
 
+  // Дижение влево
+  if(this->xOldPos > x && this->yOldPos == y){
+    fillRect(x + 1, y, 10, 10, BLACK);
+  }
+
   // Движение вниз 
   if(this->yOldPos < y){
     fillRect(x, y - 1, 10, 10, BLACK);
+  }
+
+  // Движение вверх
+  if(this->yOldPos > y){
+    fillRect(x, y + 1, 10, 10, BLACK);
   }
 
   this->xOldPos = x; this->yOldPos = y;
