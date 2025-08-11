@@ -34,6 +34,14 @@ void mvUp() {
   }
 }
 
+void downAndRight() {
+  while (moveshape.yPos < 54) {
+    moveshape.dispCord();
+    moveshape.movement(moveshape.xPos, moveshape.yPos);
+    ++moveshape.yPos; ++moveshape.xPos;
+  }
+}
+
 
 void setup() {
   moveshape.init();
@@ -44,4 +52,10 @@ void loop() {
   mvDown();
   mvLeft();
   mvUp();
+  downAndRight();
+  mvRight();
+  moveshape.clearSh();
+  delay(1000);
+  moveshape.serDefaultXPos();
+  moveshape.serDefaultYPos();
 }

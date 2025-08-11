@@ -12,7 +12,7 @@ void MoveShape::init() {
   this->yOldPos = 0;
 
   this->xPos = 0;
-  this->yPos = 16; 
+  this->yPos = 16;
 
   clearDisplay();
   display();
@@ -29,37 +29,56 @@ void MoveShape::dispCord() {
 
 void MoveShape::movement(int16_t x, int16_t y) {
   // Движение вниз и вправо
-  if (this->xOldPos < x && this->yOldPos < y){
+  if (this->xOldPos < x && this->yOldPos < y) {
     fillRect(x - 1, y - 1, 10, 10, BLACK);
   }
 
-  // Движение вправо 
-  if(this->xOldPos < x && this->yOldPos == y){
+  // Движение вправо
+  if (this->xOldPos < x && this->yOldPos == y) {
     fillRect(x - 1, y, 10, 10, BLACK);
   }
 
   // Дижение влево
-  if(this->xOldPos > x && this->yOldPos == y){
+  if (this->xOldPos > x && this->yOldPos == y) {
     fillRect(x + 1, y, 10, 10, BLACK);
   }
 
-  // Движение вниз 
-  if(this->yOldPos < y){
+  // Движение вниз
+  if (this->yOldPos < y) {
     fillRect(x, y - 1, 10, 10, BLACK);
   }
 
   // Движение вверх
-  if(this->yOldPos > y){
+  if (this->yOldPos > y) {
     fillRect(x, y + 1, 10, 10, BLACK);
   }
 
-  this->xOldPos = x; this->yOldPos = y;
+  this->xOldPos = x;
+  this->yOldPos = y;
 
   fillRect(x, y, 10, 10, WHITE);
   display();
 }
 
 void MoveShape::clearSh() {
-  fillRect(xPos, yPos - 1, 10, 10, BLACK);
+  // Движение вниз и вправо
+  if(this->xOldPos < xPos && this->yOldPos < yPos){
+    fillRect(xPos - 1, yPos - 1, 10, 10, BLACK);
+  }
+  // Движение вправо
+  if(this->xOldPos < xPos && this->yOldPos == yPos){
+    fillRect(xPos - 1, yPos, 10, 10, BLACK);
+  }
+
+  // Serial.printf("xOldPos %d, yOldPos %d, xPos %d, yPos %d \n", xOldPos, yOldPos, xPos, yPos);
+  this->xOldPos = xPos; this->yOldPos = yPos;
   display();
+}
+
+void MoveShape::serDefaultXPos(){
+ xPos = 0;
+}
+
+void MoveShape::serDefaultYPos(){
+ yPos = 16;
 }

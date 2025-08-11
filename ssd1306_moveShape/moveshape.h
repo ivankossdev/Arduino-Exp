@@ -19,6 +19,8 @@ public:
   void dispCord();
   void movement(int16_t x, int16_t y);
   void clearSh();
+  void serDefaultXPos();
+  void serDefaultYPos();
   int16_t xPos;
   int16_t yPos;
 private:
