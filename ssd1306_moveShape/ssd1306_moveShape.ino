@@ -1,5 +1,4 @@
 #include "moveshape.h"
-#define SCORE 5
 
 MoveShape moveshape(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
@@ -8,7 +7,6 @@ void mvRight() {
     moveshape.dispCord();
     moveshape.movement(moveshape.xPos, moveshape.yPos);
     ++moveshape.xPos;
-    delay(SCORE);
   }
 }
 
@@ -17,7 +15,6 @@ void mvDown() {
     moveshape.dispCord();
     moveshape.movement(moveshape.xPos, moveshape.yPos);
     ++moveshape.yPos;
-    delay(SCORE);
   }
 }
 
@@ -26,7 +23,6 @@ void mvLeft() {
     moveshape.dispCord();
     moveshape.movement(moveshape.xPos, moveshape.yPos);
     --moveshape.xPos;
-    delay(SCORE);
   }
 }
 
@@ -35,7 +31,6 @@ void mvUp() {
     moveshape.dispCord();
     moveshape.movement(moveshape.xPos, moveshape.yPos);
     --moveshape.yPos;
-    delay(SCORE);
   }
 }
 
