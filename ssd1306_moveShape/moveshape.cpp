@@ -32,6 +32,12 @@ void MoveShape::movement(int16_t x, int16_t y) {
   if (this->xOldPos < x && this->yOldPos < y) {
     fillRect(x - 1, y - 1, 10, 10, BLACK);
   }
+
+  // Движение вниз и влево
+  if (this->xOldPos > x && this->yOldPos < y) {
+    fillRect(x + 1, y - 1, 10, 10, BLACK);
+  }
+
   // Движение вверх и вправо
   if (this->xOldPos< x&& this->yOldPos > y) {
     fillRect(x - 1, y + 1, 10, 10, BLACK);
@@ -68,6 +74,11 @@ void MoveShape::clearSh() {
   // Движение вниз и вправо
   if (this->xOldPos < xPos && this->yOldPos < yPos) {
     fillRect(xPos - 1, yPos - 1, 10, 10, BLACK);
+  }
+
+  // Движение вниз и влево
+  if (this->xOldPos > xPos && this->yOldPos < yPos) {
+    fillRect(xPos + 1, yPos - 1, 10, 10, BLACK);
   }
   
   // Движение вверх и вправо

@@ -8,6 +8,7 @@ void mvLeft();
 void mvUp();
 void downAndRight();
 void UpAndRigth();
+void downAndLeft();
 
 
 void setup() {
@@ -16,9 +17,13 @@ void setup() {
 
 void loop() {
   downAndRight();
+  mvRight();
+  mvUp();
+  downAndLeft();
+  mvLeft();
   UpAndRigth();
   mvLeft();
-  delay(1000);
+  // delay(1000);
   moveshape.clearSh();
   moveshape.serDefaultXPos();
   moveshape.serDefaultYPos();
@@ -69,5 +74,14 @@ void UpAndRigth(){
     moveshape.dispCord();
     moveshape.movement(moveshape.xPos, moveshape.yPos);
     --moveshape.yPos; ++moveshape.xPos;
+  }
+}
+
+void downAndLeft(){
+  
+  while(moveshape.yPos < 54){
+    moveshape.dispCord();
+    moveshape.movement(moveshape.xPos, moveshape.yPos);
+    ++moveshape.yPos; --moveshape.xPos;
   }
 }
