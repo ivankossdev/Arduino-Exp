@@ -25,7 +25,6 @@ public:
   void clearSh(Display dsp);
   void serDefaultXPos();
   void serDefaultYPos();
-  void TestEnum(Display dsp);
   int16_t xPos;
   int16_t yPos;
 private:

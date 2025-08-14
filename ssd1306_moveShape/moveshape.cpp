@@ -39,8 +39,13 @@ void MoveShape::movement(int16_t x, int16_t y) {
   }
 
   // Движение вверх и вправо
-  if (this->xOldPos< x&& this->yOldPos > y) {
+  if (this->xOldPos < x && this->yOldPos > y) {
     fillRect(x - 1, y + 1, 10, 10, BLACK);
+  }
+
+  // Движение вверх и влево
+  if (this->xOldPos > x && this->yOldPos > y) {
+    fillRect(x + 1, y + 1, 10, 10, BLACK);
   }
 
   // Движение вправо
@@ -87,9 +92,24 @@ void MoveShape::clearSh(Display dsp) {
     fillRect(xPos - 1, yPos + 1, 10, 10, BLACK);
   }
 
+  // Движение вверх и влево
+  if (this->xOldPos > xPos && this->yOldPos > yPos) {
+    fillRect(xPos + 1, yPos + 1, 10, 10, BLACK);
+  }
+
   // Движение вправо
   if (this->xOldPos < xPos && this->yOldPos == yPos) {
     fillRect(xPos - 1, yPos, 10, 10, BLACK);
+  }
+
+  // Дижение влево
+  if (this->xOldPos > xPos && this->yOldPos == yPos) {
+    fillRect(xPos + 1, yPos, 10, 10, BLACK);
+  }
+
+  // Движение вниз
+  if (this->yOldPos < yPos) {
+    fillRect(xPos, yPos - 1, 10, 10, BLACK);
   }
 
   // Движение вверх
@@ -112,15 +132,6 @@ void MoveShape::serDefaultXPos() {
 
 void MoveShape::serDefaultYPos() {
   yPos = 16;
-}
-
-void MoveShape::TestEnum(Display dsp){
-  if (dsp == on){
-    Serial.printf("On mode\n");
-  }
-  else if (dsp == off){
-    Serial.printf("Off mode\n");
-  }
 }
 
 
