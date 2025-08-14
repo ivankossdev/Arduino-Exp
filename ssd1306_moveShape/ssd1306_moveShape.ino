@@ -17,14 +17,12 @@ void setup() {
 
 void loop() {
   downAndRight();
-  mvRight();
+  UpAndRigth();
+  downAndRight();
   mvUp();
   downAndLeft();
-  mvLeft();
-  UpAndRigth();
-  mvLeft();
   // delay(1000);
-  moveshape.clearSh();
+  moveshape.clearSh(on);
   moveshape.serDefaultXPos();
   moveshape.serDefaultYPos();
 }

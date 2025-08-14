@@ -70,7 +70,8 @@ void MoveShape::movement(int16_t x, int16_t y) {
   display();
 }
 
-void MoveShape::clearSh() {
+void MoveShape::clearSh(Display dsp) {
+
   // Движение вниз и вправо
   if (this->xOldPos < xPos && this->yOldPos < yPos) {
     fillRect(xPos - 1, yPos - 1, 10, 10, BLACK);
@@ -91,10 +92,18 @@ void MoveShape::clearSh() {
     fillRect(xPos - 1, yPos, 10, 10, BLACK);
   }
 
+  // Движение вверх
+  if (this->yOldPos > yPos) {
+    fillRect(xPos, yPos + 1, 10, 10, BLACK);
+  }
+
   // Serial.printf("xOldPos %d, yOldPos %d, xPos %d, yPos %d \n", xOldPos, yOldPos, xPos, yPos);
   this->xOldPos = xPos;
   this->yOldPos = yPos;
-  display();
+
+  if (dsp == on) {
+    display();
+  }
 }
 
 void MoveShape::serDefaultXPos() {
@@ -104,3 +113,21 @@ void MoveShape::serDefaultXPos() {
 void MoveShape::serDefaultYPos() {
   yPos = 16;
 }
+
+void MoveShape::TestEnum(Display dsp){
+  if (dsp == on){
+    Serial.printf("On mode\n");
+  }
+  else if (dsp == off){
+    Serial.printf("Off mode\n");
+  }
+}
+
+
+
+
+
+
+
+
+
