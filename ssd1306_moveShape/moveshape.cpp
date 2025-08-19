@@ -28,49 +28,9 @@ void MoveShape::dispCord() {
 }
 
 void MoveShape::movement(int16_t x, int16_t y) {
-  // Движение вниз и вправо
-  if (this->xOldPos < x && this->yOldPos < y) {
-    fillRect(x - 1, y - 1, 10, 10, BLACK);
-  }
+  xPos = x; yPos = y; 
 
-  // Движение вниз и влево
-  if (this->xOldPos > x && this->yOldPos < y) {
-    fillRect(x + 1, y - 1, 10, 10, BLACK);
-  }
-
-  // Движение вверх и вправо
-  if (this->xOldPos < x && this->yOldPos > y) {
-    fillRect(x - 1, y + 1, 10, 10, BLACK);
-  }
-
-  // Движение вверх и влево
-  if (this->xOldPos > x && this->yOldPos > y) {
-    fillRect(x + 1, y + 1, 10, 10, BLACK);
-  }
-
-  // Движение вправо
-  if (this->xOldPos < x && this->yOldPos == y) {
-    fillRect(x - 1, y, 10, 10, BLACK);
-  }
-
-  // Дижение влево
-  if (this->xOldPos > x && this->yOldPos == y) {
-    fillRect(x + 1, y, 10, 10, BLACK);
-  }
-
-  // Движение вниз
-  if (this->yOldPos < y) {
-    fillRect(x, y - 1, 10, 10, BLACK);
-  }
-
-  // Движение вверх
-  if (this->yOldPos > y) {
-    fillRect(x, y + 1, 10, 10, BLACK);
-  }
-
-  this->xOldPos = x;
-  this->yOldPos = y;
-
+  clearSh(off);
   fillRect(x, y, 10, 10, WHITE);
   display();
 }
