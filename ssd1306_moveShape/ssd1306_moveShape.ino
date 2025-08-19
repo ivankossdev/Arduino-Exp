@@ -1,6 +1,8 @@
 #include "mShape.h"
+#include "mv.h"
 
 MShape MShape(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+MV mv;
 
 void mvRight();
 void mvDown();
@@ -14,6 +16,7 @@ void upAndLeft();
 
 void setup() {
   MShape.init();
+  mv.init();
 }
 
 void loop() {
