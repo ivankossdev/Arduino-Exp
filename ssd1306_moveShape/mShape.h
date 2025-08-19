@@ -1,5 +1,5 @@
-#ifndef _MOVESHAPE_H
-#define _MOVESHAPE_H
+#ifndef _MSHAPE_H
+#define _MSHAPE_H
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
@@ -16,7 +16,7 @@ enum Display {
   on, off
 }; 
 
-class MoveShape : private Adafruit_SSD1306 {
+class MShape : private Adafruit_SSD1306 {
 public:
   using Adafruit_SSD1306::Adafruit_SSD1306;
   void init();

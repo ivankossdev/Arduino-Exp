@@ -1,6 +1,6 @@
-#include "moveshape.h"
+#include "mShape.h"
 
-MoveShape moveshape(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+MShape MShape(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 void mvRight();
 void mvDown();
@@ -13,7 +13,7 @@ void upAndLeft();
 
 
 void setup() {
-  moveshape.init();
+  MShape.init();
 }
 
 void loop() {
@@ -29,71 +29,71 @@ void loop() {
   downAndLeft();
   mvUp();
 
-  // moveshape.clearSh(on);
-  // moveshape.serDefaultXPos();
-  // moveshape.serDefaultYPos();
+  // MShape.clearSh(on);
+  // MShape.serDefaultXPos();
+  // MShape.serDefaultYPos();
 }
 
 void mvRight() {
-  while (moveshape.xPos < 117) {
-    moveshape.dispCord();
-    moveshape.movement(moveshape.xPos, moveshape.yPos);
-    ++moveshape.xPos;
+  while (MShape.xPos < 117) {
+    MShape.dispCord();
+    MShape.movement(MShape.xPos, MShape.yPos);
+    ++MShape.xPos;
   }
 }
 
 void mvDown() {
-  while (moveshape.yPos < 54) {
-    moveshape.dispCord();
-    moveshape.movement(moveshape.xPos, moveshape.yPos);
-    ++moveshape.yPos;
+  while (MShape.yPos < 54) {
+    MShape.dispCord();
+    MShape.movement(MShape.xPos, MShape.yPos);
+    ++MShape.yPos;
   }
 }
 
 void mvLeft() {
-  while (moveshape.xPos > 0) {
-    moveshape.dispCord();
-    moveshape.movement(moveshape.xPos, moveshape.yPos);
-    --moveshape.xPos;
+  while (MShape.xPos > 0) {
+    MShape.dispCord();
+    MShape.movement(MShape.xPos, MShape.yPos);
+    --MShape.xPos;
   }
 }
 
 void mvUp() {
-  while (moveshape.yPos > 16) {
-    moveshape.dispCord();
-    moveshape.movement(moveshape.xPos, moveshape.yPos);
-    --moveshape.yPos;
+  while (MShape.yPos > 16) {
+    MShape.dispCord();
+    MShape.movement(MShape.xPos, MShape.yPos);
+    --MShape.yPos;
   }
 }
 
 void downAndRight() {
-  while (moveshape.yPos < 54) {
-    moveshape.dispCord();
-    moveshape.movement(moveshape.xPos, moveshape.yPos);
-    ++moveshape.yPos; ++moveshape.xPos;
+  while (MShape.yPos < 54) {
+    MShape.dispCord();
+    MShape.movement(MShape.xPos, MShape.yPos);
+    ++MShape.yPos; ++MShape.xPos;
   }
 }
 
 void upAndRigth(){
-  while(moveshape.yPos > 16){
-    moveshape.dispCord();
-    moveshape.movement(moveshape.xPos, moveshape.yPos);
-    --moveshape.yPos; ++moveshape.xPos;
+  while(MShape.yPos > 16){
+    MShape.dispCord();
+    MShape.movement(MShape.xPos, MShape.yPos);
+    --MShape.yPos; ++MShape.xPos;
   }
 }
 
 void downAndLeft(){
-  while(moveshape.yPos < 54){
-    moveshape.dispCord();
-    moveshape.movement(moveshape.xPos, moveshape.yPos);
-    ++moveshape.yPos; --moveshape.xPos;
+  while(MShape.yPos < 54){
+    MShape.dispCord();
+    MShape.movement(MShape.xPos, MShape.yPos);
+    ++MShape.yPos; --MShape.xPos;
   }
 }
 
 void upAndLeft(){
-  while(moveshape.yPos > 16){
-    moveshape.dispCord();
-    moveshape.movement(moveshape.xPos, moveshape.yPos);
-    --moveshape.yPos; --moveshape.xPos;
+  while(MShape.yPos > 16){
+    MShape.dispCord();
+    MShape.movement(MShape.xPos, MShape.yPos);
+    --MShape.yPos; --MShape.xPos;
   }
 }

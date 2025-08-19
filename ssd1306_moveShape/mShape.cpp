@@ -1,6 +1,6 @@
-#include "moveshape.h"
+#include "mShape.h"
 
-void MoveShape::init() {
+void MShape::init() {
   Serial.begin(115200);
 
   if (!begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
@@ -18,7 +18,7 @@ void MoveShape::init() {
   display();
 }
 
-void MoveShape::dispCord() {
+void MShape::dispCord() {
   fillRect(0, 0, 126, 16, BLACK);
   setTextSize(1);
   setTextColor(SSD1306_WHITE);
@@ -27,7 +27,7 @@ void MoveShape::dispCord() {
   display();
 }
 
-void MoveShape::movement(int16_t x, int16_t y) {
+void MShape::movement(int16_t x, int16_t y) {
   xPos = x; yPos = y; 
 
   clearSh(off);
@@ -35,7 +35,7 @@ void MoveShape::movement(int16_t x, int16_t y) {
   display();
 }
 
-void MoveShape::clearSh(Display dsp) {
+void MShape::clearSh(Display dsp) {
 
   // Движение вниз и вправо
   if (this->xOldPos < xPos && this->yOldPos < yPos) {
@@ -86,11 +86,11 @@ void MoveShape::clearSh(Display dsp) {
   }
 }
 
-void MoveShape::serDefaultXPos() {
+void MShape::serDefaultXPos() {
   xPos = 0;
 }
 
-void MoveShape::serDefaultYPos() {
+void MShape::serDefaultYPos() {
   yPos = 16;
 }
 
