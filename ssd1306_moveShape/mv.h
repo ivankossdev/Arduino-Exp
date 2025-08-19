@@ -1,10 +1,23 @@
 #ifndef _MV_H
 #define _MV_H
 #include "Arduino.h"
+#include "mShape.h"
 
-class MV{
-public:
-  void init();
-};
+#define SCREEN_WIDTH 128  
+#define SCREEN_HEIGHT 64  
+
+#define OLED_RESET -1        
+#define SCREEN_ADDRESS 0x3C  
+
+static MShape MShape(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+void mshInit();
+void mvRight();
+void mvDown();
+void mvLeft();
+void mvUp();
+void downAndRight();
+void upAndRigth();
+void downAndLeft();
+void upAndLeft();
 
 #endif 

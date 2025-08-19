@@ -86,11 +86,11 @@ void MShape::clearSh(Display dsp) {
   }
 }
 
-void MShape::serDefaultXPos() {
+void MShape::setDefaultXPos() {
   xPos = 0;
 }
 
-void MShape::serDefaultYPos() {
+void MShape::setDefaultYPos() {
   yPos = 16;
 }
 

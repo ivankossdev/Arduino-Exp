@@ -23,8 +23,8 @@ public:
   void dispCord();
   void movement(int16_t x, int16_t y);
   void clearSh(Display dsp);
-  void serDefaultXPos();
-  void serDefaultYPos();
+  void setDefaultXPos();
+  void setDefaultYPos();
   int16_t xPos;
   int16_t yPos;
 private:
