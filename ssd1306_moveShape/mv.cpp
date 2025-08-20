@@ -5,7 +5,7 @@ void mshInit(){
 }
 
 void mvRight() {
-  while (MShape.xPos < 117) {
+  while (MShape.xPos < MAX_XPOS) {
     MShape.dispCord();
     MShape.movement(MShape.xPos, MShape.yPos);
     ++MShape.xPos;
@@ -13,7 +13,7 @@ void mvRight() {
 }
 
 void mvDown() {
-  while (MShape.yPos < 54) {
+  while (MShape.yPos < MAX_YPOS) {
     MShape.dispCord();
     MShape.movement(MShape.xPos, MShape.yPos);
     ++MShape.yPos;
@@ -21,7 +21,7 @@ void mvDown() {
 }
 
 void mvLeft() {
-  while (MShape.xPos > 0) {
+  while (MShape.xPos > MIN_XPOS) {
     MShape.dispCord();
     MShape.movement(MShape.xPos, MShape.yPos);
     --MShape.xPos;
@@ -29,7 +29,7 @@ void mvLeft() {
 }
 
 void mvUp() {
-  while (MShape.yPos > 16) {
+  while (MShape.yPos > MIN_YPOS) {
     MShape.dispCord();
     MShape.movement(MShape.xPos, MShape.yPos);
     --MShape.yPos;
@@ -37,7 +37,7 @@ void mvUp() {
 }
 
 void downAndRight() {
-  while (MShape.yPos < 54) {
+  while (MShape.yPos < MAX_YPOS) {
     MShape.dispCord();
     MShape.movement(MShape.xPos, MShape.yPos);
     ++MShape.yPos; ++MShape.xPos;
@@ -45,7 +45,7 @@ void downAndRight() {
 }
 
 void upAndRigth(){
-  while(MShape.yPos > 16){
+  while(MShape.yPos > MIN_YPOS){
     MShape.dispCord();
     MShape.movement(MShape.xPos, MShape.yPos);
     --MShape.yPos; ++MShape.xPos;
@@ -53,7 +53,7 @@ void upAndRigth(){
 }
 
 void downAndLeft(){
-  while(MShape.yPos < 54){
+  while(MShape.yPos < MAX_YPOS){
     MShape.dispCord();
     MShape.movement(MShape.xPos, MShape.yPos);
     ++MShape.yPos; --MShape.xPos;
@@ -61,7 +61,7 @@ void downAndLeft(){
 }
 
 void upAndLeft(){
-  while(MShape.yPos > 16){
+  while(MShape.yPos > MIN_YPOS){
     MShape.dispCord();
     MShape.movement(MShape.xPos, MShape.yPos);
     --MShape.yPos; --MShape.xPos;
