@@ -25,6 +25,7 @@ public:
   void clearSh(Display dsp);
   void setDefaultXPos();
   void setDefaultYPos();
+  void clear();
   int16_t xPos;
   int16_t yPos;
 private:

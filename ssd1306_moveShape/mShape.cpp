@@ -77,7 +77,7 @@ void MShape::clearSh(Display dsp) {
     fillRect(xPos, yPos + 1, 10, 10, BLACK);
   }
 
-  // Serial.printf("xOldPos %d, yOldPos %d, xPos %d, yPos %d \n", xOldPos, yOldPos, xPos, yPos);
+  Serial.printf("xOldPos %d, yOldPos %d, xPos %d, yPos %d \n", xOldPos, yOldPos, xPos, yPos);
   this->xOldPos = xPos;
   this->yOldPos = yPos;
 
@@ -92,6 +92,10 @@ void MShape::setDefaultXPos() {
 
 void MShape::setDefaultYPos() {
   yPos = 16;
+}
+
+void MShape::clear(){
+  fillRect(xPos, yPos, 10, 10, BLACK);
 }
 
 

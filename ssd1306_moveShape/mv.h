@@ -16,6 +16,7 @@ const int16_t MIN_YPOS = 16;
 
 static MShape MShape(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 void mshInit();
+void mvCord(int16_t x, int16_t y);
 void mvRight();
 void mvDown();
 void mvLeft();
@@ -24,5 +25,6 @@ void downAndRight();
 void upAndRigth();
 void downAndLeft();
 void upAndLeft();
+void clear();
 
 #endif 
