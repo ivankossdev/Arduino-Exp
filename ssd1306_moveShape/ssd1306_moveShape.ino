@@ -7,10 +7,7 @@ void setup() {
 }
 
 void loop() {
-  for(int16_t i = MIN_YPOS ; i < 64; i++){
-    mvCord(50, i);
-  }
-  clear();
+  Logic_1();
 }
 
 void Logic_1() {

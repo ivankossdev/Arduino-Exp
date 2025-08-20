@@ -7,22 +7,10 @@ void mshInit() {
 void mvCord(int16_t x, int16_t y) {
   MShape.xPos = x; MShape.yPos = y;
 
-  if (MShape.xPos >= MAX_XPOS) {
-    // MShape.clear();
-    MShape.xPos = MAX_XPOS;
-  }
-  else if (MShape.xPos < MIN_XPOS) {
-    // MShape.clear();
-    MShape.xPos = MIN_XPOS;
-  }
-  else if (MShape.yPos >= MAX_YPOS) {
-    // MShape.clear();
-    MShape.yPos = MAX_YPOS;
-  }
-  else if (MShape.yPos < MIN_YPOS) {
-    // MShape.clear();
-    MShape.yPos = MIN_YPOS;
-  }
+  if (MShape.xPos >= MAX_XPOS) { MShape.xPos = MAX_XPOS; }
+  else if (MShape.xPos < MIN_XPOS) { MShape.xPos = MIN_XPOS; }
+  else if (MShape.yPos >= MAX_YPOS) { MShape.yPos = MAX_YPOS; }
+  else if (MShape.yPos < MIN_YPOS) { MShape.yPos = MIN_YPOS; }
   
   MShape.dispCord();
   MShape.movement(MShape.xPos, MShape.yPos);
@@ -97,5 +85,6 @@ void upAndLeft() {
 }
 
 void clear(){
+  MShape.clearSh(on);
   MShape.clear();
 }
