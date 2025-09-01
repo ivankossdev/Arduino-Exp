@@ -1,16 +1,14 @@
+/*
+    This sketch demonstrates how to scan WiFi networks.
+    The API is almost the same as with the WiFi Shield library,
+    the most obvious difference being the different file you need to include:
+*/
+
 #include <ESP8266WiFi.h>
-#include "display.h"
-#include <cstring>
 
-char found[512] = {'\0'};
-
-void foundClear(){
-  for(int i = 0; i < 512; i++) found[i] = '\0';
-}
 void setup() {
-  displayInit();
   Serial.begin(115200);
-  // Serial.println(F("\nESP8266 WiFi scan example"));
+  Serial.println(F("\nESP8266 WiFi scan example"));
 
   // Set WiFi to station mode
   WiFi.mode(WIFI_STA);
@@ -29,18 +27,14 @@ void loop() {
   bool hidden;
   int scanResult;
 
-  mylcd.LCDClear(0x00);
-  NextRowString(true, (char *)"WiFi scan...");
+  Serial.println(F("Starting WiFi scan..."));
 
   scanResult = WiFi.scanNetworks(/*async=*/false, /*hidden=*/true);
 
   if (scanResult == 0) {
-    
-    NextRowString(true, (char *)"No networks found");
+    Serial.println(F("No networks found"));
   } else if (scanResult > 0) {
-    
-    foundClear();
-    mylcd.LCDClear(0x00);
+    Serial.printf(PSTR("%d networks found:\n"), scanResult);
 
     // Print unsorted scan results
     for (int8_t i = 0; i < scanResult; i++) {
@@ -69,18 +63,13 @@ void loop() {
           wps = PSTR("WPS");
         }
       }
-
-      foundClear();
-      mylcd.LCDClear(0x00);
-      sprintf(found, "%02d:[CH %02d]\n%ddBm\n%s", i, channel, rssi, ssid.c_str());
-      NextRowString(false, found);
-      delay(2000);
-
+      Serial.printf(PSTR("  %02d: [CH %02d] [%02X:%02X:%02X:%02X:%02X:%02X] %ddBm %c %c %-11s %3S %s\n"), i, channel, bssid[0], bssid[1], bssid[2], bssid[3], bssid[4], bssid[5], rssi, (encryptionType == ENC_TYPE_NONE) ? ' ' : '*', hidden ? 'H' : 'V', phyMode.c_str(), wps, ssid.c_str());
       yield();
     }
   } else {
-    foundClear();
-    sprintf(found, PSTR("WiFi scan error %d"), scanResult);
-    NextRowString(true, found);
+    Serial.printf(PSTR("WiFi scan error %d"), scanResult);
   }
+
+  // Wait a bit before scanning again
+  delay(5000);
 }
