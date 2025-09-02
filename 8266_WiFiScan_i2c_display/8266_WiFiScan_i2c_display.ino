@@ -1,5 +1,8 @@
 #include <ESP8266WiFi.h>
 #include "display.h"
+#include <cstring>
+
+char found[512] = {'\0'};
 
 void setup() {
   delay(10000);
@@ -17,7 +20,12 @@ void setup() {
 void loop() {
   displayPrintText(&display, (char *)"WiFi scan");
   scan();
+  foundClear();
   displayClear(&display);
+}
+
+void foundClear(){
+  for(int i = 0; i < 512; i++) found[i] = '\0';
 }
 
 void scan() {
@@ -38,6 +46,11 @@ void scan() {
     Serial.println(F("No networks found"));
   } else if (scanResult > 0) {
     Serial.printf(PSTR("%d networks found:\n"), scanResult);
+
+    displayClear(&display);
+    sprintf(found, "%d networks found:", scanResult);
+    displayPrintText(&display, found);
+    foundClear();
 
     // Print unsorted scan results
     for (int8_t i = 0; i < scanResult; i++) {
@@ -66,6 +79,8 @@ void scan() {
           wps = PSTR("WPS");
         }
       }
+      sprintf(found, "%02d:[CH %02d] %s", i, channel, ssid.c_str());
+      displayPrintText(&display, found);
       Serial.printf(PSTR("  %02d: [CH %02d] [%02X:%02X:%02X:%02X:%02X:%02X] %ddBm %c %c %-11s %3S %s\n"), i, channel, bssid[0], bssid[1], bssid[2], bssid[3], bssid[4], bssid[5], rssi, (encryptionType == ENC_TYPE_NONE) ? ' ' : '*', hidden ? 'H' : 'V', phyMode.c_str(), wps, ssid.c_str());
       yield();
     }
