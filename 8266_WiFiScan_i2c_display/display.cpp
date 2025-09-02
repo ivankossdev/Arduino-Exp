@@ -11,13 +11,19 @@ void displayInit(Adafruit_SSD1306 *disp) {
 
   disp->clearDisplay();
   disp->display();
+  disp->setTextSize(1);
+  disp->setTextColor(SSD1306_WHITE);
+  disp->setCursor(0, 0);
+  disp->clearDisplay();
 }
 
-void displayPrintText(Adafruit_SSD1306 *disp) {
+void displayPrintText(Adafruit_SSD1306 *disp, char *data) {
+
+  disp->println(data);
+  disp->display();
+}
+void displayClear(Adafruit_SSD1306 *disp){
+  disp->setCursor(0, 0);
   disp->clearDisplay();
-  disp->setTextSize(1);               
-  disp->setTextColor(SSD1306_WHITE);  
-  disp->setCursor(0, 0);              
-  disp->println(F("ESP8266 WiFi scan example"));
   disp->display();
 }

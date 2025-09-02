@@ -13,6 +13,7 @@
 
 static Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 void displayInit(Adafruit_SSD1306 *disp);
-void displayPrintText(Adafruit_SSD1306 *disp);
+void displayPrintText(Adafruit_SSD1306 *disp, char *data);
+void displayClear(Adafruit_SSD1306 *disp);
 
 #endif

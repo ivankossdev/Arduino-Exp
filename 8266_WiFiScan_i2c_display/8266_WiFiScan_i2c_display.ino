@@ -3,7 +3,7 @@
 
 void setup() {
   delay(10000);
-  
+
   Serial.begin(115200);
   Serial.println(F("\nESP8266 WiFi scan example"));
   // Set WiFi to station mode
@@ -15,8 +15,9 @@ void setup() {
 }
 
 void loop() {
-  displayPrintText(&display);
+  displayPrintText(&display, (char *)"WiFi scan");
   scan();
+  displayClear(&display);
 }
 
 void scan() {
@@ -29,6 +30,7 @@ void scan() {
   int scanResult;
 
   Serial.println(F("Starting WiFi scan..."));
+  displayPrintText(&display, (char *)"Starting WiFi scan...");
 
   scanResult = WiFi.scanNetworks(/*async=*/false, /*hidden=*/true);
 
