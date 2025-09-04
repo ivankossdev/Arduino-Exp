@@ -2,16 +2,10 @@
 #include "display.h"
 #include <cstring>
 
-char found[512] = {'\0'};
-
 void setup() {
-  delay(10000);
-
+  delay(100);
   Serial.begin(115200);
-  // Serial.println(F("\nESP8266 WiFi scan example"));
-  // Set WiFi to station mode
   WiFi.mode(WIFI_STA);
-  // Disconnect from an AP if it was previously connected
   WiFi.disconnect();
   delay(100);
   displayInit(&display);
@@ -22,10 +16,6 @@ void loop() {
   scan();
   foundClear();
   displayClear(&display);
-}
-
-void foundClear(){
-  for(int i = 0; i < 512; i++) found[i] = '\0';
 }
 
 void scan() {

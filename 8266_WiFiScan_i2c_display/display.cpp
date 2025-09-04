@@ -27,3 +27,9 @@ void displayClear(Adafruit_SSD1306 *disp){
   disp->clearDisplay();
   disp->display();
 }
+
+char found[512] = {'\0'};
+
+void foundClear(){
+  for(int i = 0; i < 512; i++) found[i] = '\0';
+}
