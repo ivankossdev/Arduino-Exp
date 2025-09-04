@@ -12,10 +12,17 @@
 #define SCREEN_ADDRESS 0x3C  //< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
 
 static Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-void displayInit(Adafruit_SSD1306 *disp);
-void displayPrintText(Adafruit_SSD1306 *disp, char *data);
-void displayClear(Adafruit_SSD1306 *disp);
-extern char found[512];
-void foundClear();
+
+class MyDisplay {
+public:
+  MyDisplay(Adafruit_SSD1306 *disp);
+  void displayInit();
+  void displayPrintText(char *data);
+  void displayClear();
+  void foundClear();
+  char found[512];
+protected:
+  Adafruit_SSD1306 *d;
+};
 
 #endif

@@ -2,20 +2,22 @@
 #include "display.h"
 #include <cstring>
 
+MyDisplay dsp(&display);
+
 void setup() {
   delay(100);
   Serial.begin(115200);
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
   delay(100);
-  displayInit(&display);
+  dsp.displayInit();
 }
 
 void loop() {
-  displayPrintText(&display, (char *)"WiFi scan");
+  dsp.displayPrintText((char *)"WiFi scan");
   scan();
-  foundClear();
-  displayClear(&display);
+  dsp.foundClear();
+  dsp.displayClear();
 }
 
 void scan() {
@@ -27,7 +29,7 @@ void scan() {
   bool hidden;
   int scanResult;
 
-  displayPrintText(&display, (char *)"Starting WiFi scan...");
+  dsp.displayPrintText((char *)"Starting WiFi scan...");
 
   scanResult = WiFi.scanNetworks(/*async=*/false, /*hidden=*/true);
 
@@ -35,10 +37,10 @@ void scan() {
     Serial.println(F("No networks found"));
   } else if (scanResult > 0) {
 
-    displayClear(&display);
-    sprintf(found, "%d networks found:", scanResult);
-    displayPrintText(&display, found);
-    foundClear();
+    dsp.displayClear();
+    sprintf(dsp.found, "%d networks found:", scanResult);
+    dsp.displayPrintText(dsp.found);
+    dsp.foundClear();
 
     // Print unsorted scan results
     for (int8_t i = 0; i < scanResult; i++) {
@@ -67,8 +69,8 @@ void scan() {
           wps = PSTR("WPS");
         }
       }
-      sprintf(found, "%02d:[CH %02d] %s", i, channel, ssid.c_str());
-      displayPrintText(&display, found);
+      sprintf(dsp.found, "%02d:CH %02d %s", i, channel, ssid.c_str());
+      dsp.displayPrintText(dsp.found);
       
       yield();
     }
