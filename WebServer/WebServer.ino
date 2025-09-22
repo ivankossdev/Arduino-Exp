@@ -1,8 +1,11 @@
 #include <ESP8266WiFi.h>
+#include "display.h"
+
+MyDisplay dsp(&display); 
 
 // Replace with your network credentials
-const char* ssid     = "Korni-WiFi";
-const char* password = "4321rewq";
+const char* ssid     = "HUAWEI-V4XQZZ_HiLink";
+const char* password = "12345678";
 
 // Set web server port number to 80
 WiFiServer server(80);
@@ -34,6 +37,9 @@ void setup() {
   digitalWrite(output5, LOW);
   digitalWrite(output4, LOW);
 
+  dsp.displayInit();
+  dsp.displayPrintText((char*)"Init...");
+
   // Connect to Wi-Fi network with SSID and password
   Serial.print("Connecting to ");
   Serial.println(ssid);
@@ -42,6 +48,7 @@ void setup() {
     delay(500);
     Serial.print(".");
   }
+
   // Print local IP address and start web server
   Serial.println("");
   Serial.println("WiFi connected.");
