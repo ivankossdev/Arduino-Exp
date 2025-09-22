@@ -3,7 +3,6 @@
 
 MyDisplay dsp(&display); 
 
-// Replace with your network credentials
 const char* ssid     = "HUAWEI-V4XQZZ_HiLink";
 const char* password = "12345678";
 
@@ -55,6 +54,10 @@ void setup() {
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
   server.begin();
+
+  dsp.displayClear();
+  dsp.displayPrintText((char*)"WiFi connected.");
+  dsp.displayPrintText((char*)ssid);
 }
 
 void loop(){
