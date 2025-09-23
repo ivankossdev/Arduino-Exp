@@ -6,19 +6,11 @@ MyDisplay dsp(&display);
 const char* ssid     = "HUAWEI-V4XQZZ_HiLink";
 const char* password = "12345678";
 
-// Set web server port number to 80
 WiFiServer server(80);
-
-// Variable to store the HTTP request
 String header;
-
-// Auxiliar variables to store the current output state
 String output5State = "off";
-String output4State = "off";
 
-// Assign output variables to GPIO pins
-const int output5 = 14;
-const int output4 = 12;
+const int pin14 = 14;
 
 // Current time
 unsigned long currentTime = millis();
@@ -29,17 +21,13 @@ const long timeoutTime = 2000;
 
 void setup() {
   Serial.begin(115200);
-  // Initialize the output variables as outputs
-  pinMode(output5, OUTPUT);
-  pinMode(output4, OUTPUT);
-  // Set outputs to LOW
-  digitalWrite(output5, LOW);
-  digitalWrite(output4, LOW);
+
+  pinMode(pin14, OUTPUT);
+  digitalWrite(pin14, LOW);
 
   dsp.displayInit();
   dsp.displayPrintText((char*)"Init...");
 
-  // Connect to Wi-Fi network with SSID and password
   Serial.print("Connecting to ");
   Serial.println(ssid);
   WiFi.begin(ssid, password);
@@ -58,6 +46,8 @@ void setup() {
   dsp.displayClear();
   dsp.displayPrintText((char*)"WiFi connected.");
   dsp.displayPrintText((char*)ssid);
+  dsp.displayPrintText((char*)"IP address: ");
+  dsp.displayPrintText(WiFi.localIP());
 }
 
 void loop(){
@@ -86,23 +76,15 @@ void loop(){
             client.println();
             
             // turns the GPIOs on and off
-            if (header.indexOf("GET /5/on") >= 0) {
-              Serial.println("GPIO 5 on");
+            if (header.indexOf("GET /button/on") >= 0) {
+              Serial.println("GPIO button on");
               output5State = "on";
-              digitalWrite(output5, HIGH);
-            } else if (header.indexOf("GET /5/off") >= 0) {
-              Serial.println("GPIO 5 off");
+              digitalWrite(pin14, HIGH);
+            } else if (header.indexOf("GET /button/off") >= 0) {
+              Serial.println("GPIO button off");
               output5State = "off";
-              digitalWrite(output5, LOW);
-            } else if (header.indexOf("GET /4/on") >= 0) {
-              Serial.println("GPIO 4 on");
-              output4State = "on";
-              digitalWrite(output4, HIGH);
-            } else if (header.indexOf("GET /4/off") >= 0) {
-              Serial.println("GPIO 4 off");
-              output4State = "off";
-              digitalWrite(output4, LOW);
-            }
+              digitalWrite(pin14, LOW);
+            } 
             
             // Display the HTML web page
             client.println("<!DOCTYPE html><html>");
@@ -116,25 +98,17 @@ void loop(){
             client.println(".button2 {background-color: #77878A;}</style></head>");
             
             // Web Page Heading
-            client.println("<body><h1>ESP8266 Web Server</h1>");
+            client.println("<body><h1>IOT Web Server</h1>");
             
             // Display current state, and ON/OFF buttons for GPIO 5  
             client.println("<p>GPIO 5 - State " + output5State + "</p>");
             // If the output5State is off, it displays the ON button       
             if (output5State=="off") {
-              client.println("<p><a href=\"/5/on\"><button class=\"button\">ON</button></a></p>");
+              client.println("<p><a href=\"/button/on\"><button class=\"button\">ON</button></a></p>");
             } else {
-              client.println("<p><a href=\"/5/off\"><button class=\"button button2\">OFF</button></a></p>");
+              client.println("<p><a href=\"/button/off\"><button class=\"button button2\">OFF</button></a></p>");
             } 
-               
-            // Display current state, and ON/OFF buttons for GPIO 4  
-            client.println("<p>GPIO 4 - State " + output4State + "</p>");
-            // If the output4State is off, it displays the ON button       
-            if (output4State=="off") {
-              client.println("<p><a href=\"/4/on\"><button class=\"button\">ON</button></a></p>");
-            } else {
-              client.println("<p><a href=\"/4/off\"><button class=\"button button2\">OFF</button></a></p>");
-            }
+
             client.println("</body></html>");
             
             // The HTTP response ends with another blank line

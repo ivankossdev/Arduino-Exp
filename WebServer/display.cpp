@@ -24,6 +24,12 @@ void MyDisplay::displayPrintText(char *data) {
   d->println(data);
   d->display();
 }
+
+void MyDisplay::displayPrintText(const Printable& x){
+  d->print(x);
+  d->display();
+}
+
 void MyDisplay::displayClear(){
   d->setCursor(0, 0);
   d->clearDisplay();

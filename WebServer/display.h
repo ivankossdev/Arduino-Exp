@@ -18,6 +18,7 @@ public:
   MyDisplay(Adafruit_SSD1306 *disp);
   void displayInit();
   void displayPrintText(char *data);
+  void displayPrintText(const Printable& x);
   void displayClear();
   void foundClear();
   char found[512];
