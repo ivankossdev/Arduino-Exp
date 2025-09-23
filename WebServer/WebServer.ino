@@ -8,7 +8,7 @@ const char* password = "12345678";
 
 WiFiServer server(80);
 String header;
-String output5State = "off";
+String portD5State = "off";
 
 const int pin14 = 14;
 
@@ -76,13 +76,13 @@ void loop(){
             client.println();
             
             // turns the GPIOs on and off
-            if (header.indexOf("GET /button/on") >= 0) {
-              Serial.println("GPIO button on");
-              output5State = "on";
+            if (header.indexOf("GET /led/on") >= 0) {
+              Serial.println("D5 led on");
+              portD5State = "on";
               digitalWrite(pin14, HIGH);
-            } else if (header.indexOf("GET /button/off") >= 0) {
-              Serial.println("GPIO button off");
-              output5State = "off";
+            } else if (header.indexOf("GET /led/off") >= 0) {
+              Serial.println("D5 led off");
+              portD5State = "off";
               digitalWrite(pin14, LOW);
             } 
             
@@ -101,12 +101,12 @@ void loop(){
             client.println("<body><h1>IOT Web Server</h1>");
             
             // Display current state, and ON/OFF buttons for GPIO 5  
-            client.println("<p>GPIO 5 - State " + output5State + "</p>");
+            client.println("<p>Port D5 - Led " + portD5State + "</p>");
             // If the output5State is off, it displays the ON button       
-            if (output5State=="off") {
-              client.println("<p><a href=\"/button/on\"><button class=\"button\">ON</button></a></p>");
+            if (portD5State=="off") {
+              client.println("<p><a href=\"/led/on\"><button class=\"button\">ON</button></a></p>");
             } else {
-              client.println("<p><a href=\"/button/off\"><button class=\"button button2\">OFF</button></a></p>");
+              client.println("<p><a href=\"/led/off\"><button class=\"button button2\">OFF</button></a></p>");
             } 
 
             client.println("</body></html>");
