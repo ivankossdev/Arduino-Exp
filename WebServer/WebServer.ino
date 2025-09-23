@@ -85,24 +85,16 @@ void loop(){
               portD5State = "off";
               digitalWrite(pin14, LOW);
             } 
-            
-            // Display the HTML web page
+
             client.println("<!DOCTYPE html><html>");
             client.println("<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">");
             client.println("<link rel=\"icon\" href=\"data:,\">");
-            // CSS to style the on/off buttons 
-            // Feel free to change the background-color and font-size attributes to fit your preferences
-            client.println("<style>html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center;}");
+            client.println("<style>html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center; background-color: darkgray;}");
             client.println(".button { background-color: #195B6A; border: none; color: white; padding: 16px 40px;");
             client.println("text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}");
-            client.println(".button2 {background-color: #77878A;}</style></head>");
-            
-            // Web Page Heading
+            client.println(".button2 {background-color: #393F40;}</style></head>");
             client.println("<body><h1>IOT Web Server</h1>");
-            
-            // Display current state, and ON/OFF buttons for GPIO 5  
-            client.println("<p>Port D5 - Led " + portD5State + "</p>");
-            // If the output5State is off, it displays the ON button       
+            client.println("<p>Port D5 - Led " + portD5State + "</p>");  
             if (portD5State=="off") {
               client.println("<p><a href=\"/led/on\"><button class=\"button\">ON</button></a></p>");
             } else {
@@ -110,8 +102,6 @@ void loop(){
             } 
 
             client.println("</body></html>");
-            
-            // The HTTP response ends with another blank line
             client.println();
             // Break out of the while loop
             break;
