@@ -20,6 +20,7 @@ public:
   void displayInit();
   void displayPrintText(char *data);
   void displayPrintText(const Printable& x);
+  void displayPrintText(const String &s); 
   void displayClear();
   void foundClear();
   char found[512];

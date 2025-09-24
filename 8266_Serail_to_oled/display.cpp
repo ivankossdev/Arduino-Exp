@@ -30,6 +30,11 @@ void MyDisplay::displayPrintText(const Printable& x){
   d->display();
 }
 
+void MyDisplay::displayPrintText(const String &s){
+    d->print(s);
+    d->display();
+}
+
 void MyDisplay::displayClear(){
   d->setCursor(0, 0);
   d->clearDisplay();

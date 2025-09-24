@@ -1,6 +1,7 @@
 #include "display.h"
 
 MyDisplay dsp(&display); 
+String str;
 void readString();
 
 void setup() {
@@ -17,9 +18,11 @@ void loop() {
 
 void readString() {
   if (Serial.available() > 0) {
-    String str = Serial.readString();
+    str = Serial.readString();
     if (str.length() <= 512) {
-      Serial.printf("str length = %d string %s\n", str.length(), str);
+      dsp.displayClear();
+      dsp.displayPrintText(str);
     }
+    str = "";
   }
 }
