@@ -2,27 +2,29 @@
 
 MyDisplay dsp(&display); 
 String str;
-void readString();
+bool readSerialPort();
 
 void setup() {
   dsp.displayInit();
   dsp.displayPrintText((char*)"Init...");
   delay(1000);
   dsp.displayClear();
-  dsp.displayPrintText((char*)"Test display\nPlese enter you \nmessage in terminl.");
+  dsp.displayPrintText((char*)"Test display\nPlese enter you \nmessage in terminal.");
 }
 
 void loop() {
-  readString();
-}
-
-void readString() {
-  if (Serial.available() > 0) {
-    str = Serial.readString();
-    if (str.length() <= 512) {
-      dsp.displayClear();
-      dsp.displayPrintText(str);
-    }
+  if(readSerialPort()){
+    dsp.displayClear();
+    dsp.displayPrintText(str);
     str = "";
   }
+}
+
+bool readSerialPort() {
+  bool status = false;
+  if (Serial.available() > 0) {
+    str = Serial.readString();
+    status = true;
+  }
+  return status; 
 }
