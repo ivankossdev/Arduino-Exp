@@ -2,8 +2,6 @@
 #include "scanWiFi.h"
 #include "display.h"
 
-MyDisplay dsp(&display);
-
 const char *ssid = "HUAWEI-V4XQZZ_HiLink";
 const char *password = "12345678";
 
@@ -19,13 +17,15 @@ const long timeoutTime = 2000;
 
 void setup() {
   Serial.begin(115200);
+  dsp.displayInit();
 
+  dsp.displayPrintText((char *)"Scan WiFi networks");
   searchWiFi();
 
   pinMode(pin14, OUTPUT);
   digitalWrite(pin14, LOW);
-
-  dsp.displayInit();
+  
+  dsp.displayClear();
   dsp.displayPrintText((char *)"Init...");
 
   Serial.print("Connecting to ");
