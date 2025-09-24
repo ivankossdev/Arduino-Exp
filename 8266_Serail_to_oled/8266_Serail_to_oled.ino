@@ -9,7 +9,7 @@ void setup() {
   dsp.displayPrintText((char*)"Init...");
   delay(1000);
   dsp.displayClear();
-  dsp.displayPrintText((char*)"Test display");
+  dsp.displayPrintText((char*)"Test display\nPlese enter you \nmessage in terminl.");
 }
 
 void loop() {
