@@ -47,6 +47,7 @@ void loop() {
   if (clearMessage && millis5000.millisInterval()) {
     dsp.displayClear();
     dsp.displayPrintText((char*)"Test display\nPlese enter you \nmessage in terminal.");
+    millis5000.reset();
     messageState = true; 
     clearMessage = false;
   }

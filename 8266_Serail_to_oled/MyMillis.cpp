@@ -21,3 +21,9 @@ bool MyMillis::millisInterval() {
 
   return millisState;
 }
+
+void MyMillis::reset(){
+  // millisState = false;
+  currentMillis = 0;
+  previousMillis = 0; 
+}

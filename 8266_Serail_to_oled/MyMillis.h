@@ -6,6 +6,7 @@ class MyMillis {
 public:
   MyMillis(long interval_);
   bool millisInterval(); 
+  void reset();
 private:
   unsigned long previousMillis;
   unsigned long currentMillis;
