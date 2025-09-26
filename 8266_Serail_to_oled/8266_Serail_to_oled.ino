@@ -1,8 +1,10 @@
 #include "display.h"
 
-MyDisplay dsp(&display); 
+MyDisplay dsp(&display);
 String str;
 bool readSerialPort();
+bool messageState = true;
+bool showMessage = true;
 
 void setup() {
   dsp.displayInit();
@@ -13,10 +15,18 @@ void setup() {
 }
 
 void loop() {
-  if(readSerialPort()){
+  if(showMessage){
+    delay(2000);
+    Serial.println("\nEnter you message");
+    showMessage = false;
+  }
+
+  if (readSerialPort() && messageState) {
     dsp.displayClear();
     dsp.displayPrintText(str);
+    Serial.println(str);
     str = "";
+    messageState = false;
   }
 }
 
@@ -26,5 +36,5 @@ bool readSerialPort() {
     str = Serial.readString();
     status = true;
   }
-  return status; 
+  return status;
 }
