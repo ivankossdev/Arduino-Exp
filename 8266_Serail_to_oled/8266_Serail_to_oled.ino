@@ -1,17 +1,16 @@
 #include "display.h"
+#include "MyMillis.h"
 
 MyDisplay dsp(&display);
+
+MyMillis millis250(250);
+MyMillis millis5000(5000);
+
 String str;
 bool readSerialPort();
 bool messageState = true;
 bool showMessage = true;
-
-unsigned long previousMillis = 0;
-unsigned long currentMillis = 0; 
-const long interval = 100;
-int ledState = LOW;
-
-
+bool clearMessage = false;
 
 void setup() {
   dsp.displayInit();
@@ -36,18 +35,20 @@ void loop() {
     Serial.println(str);
     str = "";
     messageState = false;
+    clearMessage = true; 
   }
 
-  currentMillis = millis();
+  if (millis250.millisInterval()) {
+    digitalWrite(D5, HIGH);
+  } else {
+    digitalWrite(D5, LOW);
+  }
 
-  if (currentMillis - previousMillis >= interval) {
-    previousMillis = currentMillis;
-    if (ledState == LOW) {
-      ledState = HIGH;
-    } else {
-      ledState = LOW;
-    }
-    digitalWrite(D5, ledState);
+  if (clearMessage && millis5000.millisInterval()) {
+    dsp.displayClear();
+    dsp.displayPrintText((char*)"Test display\nPlese enter you \nmessage in terminal.");
+    messageState = true; 
+    clearMessage = false;
   }
 }
 
@@ -57,5 +58,6 @@ bool readSerialPort() {
     str = Serial.readString();
     status = true;
   }
+
   return status;
 }
