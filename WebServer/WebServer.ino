@@ -2,7 +2,7 @@
 #include "scanWiFi.h"
 #include "display.h"
 
-const char *ssid = "HUAWEI-V4XQZZ_HiLink";
+char ssid[32];
 char pass[16];
 
 WiFiServer server(80);
@@ -16,31 +16,6 @@ unsigned long currentTime = millis();
 unsigned long previousTime = 0;
 const long timeoutTime = 2000;
 
-void cnct(char *data) {
-  Serial.println("Please enter password: ");
-
-  while (Serial.available() > 0) {
-    Serial.read();
-  }
-
-  while (true) {
-    if (Serial.available() > 5) {
-      serialData = Serial.readString();
-      int i = 0;
-      do {
-        if (serialData[i] == '\r' || serialData[i] == '\n') break;
-        data[i] = serialData[i];
-        i++;
-      } while (serialData[i] != '\0');
-      data[i] = '\0';
-      Serial.printf("%s - pass\n", data);
-      break;
-    }
-
-    delay(1000);
-  }
-}
-
 void setup() {
   Serial.begin(115200);
   dsp.displayInit();
@@ -48,8 +23,8 @@ void setup() {
   /* Сканирование доступный сетей */
   dsp.displayPrintText((char *)"Scan WiFi networks");
   searchWiFi();
-
-  cnct(pass);
+  cnct(ssid, "Please enter WiFi network: ");
+  cnct(pass, "Please enter password: ");
 
   /* Инициализация портов */
   pinMode(pin14, OUTPUT);
@@ -153,5 +128,30 @@ void loop() {
     client.stop();
     Serial.println("Client disconnected.");
     Serial.println("");
+  }
+}
+
+void cnct(char *data, String message) {
+  Serial.println(message);
+
+  while (Serial.available() > 0) {
+    Serial.read();
+  }
+
+  while (true) {
+    if (Serial.available() > 5) {
+      serialData = Serial.readString();
+      int i = 0;
+      do {
+        if (serialData[i] == '\r' || serialData[i] == '\n') break;
+        data[i] = serialData[i];
+        i++;
+      } while (serialData[i] != '\0');
+      data[i] = '\0';
+      Serial.printf("%s - entered data\n", data);
+      break;
+    }
+
+    delay(1000);
   }
 }
