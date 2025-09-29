@@ -8,6 +8,7 @@ const char *password = "12345678";
 WiFiServer server(80);
 String header;
 String portD5State = "off";
+String serialData;
 
 const int pin14 = 14;
 
@@ -19,29 +20,36 @@ void setup() {
   Serial.begin(115200);
   dsp.displayInit();
 
+  /* Сканирование доступный сетей */
   dsp.displayPrintText((char *)"Scan WiFi networks");
   searchWiFi();
 
+  /* Инициализация портов */
   pinMode(pin14, OUTPUT);
   digitalWrite(pin14, LOW);
-  
-  dsp.displayClear();
-  dsp.displayPrintText((char *)"Init...");
 
+  dsp.displayClear();
+  dsp.displayPrintText((char *)"Connetcting to WiFi...");
+  Serial.println("Connetcting to \nWiFi...");
+
+  /* Подключение к сети WiFi */
   Serial.print("Connecting to ");
   Serial.println(ssid);
   WiFi.begin(ssid, password);
+
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
 
+  /* Данные в консоли */
   Serial.println("");
   Serial.println("WiFi connected.");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
   server.begin();
 
+  /* Данные на дисплее */
   dsp.displayClear();
   dsp.displayPrintText((char *)"WiFi connected.");
   dsp.displayPrintText((char *)ssid);
@@ -112,9 +120,32 @@ void loop() {
         }
       }
     }
+
     header = "";
+
     client.stop();
     Serial.println("Client disconnected.");
     Serial.println("");
+  }
+}
+
+void cnct() {
+  char pass[16] = { '\0' };
+  Serial.println("Please enter password: ");
+  while (true) {
+    /* Пароль WiFi сети */
+    if (Serial.available() > 5) {
+      serialData = Serial.readString();
+      int i = 0;
+      do {
+        i++;
+        if (serialData[i] == '\r' || serialData[i] == '\n') break;
+        pass[i] = serialData[i];
+        Serial.printf("%c - pass\n", pass[i]);
+      } while (serialData[i] != '\0');
+      break;
+    }
+
+    delay(1000);
   }
 }
