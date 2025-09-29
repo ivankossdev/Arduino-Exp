@@ -15,6 +15,8 @@ const int pin14 = 14;
 unsigned long currentTime = millis();
 unsigned long previousTime = 0;
 const long timeoutTime = 2000;
+void clientHandler();
+
 
 void setup() {
   Serial.begin(115200);
@@ -23,6 +25,8 @@ void setup() {
   /* Сканирование доступный сетей */
   dsp.displayPrintText((char *)"Scan WiFi networks");
   searchWiFi();
+
+  /* Авторизайия в сети WiFi */
   cnct(ssid, "Please enter WiFi network: ");
   cnct(pass, "Please enter password: ");
 
@@ -34,7 +38,7 @@ void setup() {
   dsp.displayPrintText((char *)"Connetcting to WiFi...");
   Serial.println("Connetcting to \nWiFi...");
 
-  /* Подключение к сети WiFi */
+  /* Информация о подключении к WiFi */
   Serial.print("Connecting to ");
   Serial.println(ssid);
   WiFi.begin(ssid, pass);
@@ -60,6 +64,10 @@ void setup() {
 }
 
 void loop() {
+  clientHandler();
+}
+
+void clientHandler() {
   WiFiClient client = server.available();  // Listen for incoming clients
 
   if (client) {                     // If a new client connects,
