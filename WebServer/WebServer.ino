@@ -15,8 +15,8 @@ const int pin14 = 14;
 unsigned long currentTime = millis();
 unsigned long previousTime = 0;
 const long timeoutTime = 2000;
+bool stateConnection = false;
 void clientHandler();
-
 
 void setup() {
   Serial.begin(115200);
@@ -43,28 +43,44 @@ void setup() {
   Serial.println(ssid);
   WiFi.begin(ssid, pass);
 
+  int timeOutCount = 0;
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
+    timeOutCount++;
+    if (timeOutCount > 20) {
+      stateConnection = true;
+      break;
+    }
   }
+  if (stateConnection) {
+    Serial.println("");
+    Serial.println("Error WiFi connected.");
 
-  /* Данные в консоли */
-  Serial.println("");
-  Serial.println("WiFi connected.");
-  Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());
-  server.begin();
+    dsp.displayClear();
+    dsp.displayPrintText((char *)"Error WiFi connected.");
 
-  /* Данные на дисплее */
-  dsp.displayClear();
-  dsp.displayPrintText((char *)"WiFi connected.");
-  dsp.displayPrintText((char *)ssid);
-  dsp.displayPrintText((char *)"IP address: ");
-  dsp.displayPrintText(WiFi.localIP());
+  } else {
+    /* Данные в консоли */
+    Serial.println("");
+    Serial.println("WiFi connected.");
+    Serial.println("IP address: ");
+    Serial.println(WiFi.localIP());
+    server.begin();
+
+    /* Данные на дисплее */
+    dsp.displayClear();
+    dsp.displayPrintText((char *)"WiFi connected.");
+    dsp.displayPrintText((char *)ssid);
+    dsp.displayPrintText((char *)"IP address: ");
+    dsp.displayPrintText(WiFi.localIP());
+  }
 }
 
 void loop() {
-  clientHandler();
+  if (!stateConnection) {
+    clientHandler();
+  } 
 }
 
 void clientHandler() {
