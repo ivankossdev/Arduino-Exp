@@ -8,9 +8,9 @@ MyMillis millis5000(5000);
 
 String str;
 bool readSerialPort();
-bool messageState = true;
 bool showMessage = true;
-bool clearMessage = false;
+bool messageState = false;
+bool clearMessage = true;
 
 void setup() {
   dsp.displayInit();
@@ -35,7 +35,7 @@ void loop() {
     Serial.println(str);
     str = "";
     messageState = false;
-    clearMessage = true; 
+    clearMessage = true;
   }
 
   if (millis250.millisInterval()) {
@@ -48,7 +48,7 @@ void loop() {
     dsp.displayClear();
     dsp.displayPrintText((char*)"Test display\nPlese enter you \nmessage in terminal.");
     millis5000.reset();
-    messageState = true; 
+    messageState = true;
     clearMessage = false;
   }
 }
