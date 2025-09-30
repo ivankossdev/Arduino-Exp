@@ -1,6 +1,7 @@
 #include <ESP8266WiFi.h>
 #include "scanWiFi.h"
 #include "display.h"
+#include "MemHandler.h"
 
 char ssid[32];
 char pass[16];
