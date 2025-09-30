@@ -17,6 +17,7 @@ unsigned long previousTime = 0;
 const long timeoutTime = 2000;
 bool stateConnection = false;
 void clientHandler();
+void printConnectedInfo();
 
 void setup() {
   Serial.begin(115200);
@@ -29,10 +30,10 @@ void setup() {
   /* Авторизайия в сети WiFi */
   dsp.displayClear();
   dsp.displayPrintText((char *)"Please enter WiFi network: ");
-  cnct(ssid, "Please enter WiFi network: ");
+  connection(ssid, "Please enter WiFi network: ");
   dsp.displayClear();
   dsp.displayPrintText((char *)"Please enter password: ");
-  cnct(pass, "Please enter password: ");
+  connection(pass, "Please enter password: ");
 
   /* Инициализация портов */
   pinMode(pin14, OUTPUT);
@@ -73,18 +74,14 @@ void setup() {
     server.begin();
 
     /* Данные на дисплее */
-    dsp.displayClear();
-    dsp.displayPrintText((char *)"WiFi connected.");
-    dsp.displayPrintText((char *)ssid);
-    dsp.displayPrintText((char *)"IP address: ");
-    dsp.displayPrintText(WiFi.localIP());
+    printConnectedInfo();
   }
 }
 
 void loop() {
   if (!stateConnection) {
     clientHandler();
-  } 
+  }
 }
 
 void clientHandler() {
@@ -112,11 +109,14 @@ void clientHandler() {
             client.println("Connection: close");
             client.println();
 
+            printConnectedInfo();
+
             // turns the GPIOs on and off
             if (header.indexOf("GET /led/on") >= 0) {
               Serial.println("D5 led on");
               portD5State = "on";
               digitalWrite(pin14, HIGH);
+
             } else if (header.indexOf("GET /led/off") >= 0) {
               Serial.println("D5 led off");
               portD5State = "off";
@@ -134,10 +134,11 @@ void clientHandler() {
             client.println("<p>Port D5 - Led " + portD5State + "</p>");
             if (portD5State == "off") {
               client.println("<p><a href=\"/led/on\"><button class=\"button\">ON</button></a></p>");
+              dsp.displayPrintText((char *)"\nPort D5 - Led ON");
             } else {
               client.println("<p><a href=\"/led/off\"><button class=\"button button2\">OFF</button></a></p>");
+              dsp.displayPrintText((char *)"\nPort D5 - Led Off");
             }
-
             client.println("</body></html>");
             client.println();
             // Break out of the while loop
@@ -159,7 +160,7 @@ void clientHandler() {
   }
 }
 
-void cnct(char *data, String message) {
+void connection(char *data, String message) {
   Serial.println(message);
 
   while (Serial.available() > 0) {
@@ -182,4 +183,12 @@ void cnct(char *data, String message) {
 
     delay(1000);
   }
+}
+
+void printConnectedInfo() {
+  dsp.displayClear();
+  dsp.displayPrintText((char *)"WiFi connected.");
+  dsp.displayPrintText((char *)ssid);
+  dsp.displayPrintText((char *)"IP address: ");
+  dsp.displayPrintText(WiFi.localIP());
 }
