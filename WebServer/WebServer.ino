@@ -134,10 +134,10 @@ void clientHandler() {
             client.println("<p>Port D5 - Led " + portD5State + "</p>");
             if (portD5State == "off") {
               client.println("<p><a href=\"/led/on\"><button class=\"button\">ON</button></a></p>");
-              dsp.displayPrintText((char *)"\nPort D5 - Led ON");
+              dsp.displayPrintText((char *)"\nPort D5 - Led Off");
             } else {
               client.println("<p><a href=\"/led/off\"><button class=\"button button2\">OFF</button></a></p>");
-              dsp.displayPrintText((char *)"\nPort D5 - Led Off");
+              dsp.displayPrintText((char *)"\nPort D5 - Led On");
             }
             client.println("</body></html>");
             client.println();
