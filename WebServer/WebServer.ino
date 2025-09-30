@@ -27,7 +27,11 @@ void setup() {
   searchWiFi();
 
   /* Авторизайия в сети WiFi */
+  dsp.displayClear();
+  dsp.displayPrintText((char *)"Please enter WiFi network: ");
   cnct(ssid, "Please enter WiFi network: ");
+  dsp.displayClear();
+  dsp.displayPrintText((char *)"Please enter password: ");
   cnct(pass, "Please enter password: ");
 
   /* Инициализация портов */
