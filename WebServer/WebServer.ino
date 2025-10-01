@@ -7,6 +7,7 @@ char ssid[32];
 char pass[16];
 
 WiFiServer server(80);
+Memory memory; 
 String header;
 String portD5State = "off";
 String serialData;
@@ -125,6 +126,8 @@ void clientHandler() {
             } else if (header.indexOf("GET /connect") >= 0) {
               Serial.printf("WiFi %s\n", ssid);
               Serial.printf("WiFi %s\n", pass);
+            } else if (header.indexOf("GET /memory") >= 0) {
+              memory.writeString(ssid);
             }
 
             client.println("<!DOCTYPE html><html>");

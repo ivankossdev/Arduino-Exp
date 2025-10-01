@@ -6,15 +6,12 @@
 #define MEMSIZE 512
 
 class Memory{
-
   public:
     Memory();
-    bool writeString();
+    bool writeString(String str);
     void readString();
     void clearString();
     char buffer[MEMSIZE] = {'\0'};
 };
-
-static Memory memory; 
 
 #endif
