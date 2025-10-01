@@ -3,6 +3,7 @@
 
 #include "Arduino.h"
 #include <EEPROM.h>
+#define MEMSIZE 512
 
 class Memory{
 
@@ -11,7 +12,7 @@ class Memory{
     bool writeString();
     void readString();
     void clearString();
-    char buffer[512] = {'\0'};
+    char buffer[MEMSIZE] = {'\0'};
 };
 
 static Memory memory; 

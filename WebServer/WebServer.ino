@@ -122,6 +122,9 @@ void clientHandler() {
               Serial.println("D5 led off");
               portD5State = "off";
               digitalWrite(pin14, LOW);
+            } else if (header.indexOf("GET /connect") >= 0) {
+              Serial.printf("WiFi %s\n", ssid);
+              Serial.printf("WiFi %s\n", pass);
             }
 
             client.println("<!DOCTYPE html><html>");

@@ -2,7 +2,7 @@
 
 Memory::Memory(){
   Serial.begin(115200);
-  EEPROM.begin(512);
+  EEPROM.begin(MEMSIZE);
   readString();
 }
 
@@ -14,7 +14,7 @@ bool Memory::writeString() {
     clearString();
     String str = Serial.readString();
 
-    if (str.length() <= 512) {
+    if (str.length() <= MEMSIZE) {
       int i = 0;
       do {
         EEPROM.write(i, str[i]);
