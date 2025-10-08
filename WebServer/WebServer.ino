@@ -2,6 +2,7 @@
 #include "scanWiFi.h"
 #include "display.h"
 #include "MemHandler.h"
+#include "connection.h"
 
 //HUAWEI-V4XQZZ_HiLink
 
@@ -12,7 +13,6 @@ WiFiServer server(80);
 Memory memory; 
 String header;
 String portD5State = "off";
-String serialData;
 
 const int pin14 = 14;
 
@@ -34,11 +34,10 @@ void setup() {
   /* Авторизайия в сети WiFi */
   dsp.displayClear();
   dsp.displayPrintText((char *)"Please enter WiFi network: ");
-  enterSerialDataInArray(ssid, "Please enter WiFi network: ");
-  dsp.displayPrintText((char *)"Read SSID in memory: ");
+  connection.enterSerialDataInArray(ssid, "Please enter WiFi network: ");
   dsp.displayClear();
   dsp.displayPrintText((char *)"Please enter password: ");
-  enterSerialDataInArray(pass, "Please enter password: ");
+  connection.enterSerialDataInArray(pass, "Please enter password: ");
 
   /* Инициализация портов */
   pinMode(pin14, OUTPUT);
@@ -48,7 +47,7 @@ void setup() {
   dsp.displayPrintText((char *)"Connetcting to WiFi...");
   Serial.println("Connetcting to \nWiFi...");
 
-  /* Информация о подключении к WiFi */
+  /* Подключение к сети WiFi */
   Serial.print("Connecting to ");
   Serial.println(ssid);
   WiFi.begin(ssid, pass);
@@ -170,31 +169,6 @@ void clientHandler() {
     client.stop();
     Serial.println("Client disconnected.");
     Serial.println("");
-  }
-}
-
-void enterSerialDataInArray(char *data, String message) {
-  Serial.println(message);
-
-  while (Serial.available() > 0) {
-    Serial.read();
-  }
-
-  while (true) {
-    if (Serial.available() > 5) {
-      serialData = Serial.readString();
-      int i = 0;
-      do {
-        if (serialData[i] == '\r' || serialData[i] == '\n') break;
-        data[i] = serialData[i];
-        i++;
-      } while (serialData[i] != '\0');
-      data[i] = '\0';
-      Serial.printf("%s - entered data\n", data);
-      break;
-    }
-
-    delay(1000);
   }
 }
 
