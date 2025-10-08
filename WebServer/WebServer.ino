@@ -3,6 +3,8 @@
 #include "display.h"
 #include "MemHandler.h"
 
+//HUAWEI-V4XQZZ_HiLink
+
 char ssid[32];
 char pass[16];
 
@@ -32,10 +34,11 @@ void setup() {
   /* Авторизайия в сети WiFi */
   dsp.displayClear();
   dsp.displayPrintText((char *)"Please enter WiFi network: ");
-  connection(ssid, "Please enter WiFi network: ");
+  enterSerialDataInArray(ssid, "Please enter WiFi network: ");
+  dsp.displayPrintText((char *)"Read SSID in memory: ");
   dsp.displayClear();
   dsp.displayPrintText((char *)"Please enter password: ");
-  connection(pass, "Please enter password: ");
+  enterSerialDataInArray(pass, "Please enter password: ");
 
   /* Инициализация портов */
   pinMode(pin14, OUTPUT);
@@ -127,7 +130,10 @@ void clientHandler() {
               Serial.printf("WiFi %s\n", ssid);
               Serial.printf("WiFi %s\n", pass);
             } else if (header.indexOf("GET /memory") >= 0) {
-              memory.writeString(ssid);
+              // memory.writeString(ssid);
+              Serial.println("Memory handler\nReda memory");
+              memory.readString();
+              Serial.printf("%s\n", memory.buffer); 
             }
 
             client.println("<!DOCTYPE html><html>");
@@ -167,7 +173,7 @@ void clientHandler() {
   }
 }
 
-void connection(char *data, String message) {
+void enterSerialDataInArray(char *data, String message) {
   Serial.println(message);
 
   while (Serial.available() > 0) {

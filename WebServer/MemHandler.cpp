@@ -42,9 +42,8 @@ void Memory::readString() {
     buffer[i] = (char)EEPROM.read(i);
     i++;
   } while (EEPROM.read(i) != '\0');
-
+  
   buffer[i] = '\0';
-  Serial.printf("%s\n", buffer);
 }
 
 void Memory::clearString() {
