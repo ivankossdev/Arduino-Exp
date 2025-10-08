@@ -1,5 +1,5 @@
 #include "connection.h"
-void Connection::enterSerialDataInArray(char *data, String message){
+void Connection::enterSerialDataInArray(char *data, String message) {
   Serial.println(message);
 
   while (Serial.available() > 0) {

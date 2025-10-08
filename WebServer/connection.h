@@ -3,11 +3,12 @@
 
 #include "Arduino.h"
 #include <EEPROM.h>
-#define MEMSIZE 512
+#include "display.h"
 
 class Connection{
   public:
     void enterSerialDataInArray(char *data, String message);
+
   private:
     String serialData;
 };
