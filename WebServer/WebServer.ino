@@ -6,9 +6,6 @@
 
 //HUAWEI-V4XQZZ_HiLink
 
-char ssid[32];
-char pass[16];
-
 WiFiServer server(80);
 Memory memory; 
 String header;
@@ -34,10 +31,10 @@ void setup() {
   /* Авторизайия в сети WiFi */
   dsp.displayClear();
   dsp.displayPrintText((char *)"Please enter WiFi network: ");
-  connectData.enterSerialDataInArray(ssid, "Please enter WiFi network: ");
+  connectData.enterSerialDataInArray(connectData.ssid, "Please enter WiFi network: ");
   dsp.displayClear();
   dsp.displayPrintText((char *)"Please enter password: ");
-  connectData.enterSerialDataInArray(pass, "Please enter password: ");
+  connectData.enterSerialDataInArray(connectData.pass, "Please enter password: ");
 
   /* Инициализация портов */
   pinMode(pin14, OUTPUT);
@@ -49,8 +46,8 @@ void setup() {
 
   /* Подключение к сети WiFi */
   Serial.print("Connecting to ");
-  Serial.println(ssid);
-  WiFi.begin(ssid, pass);
+  Serial.println(connectData.ssid);
+  WiFi.begin(connectData.ssid, connectData.pass);
 
   int timeOutCount = 0;
   while (WiFi.status() != WL_CONNECTED) {
@@ -126,8 +123,8 @@ void clientHandler() {
               portD5State = "off";
               digitalWrite(pin14, LOW);
             } else if (header.indexOf("GET /connect") >= 0) {
-              Serial.printf("WiFi %s\n", ssid);
-              Serial.printf("WiFi %s\n", pass);
+              Serial.printf("WiFi %s\n", connectData.ssid);
+              Serial.printf("WiFi %s\n", connectData.pass);
             } else if (header.indexOf("GET /memory") >= 0) {
               // memory.writeString(ssid);
               Serial.println("Memory handler\nReda memory");
@@ -175,7 +172,7 @@ void clientHandler() {
 void printConnectedInfo() {
   dsp.displayClear();
   dsp.displayPrintText((char *)"WiFi connected.");
-  dsp.displayPrintText((char *)ssid);
+  dsp.displayPrintText((char *)connectData.ssid);
   dsp.displayPrintText((char *)"IP address: ");
   dsp.displayPrintText(WiFi.localIP());
 }
