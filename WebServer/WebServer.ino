@@ -2,7 +2,7 @@
 #include "scanWiFi.h"
 #include "display.h"
 #include "MemHandler.h"
-#include "connection.h"
+#include "connectData.h"
 
 //HUAWEI-V4XQZZ_HiLink
 
@@ -34,10 +34,10 @@ void setup() {
   /* Авторизайия в сети WiFi */
   dsp.displayClear();
   dsp.displayPrintText((char *)"Please enter WiFi network: ");
-  connection.enterSerialDataInArray(ssid, "Please enter WiFi network: ");
+  connectData.enterSerialDataInArray(ssid, "Please enter WiFi network: ");
   dsp.displayClear();
   dsp.displayPrintText((char *)"Please enter password: ");
-  connection.enterSerialDataInArray(pass, "Please enter password: ");
+  connectData.enterSerialDataInArray(pass, "Please enter password: ");
 
   /* Инициализация портов */
   pinMode(pin14, OUTPUT);
