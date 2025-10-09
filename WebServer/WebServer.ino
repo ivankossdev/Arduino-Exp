@@ -7,7 +7,7 @@
 //HUAWEI-V4XQZZ_HiLink
 
 WiFiServer server(80);
-Memory memory; 
+Memory memory;
 String header;
 String portD5State = "off";
 
@@ -30,7 +30,7 @@ void setup() {
 
   /* Авторизайия в сети WiFi */
   dsp.displayClear();
-  
+
   dsp.displayPrintText((char *)"Please enter WiFi network: ");
   connectData.enterSSID();
   dsp.displayClear();
@@ -127,10 +127,11 @@ void clientHandler() {
               Serial.printf("WiFi %s\n", connectData.ssid);
               Serial.printf("WiFi %s\n", connectData.pass);
             } else if (header.indexOf("GET /memory") >= 0) {
-              // memory.writeString(ssid);
-              Serial.println("Memory handler\nReda memory");
+              Serial.println("Memory handler\nRead memory");
+              memory.clearString();
+              memory.writeString(connectData.ssid);
               memory.readString();
-              Serial.printf("%s\n", memory.buffer); 
+              Serial.printf("Memory data %s\n", memory.buffer);
             }
 
             client.println("<!DOCTYPE html><html>");

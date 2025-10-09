@@ -12,6 +12,8 @@ class Memory{
     void readString();
     void clearString();
     char buffer[MEMSIZE] = {'\0'};
+  private:
+   void commit(String message);
 };
 
 #endif
