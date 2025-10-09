@@ -24,3 +24,12 @@ void ConnectData::enterSerialDataInArray(char *data, String message) {
     delay(1000);
   }
 }
+
+void ConnectData::enterSSID(){
+  enterSerialDataInArray(ssid, "Please enter WiFi network: ");
+}
+
+void ConnectData::enterPASS(){
+  enterSerialDataInArray(pass, "Please enter password: ");
+}
+

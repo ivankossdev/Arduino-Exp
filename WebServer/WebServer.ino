@@ -30,11 +30,12 @@ void setup() {
 
   /* Авторизайия в сети WiFi */
   dsp.displayClear();
+  
   dsp.displayPrintText((char *)"Please enter WiFi network: ");
-  connectData.enterSerialDataInArray(connectData.ssid, "Please enter WiFi network: ");
+  connectData.enterSSID();
   dsp.displayClear();
   dsp.displayPrintText((char *)"Please enter password: ");
-  connectData.enterSerialDataInArray(connectData.pass, "Please enter password: ");
+  connectData.enterPASS();
 
   /* Инициализация портов */
   pinMode(pin14, OUTPUT);

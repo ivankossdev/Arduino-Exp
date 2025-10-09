@@ -6,11 +6,14 @@
 
 class ConnectData {
 public:
-  void enterSerialDataInArray(char *data, String message);
+  void enterSSID();
+  void enterPASS();
   char ssid[32] = {'\0'};
   char pass[16] = {'\0'};
 
+
 private:
+  void enterSerialDataInArray(char *data, String message);
   String serialData;
 };
 
