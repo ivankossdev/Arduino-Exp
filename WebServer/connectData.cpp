@@ -25,11 +25,33 @@ void ConnectData::enterSerialDataInArray(char *data, String message) {
   }
 }
 
-void ConnectData::enterSSID(){
+void ConnectData::writeDataInArray(char *data, char *memData) {
+  int i = 0;
+  do {
+    if (memData[i] == '\r' || memData[i] == '\n') break;
+    data[i] = memData[i];
+    i++;
+  } while (memData[i] != '\0');
+  data[i] = '\0';
+}
+
+void ConnectData::enterSSID() {
   enterSerialDataInArray(ssid, "Please enter WiFi network: ");
 }
 
-void ConnectData::enterPASS(){
+void ConnectData::enterSSID(char *memData_){
+  writeDataInArray(ssid, memData_);
+}
+
+void ConnectData::enterPASS() {
   enterSerialDataInArray(pass, "Please enter password: ");
 }
+
+void ConnectData::enterPASS(char *memData_){
+  writeDataInArray(pass, memData_);
+}
+
+
+
+
 

@@ -138,6 +138,14 @@ void clientHandler() {
               memory.clearBuffer();
               memory.readString(32);
               Serial.printf("PASS %s\n", memory.buffer);
+
+              Serial.printf("Old SSID %s\n", connectData.ssid);
+              connectData.enterSSID((char *)"hello led!!!");
+              Serial.printf("New SSID %s\n", connectData.ssid);
+
+              Serial.printf("Old PASS %s\n", connectData.pass);
+              connectData.enterPASS((char *)"asd !");
+              Serial.printf("New PASS %s\n", connectData.pass);
             }
 
             client.println("<!DOCTYPE html><html>");
