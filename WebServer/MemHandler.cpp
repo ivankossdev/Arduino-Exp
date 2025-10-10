@@ -5,16 +5,16 @@ Memory::Memory() {
   EEPROM.begin(MEMSIZE);
 }
 
-bool Memory::writeString(String str) {
+bool Memory::writeString(String str, int memoryPosition) {
   bool write = false;
 
   if (str.length() <= MEMSIZE) {
     write = true;
     int i = 0;
     do {
-      EEPROM.write(i, str[i]);
+      EEPROM.write(memoryPosition, str[i]);
       if (str[i] == '\r' || str[i] == '\n') break;
-      i++;
+      i++; memoryPosition++; 
     } while (str[i] != '\0');
     str[i] = '\0';
 
@@ -32,7 +32,7 @@ void Memory::commit(String message){
     }
 }
 
-void Memory::readString() {
+void Memory::readString(int memoryPosition) {
   int i = 0;
 
   do {
@@ -41,8 +41,8 @@ void Memory::readString() {
       i = 0;
       break;
     }
-    buffer[i] = (char)EEPROM.read(i);
-    i++;
+    buffer[i] = (char)EEPROM.read(memoryPosition);
+    i++; memoryPosition++;
   } while (EEPROM.read(i) != '\0');
 
   buffer[i] = '\0';
@@ -57,3 +57,10 @@ void Memory::clearString() {
 
   commit("EEPROM clear");
 }
+
+void Memory::clearBuffer(){
+  for (int i = 0; i < MEMSIZE; i++) { buffer[i] = '\0'; }
+}
+
+
+

@@ -8,9 +8,10 @@
 class Memory{
   public:
     Memory();
-    bool writeString(String str);
-    void readString();
+    bool writeString(String str, int memoryPosition);
+    void readString(int memoryPosition);
     void clearString();
+    void clearBuffer();
     char buffer[MEMSIZE] = {'\0'};
   private:
    void commit(String message);

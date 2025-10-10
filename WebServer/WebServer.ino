@@ -129,9 +129,13 @@ void clientHandler() {
             } else if (header.indexOf("GET /memory") >= 0) {
               Serial.println("Memory handler\nRead memory");
               memory.clearString();
-              memory.writeString(connectData.ssid);
-              memory.readString();
+              memory.writeString(connectData.ssid, 0);
+              memory.readString(0);
               Serial.printf("Memory data %s\n", memory.buffer);
+
+              memory.clearBuffer();
+              memory.readString(5);
+              Serial.printf("Read in 5 position data %s\n", memory.buffer);
             }
 
             client.println("<!DOCTYPE html><html>");
