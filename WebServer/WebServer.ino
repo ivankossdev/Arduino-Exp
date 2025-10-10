@@ -127,15 +127,17 @@ void clientHandler() {
               Serial.printf("WiFi %s\n", connectData.ssid);
               Serial.printf("WiFi %s\n", connectData.pass);
             } else if (header.indexOf("GET /memory") >= 0) {
+              // memory.clearAllMemory();
+              // memory.writeString(connectData.ssid, 0);
+              // memory.writeString(connectData.pass, 32);
               Serial.println("Memory handler\nRead memory");
-              memory.clearString();
-              memory.writeString(connectData.ssid, 0);
+
               memory.readString(0);
-              Serial.printf("Memory data %s\n", memory.buffer);
+              Serial.printf("SSID %s\n", memory.buffer);
 
               memory.clearBuffer();
-              memory.readString(5);
-              Serial.printf("Read in 5 position data %s\n", memory.buffer);
+              memory.readString(32);
+              Serial.printf("PASS %s\n", memory.buffer);
             }
 
             client.println("<!DOCTYPE html><html>");
@@ -147,6 +149,7 @@ void clientHandler() {
             client.println(".button2 {background-color: #393F40;}</style></head>");
             client.println("<body><h1>IOT Web Server</h1>");
             client.println("<p>Port D5 - Led " + portD5State + "</p>");
+
             if (portD5State == "off") {
               client.println("<p><a href=\"/led/on\"><button class=\"button\">ON</button></a></p>");
               dsp.displayPrintText((char *)"\nPort D5 - Led Off");

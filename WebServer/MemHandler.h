@@ -10,7 +10,7 @@ class Memory{
     Memory();
     bool writeString(String str, int memoryPosition);
     void readString(int memoryPosition);
-    void clearString();
+    void clearAllMemory();
     void clearBuffer();
     char buffer[MEMSIZE] = {'\0'};
   private:

@@ -48,7 +48,7 @@ void Memory::readString(int memoryPosition) {
   buffer[i] = '\0';
 }
 
-void Memory::clearString() {
+void Memory::clearAllMemory() {
 
   for (int i = 0; i < MEMSIZE; i++) {
     EEPROM.write(i, '\0');
