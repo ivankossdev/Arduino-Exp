@@ -29,12 +29,16 @@ void setup() {
   searchWiFi();
 
   /* Авторизайия в сети WiFi */
-  dsp.displayClear();
-  dsp.displayPrintText((char *)"Please enter WiFi network: ");
-  connectData.enterSSID();
-  dsp.displayClear();
-  dsp.displayPrintText((char *)"Please enter password: ");
-  connectData.enterPASS();
+
+  memory.clearBuffer();
+  memory.readString(0);
+  Serial.printf("SSID %s\n", memory.buffer);
+  connectData.enterSSID(memory.buffer);
+
+  memory.clearBuffer();
+  memory.readString(32);
+  Serial.printf("PASS %s\n", memory.buffer);
+  connectData.enterPASS(memory.buffer);
 
   /* Инициализация портов */
   pinMode(pin14, OUTPUT);
@@ -65,6 +69,15 @@ void setup() {
 
     dsp.displayClear();
     dsp.displayPrintText((char *)"Error WiFi connected.");
+
+    /* Авторизация из консоли */
+    delay(5000);
+    dsp.displayClear();
+    dsp.displayPrintText((char *)"Please enter WiFi network: ");
+    connectData.enterSSID();
+    dsp.displayClear();
+    dsp.displayPrintText((char *)"Please enter password: ");
+    connectData.enterPASS();
 
   } else {
     /* Данные в консоли */
@@ -131,20 +144,13 @@ void clientHandler() {
               // memory.writeString(connectData.pass, 32);
               Serial.println("Memory handler\nRead memory");
 
+              memory.clearBuffer();
               memory.readString(0);
               Serial.printf("SSID %s\n", memory.buffer);
 
               memory.clearBuffer();
               memory.readString(32);
               Serial.printf("PASS %s\n", memory.buffer);
-
-              Serial.printf("Old SSID %s\n", connectData.ssid);
-              connectData.enterSSID((char *)"hello led!!!");
-              Serial.printf("New SSID %s\n", connectData.ssid);
-
-              Serial.printf("Old PASS %s\n", connectData.pass);
-              connectData.enterPASS((char *)"asd !");
-              Serial.printf("New PASS %s\n", connectData.pass);
             }
 
             client.println("<!DOCTYPE html><html>");
