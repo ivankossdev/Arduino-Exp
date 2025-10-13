@@ -17,6 +17,7 @@ const long timeoutTime = 2000;
 bool stateConnection = false;
 void clientHandler();
 void printConnectedInfo();
+void waitConnect(bool *state);
 
 void setup() {
   Serial.begin(115200);
@@ -50,17 +51,8 @@ void setup() {
   Serial.println(connectData.ssid);
   WiFi.begin(connectData.ssid, connectData.pass);
 
-  int timeOutCount = 0;
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-    timeOutCount++;
-    if (timeOutCount > 20) {
-      stateConnection = true;
-      break;
-    }
-  }
-  
+  waitConnect(&stateConnection);
+
   if (stateConnection) {
     Serial.println("");
     Serial.println("Error WiFi connected.");
@@ -85,16 +77,7 @@ void setup() {
     memory.writeString(connectData.pass, 32);
     WiFi.begin(connectData.ssid, connectData.pass);
 
-    timeOutCount = 0;
-    while (WiFi.status() != WL_CONNECTED) {
-      delay(500);
-      Serial.print(".");
-      timeOutCount++;
-      if (timeOutCount > 20) {
-        stateConnection = true;
-        break;
-      }
-    }
+    waitConnect(&stateConnection);
 
     stateConnection = false;
     server.begin();
@@ -208,4 +191,17 @@ void printConnectedInfo() {
   dsp.displayPrintText((char *)connectData.ssid);
   dsp.displayPrintText((char *)"IP address: ");
   dsp.displayPrintText(WiFi.localIP());
+}
+
+void waitConnect(bool *state) {
+  int timeOutCount = 0;
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+    timeOutCount++;
+    if (timeOutCount > 20) {
+      *state = true;
+      break;
+    }
+  }
 }
