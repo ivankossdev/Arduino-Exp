@@ -21,7 +21,7 @@ void ConnectData::enterSerialDataInArray(char *data, String message) {
       break;
     }
 
-    delay(1000);
+    delay(100);
   }
 }
 
