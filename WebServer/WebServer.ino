@@ -4,8 +4,6 @@
 #include "MemHandler.h"
 #include "connectData.h"
 
-//HUAWEI-V4XQZZ_HiLink
-
 WiFiServer server(80);
 Memory memory;
 String header;
@@ -24,25 +22,26 @@ void setup() {
   Serial.begin(115200);
   dsp.displayInit();
 
+  /* Инициализация портов */
+  pinMode(pin14, OUTPUT);
+  digitalWrite(pin14, LOW);
+
   /* Сканирование доступный сетей */
   dsp.displayPrintText((char *)"Scan WiFi networks");
   searchWiFi();
 
   /* Авторизайия в сети WiFi */
-
+  /* Чтение названия точки доступа из памяти устройства*/
   memory.clearBuffer();
   memory.readString(0);
   Serial.printf("SSID %s\n", memory.buffer);
   connectData.enterSSID(memory.buffer);
 
+  /* Чтение пароля из памяти из памяти устройства*/
   memory.clearBuffer();
   memory.readString(32);
   Serial.printf("PASS %s\n", memory.buffer);
   connectData.enterPASS(memory.buffer);
-
-  /* Инициализация портов */
-  pinMode(pin14, OUTPUT);
-  digitalWrite(pin14, LOW);
 
   dsp.displayClear();
   dsp.displayPrintText((char *)"Connetcting to WiFi...");
@@ -71,23 +70,40 @@ void setup() {
     dsp.displayPrintText((char *)"Error WiFi connected.");
 
     /* Авторизация из консоли */
-    delay(5000);
+    delay(1000);
+
     dsp.displayClear();
     dsp.displayPrintText((char *)"Please enter WiFi network: ");
     connectData.enterSSID();
+
     dsp.displayClear();
     dsp.displayPrintText((char *)"Please enter password: ");
     connectData.enterPASS();
 
-  } else {
-    /* Данные в консоли */
-    Serial.println("");
-    Serial.println("WiFi connected.");
-    Serial.println("IP address: ");
-    Serial.println(WiFi.localIP());
-    server.begin();
+    /* Запись в память логин и пароль */
+    memory.clearAllMemory();
+    memory.writeString(connectData.ssid, 0);
+    memory.writeString(connectData.pass, 32);
+    WiFi.begin(connectData.ssid, connectData.pass);
 
-    /* Данные на дисплее */
+    timeOutCount = 0;
+    while (WiFi.status() != WL_CONNECTED) {
+      delay(500);
+      Serial.print(".");
+      timeOutCount++;
+      if (timeOutCount > 20) {
+        stateConnection = true;
+        break;
+      }
+    }
+
+    stateConnection = false;
+    server.begin();
+    /* Данные о подключении */
+    printConnectedInfo();
+  } else {
+    server.begin();
+    /* Данные о подключении */
     printConnectedInfo();
   }
 }
@@ -138,19 +154,8 @@ void clientHandler() {
             } else if (header.indexOf("GET /connect") >= 0) {
               Serial.printf("WiFi %s\n", connectData.ssid);
               Serial.printf("WiFi %s\n", connectData.pass);
-            } else if (header.indexOf("GET /memory") >= 0) {
-              // memory.clearAllMemory();
-              // memory.writeString(connectData.ssid, 0);
-              // memory.writeString(connectData.pass, 32);
-              Serial.println("Memory handler\nRead memory");
-
-              memory.clearBuffer();
-              memory.readString(0);
-              Serial.printf("SSID %s\n", memory.buffer);
-
-              memory.clearBuffer();
-              memory.readString(32);
-              Serial.printf("PASS %s\n", memory.buffer);
+            } else if (header.indexOf("GET /clear") >= 0) {
+              memory.clearAllMemory();
             }
 
             client.println("<!DOCTYPE html><html>");
@@ -192,6 +197,13 @@ void clientHandler() {
 }
 
 void printConnectedInfo() {
+  /* Данные в консоли */
+  Serial.println("");
+  Serial.println("WiFi connected.");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
+
+  /* Данные на дисплее */
   dsp.displayClear();
   dsp.displayPrintText((char *)"WiFi connected.");
   dsp.displayPrintText((char *)connectData.ssid);
