@@ -30,7 +30,6 @@ void setup() {
 
   /* Авторизайия в сети WiFi */
   dsp.displayClear();
-
   dsp.displayPrintText((char *)"Please enter WiFi network: ");
   connectData.enterSSID();
   dsp.displayClear();

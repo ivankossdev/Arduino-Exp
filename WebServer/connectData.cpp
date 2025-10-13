@@ -8,7 +8,7 @@ void ConnectData::enterSerialDataInArray(char *data, String message) {
   }
 
   while (true) {
-    if (Serial.available() > 5) {
+    if (Serial.available() > 0) {
       serialData = Serial.readString();
       int i = 0;
       do {

@@ -11,7 +11,7 @@ public:
   void enterPASS();
   void enterPASS(char *memData_);
   char ssid[32] = {'\0'};
-  char pass[16] = {'\0'};
+  char pass[32] = {'\0'};
 
 
 private:
