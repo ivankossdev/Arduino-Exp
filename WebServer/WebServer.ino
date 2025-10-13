@@ -34,13 +34,11 @@ void setup() {
   /* Чтение названия точки доступа из памяти устройства*/
   memory.clearBuffer();
   memory.readString(0);
-  Serial.printf("SSID %s\n", memory.buffer);
   connectData.enterSSID(memory.buffer);
 
   /* Чтение пароля из памяти из памяти устройства*/
   memory.clearBuffer();
   memory.readString(32);
-  Serial.printf("PASS %s\n", memory.buffer);
   connectData.enterPASS(memory.buffer);
 
   dsp.displayClear();
@@ -62,6 +60,7 @@ void setup() {
       break;
     }
   }
+  
   if (stateConnection) {
     Serial.println("");
     Serial.println("Error WiFi connected.");
