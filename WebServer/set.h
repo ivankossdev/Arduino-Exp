@@ -6,6 +6,7 @@
 #include "display.h"
 #include "MemHandler.h"
 #include "connectData.h"
+#include "ConnectHandler.h"
 
 WiFiServer server(80);
 Memory memory;

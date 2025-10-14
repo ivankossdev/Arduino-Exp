@@ -2,7 +2,6 @@
 
 void clientHandler();
 void printConnectedInfo();
-void waitConnect(bool *state);
 
 void setup() {
   Serial.begin(115200);
@@ -178,15 +177,4 @@ void printConnectedInfo() {
   dsp.displayPrintText(WiFi.localIP());
 }
 
-void waitConnect(bool *state) {
-  int timeOutCount = 0;
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-    timeOutCount++;
-    if (timeOutCount > 20) {
-      *state = true;
-      break;
-    }
-  }
-}
+
