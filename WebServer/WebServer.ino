@@ -38,32 +38,35 @@ void setup() {
   waitConnect(&stateConnection);
 
   if (stateConnection) {
-    Serial.println("");
-    Serial.println("Error WiFi connected.");
+    /* Повторное подключение в случае ошибки подключения */
+    do {
+      Serial.println("");
+      Serial.println("Error WiFi connected.");
 
-    dsp.displayClear();
-    dsp.displayPrintText((char *)"Error WiFi connected.");
+      dsp.displayClear();
+      dsp.displayPrintText((char *)"Error WiFi connected.");
 
-    /* Авторизация из консоли */
-    delay(1000);
+      /* Авторизация из консоли */
+      delay(1000);
 
-    dsp.displayClear();
-    dsp.displayPrintText((char *)"Please enter WiFi network: ");
-    connectData.enterSSID();
+      dsp.displayClear();
+      dsp.displayPrintText((char *)"Please enter WiFi network: ");
+      connectData.enterSSID();
 
-    dsp.displayClear();
-    dsp.displayPrintText((char *)"Please enter password: ");
-    connectData.enterPASS();
+      dsp.displayClear();
+      dsp.displayPrintText((char *)"Please enter password: ");
+      connectData.enterPASS();
 
-    /* Запись в память логин и пароль */
-    memory.clearAllMemory();
-    memory.writeString(connectData.ssid, 0);
-    memory.writeString(connectData.pass, 32);
-    WiFi.begin(connectData.ssid, connectData.pass);
+      /* Запись в память логин и пароль */
+      memory.clearAllMemory();
+      memory.writeString(connectData.ssid, 0);
+      memory.writeString(connectData.pass, 32);
+      WiFi.begin(connectData.ssid, connectData.pass);
 
-    waitConnect(&stateConnection);
+      stateConnection = false;
+      waitConnect(&stateConnection);
+    } while (stateConnection);
 
-    stateConnection = false;
     server.begin();
     /* Данные о подключении */
     printConnectedInfo();
@@ -176,5 +179,3 @@ void printConnectedInfo() {
   dsp.displayPrintText((char *)"IP address: ");
   dsp.displayPrintText(WiFi.localIP());
 }
-
-
