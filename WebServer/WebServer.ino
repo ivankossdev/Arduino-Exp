@@ -1,4 +1,5 @@
 #include "set.h"
+#include <string>
 
 void clientHandler();
 void printConnectedInfo();
@@ -85,7 +86,7 @@ void loop() {
 
 void clientHandler() {
   WiFiClient client = server.available();  // Listen for incoming clients
-
+  String mySSID(connectData.ssid);
   if (client) {                     // If a new client connects,
     Serial.println("New Client.");  // print a message out in the serial port
     String currentLine = "";        // make a String to hold incoming data from the client
@@ -115,17 +116,11 @@ void clientHandler() {
               Serial.println("D5 led on");
               portD5State = "on";
               digitalWrite(pin14, HIGH);
-
             } else if (header.indexOf("GET /led/off") >= 0) {
               Serial.println("D5 led off");
               portD5State = "off";
               digitalWrite(pin14, LOW);
-            } else if (header.indexOf("GET /connect") >= 0) {
-              Serial.printf("WiFi %s\n", connectData.ssid);
-              Serial.printf("WiFi %s\n", connectData.pass);
-            } else if (header.indexOf("GET /clear") >= 0) {
-              memory.clearAllMemory();
-            }
+            } 
 
             client.println("<!DOCTYPE html><html>");
             client.println("<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">");
@@ -134,7 +129,8 @@ void clientHandler() {
             client.println(".button { background-color: #195B6A; border: none; color: white; padding: 16px 40px;");
             client.println("text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}");
             client.println(".button2 {background-color: #393F40;}</style></head>");
-            client.println("<body><h1>IOT Web Server</h1>");
+            client.println("<body><h1>Evidence Securiy Controller</h1>"); 
+            client.println("<p>Connected to the network " + mySSID + "</p>");
             client.println("<p>Port D5 - Led " + portD5State + "</p>");
 
             if (portD5State == "off") {
@@ -158,6 +154,7 @@ void clientHandler() {
     }
 
     header = "";
+    mySSID = "";
 
     client.stop();
     Serial.println("Client disconnected.");
