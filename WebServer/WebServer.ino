@@ -10,7 +10,7 @@ void setup() {
 
   /* Инициализация портов */
   pinMode(pin14, OUTPUT);
-  digitalWrite(pin14, LOW);
+  digitalWrite(pin14, HIGH);
 
   /* Сканирование доступный сетей */
   dsp.displayPrintText((char *)"Scan WiFi networks");
@@ -115,11 +115,11 @@ void clientHandler() {
             if (header.indexOf("GET /led/on") >= 0) {
               Serial.println("D5 led on");
               portD5State = "on";
-              digitalWrite(pin14, HIGH);
+              digitalWrite(pin14, LOW);
             } else if (header.indexOf("GET /led/off") >= 0) {
               Serial.println("D5 led off");
               portD5State = "off";
-              digitalWrite(pin14, LOW);
+              digitalWrite(pin14, HIGH);
             } 
 
             client.println("<!DOCTYPE html><html>");
