@@ -113,11 +113,11 @@ void clientHandler() {
 
             // turns the GPIOs on and off
             if (header.indexOf("GET /led/on") >= 0) {
-              Serial.println("D5 led on");
+              Serial.println("Relay 1 on");
               portD5State = "on";
               digitalWrite(pin14, LOW);
             } else if (header.indexOf("GET /led/off") >= 0) {
-              Serial.println("D5 led off");
+              Serial.println("Relay 1 off");
               portD5State = "off";
               digitalWrite(pin14, HIGH);
             } 
@@ -131,14 +131,14 @@ void clientHandler() {
             client.println(".button2 {background-color: #393F40;}</style></head>");
             client.println("<body><h1>Evidence Securiy Controller</h1>"); 
             client.println("<p>Connected to the network " + mySSID + "</p>");
-            client.println("<p>Port D5 - Led " + portD5State + "</p>");
+            client.println("<p>Relay 1  - " + portD5State + "</p>");
 
             if (portD5State == "off") {
               client.println("<p><a href=\"/led/on\"><button class=\"button\">ON</button></a></p>");
-              dsp.displayPrintText((char *)"\nPort D5 - Led Off");
+              dsp.displayPrintText((char *)"\nRelay 1 - Off");
             } else {
               client.println("<p><a href=\"/led/off\"><button class=\"button button2\">OFF</button></a></p>");
-              dsp.displayPrintText((char *)"\nPort D5 - Led On");
+              dsp.displayPrintText((char *)"\nRelay 1 - On");
             }
             client.println("</body></html>");
             client.println();
