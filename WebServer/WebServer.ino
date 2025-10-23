@@ -83,51 +83,44 @@ void loop() {
   if (!stateConnection) {
     clientHandler();
   }
-  
+  serialReader();
 }
 
-void serialReader(){
-
-  while (true) {
-    if (Serial.available() > 0) {
-      String serialData = Serial.readString();
-      int i = 0;
-      do {
-        if (serialData[i] == '\r' || serialData[i] == '\n') break;
-        Serial.printf("%с", serialData[i]);
-        i++;
-      } while (serialData[i] != '\0');
-      
-      break;
-    }
+void serialReader() {
+  if (Serial.available() > 0) {
+    String serialData = Serial.readString();
+    int i = 0;
+    do {
+      if (serialData[i] == '\r' || serialData[i] == '\n') break;
+      Serial.printf("%c", serialData[i]);
+      i++;
+    } while (serialData[i] != '\0');
     Serial.printf("\n");
-
-    delay(100);
   }
 }
 
 void clientHandler() {
 
-  WiFiClient client = server.available();  
+  WiFiClient client = server.available();
   String mySSID(connectData.ssid);
 
-  if (client) {                     
-    String currentLine = "";       
+  if (client) {
+    String currentLine = "";
     currentTime = millis();
     previousTime = currentTime;
 
     Serial.println("");
 
-    while (client.connected() && currentTime - previousTime <= timeoutTime) {  
+    while (client.connected() && currentTime - previousTime <= timeoutTime) {
       currentTime = millis();
 
-      if (client.available()) {  
-        char c = client.read();  
+      if (client.available()) {
+        char c = client.read();
 
-        Serial.write(c);         
+        Serial.write(c);
 
         header += c;
-        if (c == '\n') { 
+        if (c == '\n') {
           if (currentLine.length() == 0) {
 
             client.println("HTTP/1.1 200 OK");
@@ -136,7 +129,7 @@ void clientHandler() {
             client.println();
 
             printConnectedInfo();
-            
+
             if (header.indexOf("GET /led/on") >= 0) {
               Serial.println("Relay 1 on");
               portD5State = "on";
@@ -145,7 +138,7 @@ void clientHandler() {
               Serial.println("Relay 1 off");
               portD5State = "off";
               digitalWrite(pin14, HIGH);
-            } 
+            }
 
             client.println("<!DOCTYPE html><html>");
             client.println("<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">");
@@ -154,7 +147,7 @@ void clientHandler() {
             client.println(".button { background-color: #195B6A; border: none; color: white; padding: 16px 40px;");
             client.println("text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}");
             client.println(".button2 {background-color: #393F40;}</style></head>");
-            client.println("<body><h1>Evidence Securiy Controller</h1>"); 
+            client.println("<body><h1>Evidence Securiy Controller</h1>");
             client.println("<p>Connected to the network " + mySSID + "</p>");
             client.println("<p>Relay 1  - " + portD5State + "</p>");
 
@@ -167,13 +160,13 @@ void clientHandler() {
             }
             client.println("</body></html>");
             client.println();
-            
+
             break;
-          } else {  
+          } else {
             currentLine = "";
           }
-        } else if (c != '\r') {  
-          currentLine += c;      
+        } else if (c != '\r') {
+          currentLine += c;
         }
       }
     }
