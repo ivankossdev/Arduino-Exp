@@ -4,6 +4,12 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 
-void serialReader();
+
+
+class SerialHandler{
+  public:
+    void serialReader();
+    String serialData; 
+}; 
 
 #endif

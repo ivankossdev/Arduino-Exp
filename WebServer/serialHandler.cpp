@@ -1,7 +1,7 @@
 #include "serialHandler.h"
 
 
-void serialReader() {
+void SerialHandler::serialReader() {
   if (Serial.available() > 0) {
     String serialData = Serial.readString();
     int i = 0;

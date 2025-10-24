@@ -82,7 +82,7 @@ void loop() {
   if (!stateConnection) {
     clientHandler();
   }
-  serialReader();
+  serialHandler.serialReader();
 }
 
 void clientHandler() {
