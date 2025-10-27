@@ -14,6 +14,7 @@ class SerialHandler{
 class SerialMenu : private SerialHandler{
   public:
     void menu();
+    void ipAddress();
 };
 
 #endif
