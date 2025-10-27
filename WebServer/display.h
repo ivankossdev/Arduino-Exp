@@ -26,6 +26,4 @@ protected:
   Adafruit_SSD1306 *d;
 };
 
-static MyDisplay dsp(&display);
-
 #endif

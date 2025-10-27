@@ -9,11 +9,12 @@
 #include "ConnectHandler.h"
 #include "serialHandler.h"
 
+MyDisplay dsp(&display);
 WiFiServer server(80);
 Memory memory;
 String header;
 String portD5State = "off";
-SerialHandler serialHandler; 
+SerialMenu menu; 
 
 unsigned long currentTime = millis();
 unsigned long previousTime = 0;
