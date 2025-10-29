@@ -33,11 +33,18 @@ void SerialMenu::ipAddress() {
 
   Serial.print("Gateway     ");
   Serial.println(WiFi.gatewayIP());
+  Serial.printf("\n");
 }
 
-void SerialMenu::nameWiFi(){
+void SerialMenu::nameWiFi() {
   Serial.println("Network name: ");
   Serial.println(WiFi.SSID());
+  Serial.printf("\n");
+}
+
+void SerialMenu::relayStatus() {
+  Serial.println("in development");
+  Serial.printf("\n");
 }
 
 void SerialMenu::menu() {
@@ -48,6 +55,9 @@ void SerialMenu::menu() {
     serialData = "";
   } else if (serialData.compareTo("wifi") == 0) {
     nameWiFi();
+    serialData = "";
+  } else if (serialData.compareTo("relay") == 0) {
+    relayStatus();
     serialData = "";
   }
 }
