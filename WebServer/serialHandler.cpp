@@ -35,11 +35,19 @@ void SerialMenu::ipAddress() {
   Serial.println(WiFi.gatewayIP());
 }
 
+void SerialMenu::nameWiFi(){
+  Serial.println("Network name: ");
+  Serial.println(WiFi.SSID());
+}
+
 void SerialMenu::menu() {
   serialReader();
 
   if (serialData.compareTo("ip a") == 0) {
     ipAddress();
+    serialData = "";
+  } else if (serialData.compareTo("wifi") == 0) {
+    nameWiFi();
     serialData = "";
   }
 }

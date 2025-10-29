@@ -15,6 +15,7 @@ class SerialMenu : private SerialHandler{
   public:
     void menu();
     void ipAddress();
+    void nameWiFi();
 };
 
 #endif
