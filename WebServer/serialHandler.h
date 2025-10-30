@@ -20,7 +20,7 @@ class SerialMenu : private SerialHandler{
   private: 
     void ipAddress();
     void nameWiFi();
-    void relayStatus();
+    void relayControl();
     void help();
 };
 

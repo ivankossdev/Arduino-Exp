@@ -2,10 +2,14 @@
 
 
 void SerialHandler::serialReader() {
-  if (Serial.available() > 0) {
-    serialData = Serial.readString();
-    serialData.trim();
-  }
+  bool isRead = true;
+  do{
+    if (Serial.available() > 0) {
+      serialData = Serial.readString();
+      serialData.trim();
+      isRead = false;
+    }
+  } while(isRead);
 }
 
 void SerialHandler::serialPrint() {
@@ -42,15 +46,24 @@ void SerialMenu::nameWiFi() {
   Serial.printf("\n");
 }
 
-void SerialMenu::relayStatus() {
-  Serial.println("in development");
+void SerialMenu::relayControl() {
+  Serial.println("Relay cmd -> \"on\" | \"off\"");
+  serialReader();
+
+  if (serialData.compareTo("on") == 0){
+    Serial.println("Relay ON");
+    digitalWrite(14, LOW);
+  } else if (serialData.compareTo("off") == 0){
+    Serial.println("Relay OFF");
+    digitalWrite(14, HIGH);
+  }
   Serial.printf("\n");
 }
 
-void SerialMenu::help(){
+void SerialMenu::help() {
 
-  for(int i = 0; i < CMDCOUNT; i++){
-    Serial.printf("[%d] %s\n", i, command[i]);
+  for (int i = 0; i < CMDCOUNT; i++) {
+    Serial.printf("[%d] Terminal cmd -> \"%s\"\n", i, command[i]);
   }
   Serial.printf("\n");
 }
@@ -65,9 +78,9 @@ void SerialMenu::menu() {
     nameWiFi();
     serialData = "";
   } else if (serialData.compareTo("relay") == 0) {
-    relayStatus();
+    relayControl();
     serialData = "";
-  } else if (serialData.compareTo("help") == 0){
+  } else if (serialData.compareTo("help") == 0) {
     help();
     serialData = "";
   }
