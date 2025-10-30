@@ -2,7 +2,6 @@
 
 
 void SerialHandler::serialReader() {
-  bool isRead = true;
   do{
     if (Serial.available() > 0) {
       serialData = Serial.readString();
@@ -48,6 +47,8 @@ void SerialMenu::nameWiFi() {
 
 void SerialMenu::relayControl() {
   Serial.println("Relay cmd -> \"on\" | \"off\"");
+  
+  isRead = true;
   serialReader();
 
   if (serialData.compareTo("on") == 0){

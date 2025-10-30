@@ -8,6 +8,7 @@
 class SerialHandler{
   public:
     void serialReader();
+    bool isRead;
     String serialData; 
     void serialPrint();
 }; 
