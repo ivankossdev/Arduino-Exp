@@ -69,6 +69,11 @@ void SerialMenu::help() {
   Serial.printf("\n");
 }
 
+void SerialMenu::controllerName(){
+  Serial.printf("Evidence Securiy Controller\n");
+  Serial.printf("\n");
+}
+
 void SerialMenu::menu() {
   serialReader();
 
@@ -83,6 +88,9 @@ void SerialMenu::menu() {
     serialData = "";
   } else if (serialData.compareTo("help") == 0) {
     help();
+    serialData = "";
+  } else if (serialData.compareTo("controller") == 0){
+    controllerName();
     serialData = "";
   }
 }

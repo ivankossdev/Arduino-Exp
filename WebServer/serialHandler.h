@@ -23,6 +23,7 @@ class SerialMenu : private SerialHandler{
     void nameWiFi();
     void relayControl();
     void help();
+    void controllerName();
 };
 
 #endif
