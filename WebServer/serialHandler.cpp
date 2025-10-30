@@ -47,6 +47,14 @@ void SerialMenu::relayStatus() {
   Serial.printf("\n");
 }
 
+void SerialMenu::help(){
+
+  for(int i = 0; i < CMDCOUNT; i++){
+    Serial.printf("[%d] %s\n", i, command[i]);
+  }
+  Serial.printf("\n");
+}
+
 void SerialMenu::menu() {
   serialReader();
 
@@ -58,6 +66,9 @@ void SerialMenu::menu() {
     serialData = "";
   } else if (serialData.compareTo("relay") == 0) {
     relayStatus();
+    serialData = "";
+  } else if (serialData.compareTo("help") == 0){
+    help();
     serialData = "";
   }
 }
