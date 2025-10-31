@@ -2,13 +2,13 @@
 
 
 void SerialHandler::serialReader() {
-  do{
+  do {
     if (Serial.available() > 0) {
       serialData = Serial.readString();
       serialData.trim();
       isRead = false;
     }
-  } while(isRead);
+  } while (isRead);
 }
 
 void SerialHandler::serialPrint() {
@@ -47,14 +47,14 @@ void SerialMenu::nameWiFi() {
 
 void SerialMenu::relayControl() {
   Serial.println("Relay cmd -> \"on\" | \"off\"");
-  
+
   isRead = true;
   serialReader();
 
-  if (serialData.compareTo("on") == 0){
+  if (serialData.compareTo("on") == 0) {
     Serial.println("Relay ON");
     digitalWrite(14, LOW);
-  } else if (serialData.compareTo("off") == 0){
+  } else if (serialData.compareTo("off") == 0) {
     Serial.println("Relay OFF");
     digitalWrite(14, HIGH);
   }
@@ -69,29 +69,36 @@ void SerialMenu::help() {
   Serial.printf("\n");
 }
 
-void SerialMenu::controllerName(){
+void SerialMenu::controllerName() {
   Serial.printf("Evidence Securiy Controller\n");
   Serial.printf("\n");
 }
 
-void SerialMenu::setIP(){
+void SerialMenu::setIP() {
   Serial.printf("Network settings continue? \n");
 
-  for(int i = 0; i < 10; i++){
+  for (int i = 0; i < 10; i++) {
     Serial.printf("Work 0x%x\n", i);
     delay(100);
   }
 
-  Serial.printf("confirm your action \"yes\" or \"no\"\n");
-
-  isRead = true;
-  serialReader();
-  if ((serialData.compareTo("yes") == 0) || (serialData.compareTo("y") == 0)){
+  if (confirmation("Confirm your action")) {
     Serial.printf("Set action\n");
   } else {
     Serial.printf("Cancel\n");
   }
   Serial.printf("\n");
+}
+
+bool SerialMenu::confirmation(String question) {
+  bool state = false;
+  isRead = true;
+
+  Serial.printf(PSTR("%s \"yes\" or \"no\"\n"), question.c_str()); // 
+  serialReader();
+
+  if ((serialData.compareTo("yes") == 0) || (serialData.compareTo("y") == 0)) state = true;
+  return state;
 }
 
 void SerialMenu::menu() {
@@ -109,10 +116,10 @@ void SerialMenu::menu() {
   } else if (serialData.compareTo("help") == 0) {
     help();
     serialData = "";
-  } else if (serialData.compareTo("controller") == 0){
+  } else if (serialData.compareTo("controller") == 0) {
     controllerName();
     serialData = "";
-  } else if (serialData.compareTo("set ip") == 0){
+  } else if (serialData.compareTo("set ip") == 0) {
     setIP();
     serialData = "";
   }

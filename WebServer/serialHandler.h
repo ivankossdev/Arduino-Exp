@@ -25,6 +25,7 @@ class SerialMenu : private SerialHandler{
     void help();
     void controllerName();
     void setIP();
+    bool confirmation(String question);
 };
 
 #endif
