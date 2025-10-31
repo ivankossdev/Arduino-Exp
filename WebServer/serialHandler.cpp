@@ -75,7 +75,8 @@ void SerialMenu::controllerName(){
 }
 
 void SerialMenu::setIP(){
-  Serial.printf("Network settings\n");
+  Serial.printf("Network settings continue? \n");
+
   for(int i = 0; i < 10; i++){
     Serial.printf("Work 0x%x\n", i);
     delay(100);
