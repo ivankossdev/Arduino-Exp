@@ -24,7 +24,6 @@ void SerialHandler::serialPrint() {
 }
 
 void SerialMenu::ipAddress() {
-  Serial.println("Network info: ");
   Serial.print("IP address  ");
   Serial.println(WiFi.localIP());
 
@@ -75,18 +74,28 @@ void SerialMenu::controllerName() {
 }
 
 void SerialMenu::setIP() {
-  Serial.printf("Network settings continue? \n");
+  Serial.printf("Network settings\n");
 
-  for (int i = 0; i < 10; i++) {
-    Serial.printf("Work 0x%x\n", i);
-    delay(100);
-  }
+  if(confirmation("Continue? ")){ // 
+    if (confirmation("Confirm your action")) {
+      Serial.printf("Set action\n");
 
-  if (confirmation("Confirm your action")) {
-    Serial.printf("Set action\n");
+      IPAddress ip(192,168,0,60);     
+      IPAddress gateway(192,168,0,1);   
+      IPAddress subnet(255,255,255,0); 
+
+      WiFi.config(ip, subnet, gateway);
+
+      WiFi.reconnect();
+
+      ipAddress();
+    } else {
+      Serial.printf("Cancel\n");
+    }
   } else {
-    Serial.printf("Cancel\n");
+    Serial.printf("Сhanges are cancelled\n");
   }
+
   Serial.printf("\n");
 }
 
@@ -105,6 +114,7 @@ void SerialMenu::menu() {
   serialReader();
 
   if (serialData.compareTo("ip a") == 0) {
+    Serial.println("Network info: ");
     ipAddress();
     serialData = "";
   } else if (serialData.compareTo("wifi") == 0) {
