@@ -74,6 +74,25 @@ void SerialMenu::controllerName(){
   Serial.printf("\n");
 }
 
+void SerialMenu::setIP(){
+  Serial.printf("Network settings\n");
+  for(int i = 0; i < 10; i++){
+    Serial.printf("Work 0x%x\n", i);
+    delay(100);
+  }
+
+  Serial.printf("confirm your action \"yes\" or \"no\"\n");
+
+  isRead = true;
+  serialReader();
+  if ((serialData.compareTo("yes") == 0) || (serialData.compareTo("y") == 0)){
+    Serial.printf("Set action\n");
+  } else {
+    Serial.printf("Cancel\n");
+  }
+  Serial.printf("\n");
+}
+
 void SerialMenu::menu() {
   serialReader();
 
@@ -91,6 +110,9 @@ void SerialMenu::menu() {
     serialData = "";
   } else if (serialData.compareTo("controller") == 0){
     controllerName();
+    serialData = "";
+  } else if (serialData.compareTo("set ip") == 0){
+    setIP();
     serialData = "";
   }
 }

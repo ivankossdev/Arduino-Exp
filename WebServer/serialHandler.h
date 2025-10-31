@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
-#define CMDCOUNT 5
+#define CMDCOUNT 6
 
 class SerialHandler{
   public:
@@ -16,7 +16,7 @@ class SerialHandler{
 class SerialMenu : private SerialHandler{
   public:
     void menu();
-    String command[CMDCOUNT] = {"ip a", "wifi", "relay","clear", "close"}; 
+    String command[CMDCOUNT] = {"ip a", "set ip" , "wifi", "relay","clear", "close"}; 
 
   private: 
     void ipAddress();
@@ -24,6 +24,7 @@ class SerialMenu : private SerialHandler{
     void relayControl();
     void help();
     void controllerName();
+    void setIP();
 };
 
 #endif
