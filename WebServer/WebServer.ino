@@ -84,7 +84,12 @@ void loop() {
     clientHandler();
   }
 
-  menu.menu();
+  menu.menu(); 
+  
+  if(menu.isSetIP){
+    menu.isSetIP = false; 
+    printConnectedInfo();
+  }
 }
 
 void clientHandler() {

@@ -76,8 +76,9 @@ void SerialMenu::controllerName() {
 void SerialMenu::setIP() {
   Serial.printf("Network settings\n");
 
-  if(confirmation("Continue? ")){ // 
+  if(confirmation("Continue? ")){ 
     if (confirmation("Confirm your action")) {
+
       Serial.printf("Set action\n");
 
       IPAddress ip(192,168,0,60);     
@@ -89,6 +90,7 @@ void SerialMenu::setIP() {
       WiFi.reconnect();
 
       ipAddress();
+      isSetIP = true; 
     } else {
       Serial.printf("Cancel\n");
     }

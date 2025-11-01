@@ -17,6 +17,7 @@ class SerialMenu : private SerialHandler{
   public:
     void menu();
     String command[CMDCOUNT] = {"ip a", "set ip" , "wifi", "relay","clear", "close"}; 
+    bool isSetIP = false;
 
   private: 
     void ipAddress();
