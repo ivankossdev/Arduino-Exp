@@ -1,6 +1,5 @@
 #include "serialHandler.h"
 
-
 void SerialHandler::serialReader() {
   do {
     if (Serial.available() > 0) {
@@ -75,28 +74,29 @@ void SerialMenu::controllerName() {
 
 void SerialMenu::setIP() {
   Serial.printf("Network settings\n");
+  stringToIPaddress("192.168.0.60");
 
-  if(confirmation("Continue? ")){ 
-    if (confirmation("Confirm your action")) {
+  // if(confirmation("Continue? ")){ 
+  //   if (confirmation("Confirm your action")) {
 
-      Serial.printf("Set action\n");
+  //     Serial.printf("Set action\n");
 
-      IPAddress ip(192,168,0,60);     
-      IPAddress gateway(192,168,0,1);   
-      IPAddress subnet(255,255,255,0); 
+  //     IPAddress ip(192,168,0,60);     
+  //     IPAddress gateway(192,168,0,1);   
+  //     IPAddress subnet(255,255,255,0); 
 
-      WiFi.config(ip, subnet, gateway);
+  //     WiFi.config(ip, subnet, gateway);
 
-      WiFi.reconnect();
+  //     WiFi.reconnect();
 
-      ipAddress();
-      isSetIP = true; 
-    } else {
-      Serial.printf("Cancel\n");
-    }
-  } else {
-    Serial.printf("Сhanges are cancelled\n");
-  }
+  //     ipAddress();
+  //     isSetIP = true; 
+  //   } else {
+  //     Serial.printf("Cancel\n");
+  //   }
+  // } else {
+  //   Serial.printf("Сhanges are cancelled\n");
+  // }
 
   Serial.printf("\n");
 }
