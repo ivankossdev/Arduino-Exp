@@ -10,7 +10,6 @@ void DataConvertor::stringToIPaddress(String ipAddr){
   int arrayItem = 0; 
   int hop = 0;  
 
-
   while(i < len){
 
     do{
@@ -29,11 +28,8 @@ void DataConvertor::stringToIPaddress(String ipAddr){
     } while ( ipAddr.c_str()[i] != '.' && i < len); 
 
     hop = 0; 
-    // Serial.printf("[%d] %d ", arrayItem, res);
     ip[arrayItem] = res;
     arrayItem++;
   }
-
-  Serial.printf("\n");
   
 }
