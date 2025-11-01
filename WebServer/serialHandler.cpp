@@ -75,6 +75,9 @@ void SerialMenu::controllerName() {
 void SerialMenu::setIP() {
   Serial.printf("Network settings\n");
   stringToIPaddress("192.168.0.60");
+  for(int i = 0; i < 4; i++){
+    Serial.printf("segment [%d] %d\n", i, ip[i]);
+  }
 
   // if(confirmation("Continue? ")){ 
   //   if (confirmation("Confirm your action")) {
