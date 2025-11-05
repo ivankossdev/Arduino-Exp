@@ -1,5 +1,9 @@
 #include "conv.h"
 
+bool DataConvertor::checkIpAddress(String ipAddr){
+  return true; 
+}
+
 void DataConvertor::stringToIPaddress(String ipAddr){
 
   unsigned int len = ipAddr.length(); 
@@ -31,5 +35,4 @@ void DataConvertor::stringToIPaddress(String ipAddr){
     ip[arrayItem] = res;
     arrayItem++;
   }
-  
 }

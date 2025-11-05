@@ -74,32 +74,33 @@ void SerialMenu::controllerName() {
 
 void SerialMenu::setIP() {
   Serial.printf("Network settings\n");
-  stringToIPaddress("192.168.0.60");
-  for(int i = 0; i < 4; i++){
-    Serial.printf("segment [%d] %d\n", i, ip[i]);
+
+
+  if (confirmation("Continue? ")) {
+      Serial.printf("Please enter ip address\n");
+      isRead = true;
+      serialReader();
+
+      if (checkIpAddress(serialData)) {
+        stringToIPaddress(serialData);
+        for (int i = 0; i < 4; i++) {
+          Serial.printf("segment [%d] %d\n", i, ip[i]);
+        }
+      }
+
+      IPAddress ip_a(ip[0], ip[1], ip[2], ip[3]);
+      IPAddress gateway(192, 168, 0, 1);
+      IPAddress subnet(255, 255, 255, 0);
+
+      WiFi.config(ip_a, subnet, gateway);
+
+      WiFi.reconnect();
+
+      ipAddress();
+      isSetIP = true;
+  } else {
+    Serial.printf("Сhanges are cancelled\n");
   }
-
-  // if(confirmation("Continue? ")){ 
-  //   if (confirmation("Confirm your action")) {
-
-  //     Serial.printf("Set action\n");
-
-  //     IPAddress ip(192,168,0,60);     
-  //     IPAddress gateway(192,168,0,1);   
-  //     IPAddress subnet(255,255,255,0); 
-
-  //     WiFi.config(ip, subnet, gateway);
-
-  //     WiFi.reconnect();
-
-  //     ipAddress();
-  //     isSetIP = true; 
-  //   } else {
-  //     Serial.printf("Cancel\n");
-  //   }
-  // } else {
-  //   Serial.printf("Сhanges are cancelled\n");
-  // }
 
   Serial.printf("\n");
 }
@@ -108,7 +109,7 @@ bool SerialMenu::confirmation(String question) {
   bool state = false;
   isRead = true;
 
-  Serial.printf(PSTR("%s \"yes\" or \"no\"\n"), question.c_str()); // 
+  Serial.printf(PSTR("%s \"yes\" or \"no\"\n"), question.c_str());  //
   serialReader();
 
   if ((serialData.compareTo("yes") == 0) || (serialData.compareTo("y") == 0)) state = true;
