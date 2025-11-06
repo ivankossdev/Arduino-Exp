@@ -4,7 +4,7 @@ bool DataConvertor::checkIpAddress(String ipAddr){
   return true; 
 }
 
-void DataConvertor::stringToIPaddress(String ipAddr){
+void DataConvertor::stringToIPaddress(String ipAddr, int *ip){
 
   unsigned int len = ipAddr.length(); 
   unsigned int i = 0;  

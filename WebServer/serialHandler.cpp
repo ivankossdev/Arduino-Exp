@@ -76,19 +76,19 @@ void SerialMenu::setIP() {
   Serial.printf("Network settings\n");
 
   if (confirmation("Continue? ")) {
-      Serial.printf("Please enter ip address\n");
+      Serial.printf("Set ip address\n");
       isRead = true;
       serialReader();
 
       if (checkIpAddress(serialData)) {
-        stringToIPaddress(serialData);
+        stringToIPaddress(serialData, connectData.ip);
         for (int i = 0; i < 4; i++) {
-          Serial.printf("[%d] ", ip[i]);
+          Serial.printf("[%d] ", connectData.ip[i]);
         }
         Serial.printf("\n");
       }
 
-      IPAddress ip_a(ip[0], ip[1], ip[2], ip[3]);
+      IPAddress ip_a(connectData.ip[0], connectData.ip[1], connectData.ip[2], connectData.ip[3]);
       IPAddress gateway(192, 168, 0, 1);
       IPAddress subnet(255, 255, 255, 0);
 

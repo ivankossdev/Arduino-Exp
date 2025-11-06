@@ -6,9 +6,8 @@
 
 class DataConvertor{
   public:
-    void stringToIPaddress(String ipAddr);
+    void stringToIPaddress(String ipAddr, int *ip);
     bool checkIpAddress(String ipAddr);
-    int ip[4] = {0};
 };
 
 #endif
