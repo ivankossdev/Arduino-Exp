@@ -1,5 +1,6 @@
 #include "connectData.h"
 
+
 void ConnectData::enterSerialDataInArray(char *data, String message) {
   Serial.println(message);
 
@@ -20,7 +21,6 @@ void ConnectData::enterSerialDataInArray(char *data, String message) {
       Serial.printf("%s - entered data\n", data);
       break;
     }
-
     delay(100);
   }
 }
@@ -50,8 +50,3 @@ void ConnectData::enterPASS() {
 void ConnectData::enterPASS(char *memData_){
   writeDataInArray(pass, memData_);
 }
-
-
-
-
-

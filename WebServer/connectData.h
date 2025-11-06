@@ -20,5 +20,5 @@ private:
   String serialData;
 };
 
-static ConnectData connectData;
+extern ConnectData connectData;
 #endif

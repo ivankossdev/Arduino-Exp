@@ -4,7 +4,10 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include "conv.h"
+#include "connectData.h"
 #define CMDCOUNT 6
+
+
 
 class SerialHandler{
   public:
