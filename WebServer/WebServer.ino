@@ -1,8 +1,6 @@
 #include "set.h"
 #include <string>
 
-ConnectData connectData;
-
 void clientHandler();
 void printConnectedInfo();
 

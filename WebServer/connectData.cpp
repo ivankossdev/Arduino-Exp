@@ -50,3 +50,5 @@ void ConnectData::enterPASS() {
 void ConnectData::enterPASS(char *memData_){
   writeDataInArray(pass, memData_);
 }
+
+ConnectData connectData;

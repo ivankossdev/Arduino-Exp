@@ -39,7 +39,7 @@ void SerialMenu::ipAddress() {
 
 void SerialMenu::nameWiFi() {
   Serial.println("Network name: ");
-  Serial.println(WiFi.SSID());
+  Serial.println(connectData.ssid);
   Serial.printf("\n");
 }
 
@@ -75,7 +75,6 @@ void SerialMenu::controllerName() {
 void SerialMenu::setIP() {
   Serial.printf("Network settings\n");
 
-
   if (confirmation("Continue? ")) {
       Serial.printf("Please enter ip address\n");
       isRead = true;
@@ -84,8 +83,9 @@ void SerialMenu::setIP() {
       if (checkIpAddress(serialData)) {
         stringToIPaddress(serialData);
         for (int i = 0; i < 4; i++) {
-          Serial.printf("segment [%d] %d\n", i, ip[i]);
+          Serial.printf("[%d] ", ip[i]);
         }
+        Serial.printf("\n");
       }
 
       IPAddress ip_a(ip[0], ip[1], ip[2], ip[3]);

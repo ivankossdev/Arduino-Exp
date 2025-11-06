@@ -7,8 +7,6 @@
 #include "connectData.h"
 #define CMDCOUNT 6
 
-
-
 class SerialHandler{
   public:
     void serialReader();
