@@ -85,7 +85,7 @@ void SerialMenu::setIP() {
   Serial.printf("Network settings\n");
 
   if (confirmation("Continue? ")) {
-    
+
     writeNetworkData("Set ip address", connectData.ip);
     writeNetworkData("Set subnet mask", connectData.subnet);
     writeNetworkData("Set gateway", connectData.gateway);
@@ -137,5 +137,18 @@ void SerialMenu::menu() {
   } else if (serialData.compareTo("set ip") == 0) {
     setIP();
     serialData = "";
+  } else if (serialData.compareTo("test") == 0) {
+    Serial.println("debug method checkIpAddress(): ");
+    isRead = true;
+    serialReader();
+    
+    if(checkIpAddress(serialData)){
+      Serial.println("String is a ip address");
+    } else {
+      Serial.println("String is a not ip address");
+    }
+    
+    serialData = "";
+    Serial.print("\n");
   }
 }

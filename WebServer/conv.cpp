@@ -1,7 +1,20 @@
 #include "conv.h"
 
 bool DataConvertor::checkIpAddress(String ipAddr){
-  return true; 
+  int i = 0;
+  int checkValue = 0; 
+  bool status = false; 
+  do{
+    checkValue = ipAddr.c_str()[i] - 0x30; 
+    if ((checkValue >= 0 && checkValue <= 9) || checkValue == -2) {
+      status = true;
+    } else {
+      status = false;
+      break; 
+    }
+    i++;
+  }while(ipAddr.c_str()[i] != '\0');
+  return status; 
 }
 
 void DataConvertor::stringToIPaddress(String ipAddr, int *ip){
