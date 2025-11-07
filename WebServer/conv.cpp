@@ -2,18 +2,26 @@
 
 bool DataConvertor::checkIpAddress(String ipAddr){
   int i = 0;
-  int checkValue = 0; 
+  int checkValue = 0;
+  int dotCount = 0;  
   bool status = false; 
+
   do{
     checkValue = ipAddr.c_str()[i] - 0x30; 
     if ((checkValue >= 0 && checkValue <= 9) || checkValue == -2) {
-      status = true;
+
+      if(checkValue == -2) {
+        dotCount++;
+        if (dotCount > 3 ) { status = false; break; }
+      }
+      if (dotCount == 3) { status = true; }
     } else {
       status = false;
       break; 
     }
     i++;
   }while(ipAddr.c_str()[i] != '\0');
+  
   return status; 
 }
 
