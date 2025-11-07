@@ -26,8 +26,8 @@ class SerialMenu : private SerialHandler, private DataConvertor{
     void nameWiFi();
     void relayControl();
     void help();
-    void controllerName();
     void setIP();
+    void writeNetworkData(String message, int *data);
     bool confirmation(String question);
 };
 

@@ -67,37 +67,39 @@ void SerialMenu::help() {
   Serial.printf("\n");
 }
 
-void SerialMenu::controllerName() {
-  Serial.printf("Evidence Securiy Controller\n");
-  Serial.printf("\n");
+void SerialMenu::writeNetworkData(String message, int *data) {
+  Serial.println(message);
+  isRead = true;
+  serialReader();
+
+  if (checkIpAddress(serialData)) {
+    stringToIPaddress(serialData, data);
+    for (int i = 0; i < 4; i++) {
+      Serial.printf("[%d] ", data[i]);
+    }
+    Serial.printf("\n");
+  }
 }
 
 void SerialMenu::setIP() {
   Serial.printf("Network settings\n");
 
   if (confirmation("Continue? ")) {
-      Serial.printf("Set ip address\n");
-      isRead = true;
-      serialReader();
+    
+    writeNetworkData("Set ip address", connectData.ip);
+    writeNetworkData("Set subnet mask", connectData.subnet);
+    writeNetworkData("Set gateway", connectData.gateway);
 
-      if (checkIpAddress(serialData)) {
-        stringToIPaddress(serialData, connectData.ip);
-        for (int i = 0; i < 4; i++) {
-          Serial.printf("[%d] ", connectData.ip[i]);
-        }
-        Serial.printf("\n");
-      }
+    IPAddress ip(connectData.ip[0], connectData.ip[1], connectData.ip[2], connectData.ip[3]);
+    IPAddress subnet(connectData.subnet[0], connectData.subnet[1], connectData.subnet[2], connectData.subnet[3]);
+    IPAddress gateway(connectData.gateway[0], connectData.gateway[1], connectData.gateway[2], connectData.gateway[3]);
 
-      IPAddress ip_a(connectData.ip[0], connectData.ip[1], connectData.ip[2], connectData.ip[3]);
-      IPAddress gateway(192, 168, 0, 1);
-      IPAddress subnet(255, 255, 255, 0);
+    WiFi.config(ip, subnet, gateway);
 
-      WiFi.config(ip_a, subnet, gateway);
+    WiFi.reconnect();
 
-      WiFi.reconnect();
-
-      ipAddress();
-      isSetIP = true;
+    ipAddress();
+    isSetIP = true;
   } else {
     Serial.printf("Сhanges are cancelled\n");
   }
@@ -131,9 +133,6 @@ void SerialMenu::menu() {
     serialData = "";
   } else if (serialData.compareTo("help") == 0) {
     help();
-    serialData = "";
-  } else if (serialData.compareTo("controller") == 0) {
-    controllerName();
     serialData = "";
   } else if (serialData.compareTo("set ip") == 0) {
     setIP();
