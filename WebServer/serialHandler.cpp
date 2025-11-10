@@ -68,23 +68,25 @@ void SerialMenu::help() {
 }
 
 void SerialMenu::writeNetworkData(String message, int *data) {
-  Serial.println(message);
-  isRead = true;
-  serialReader();
-
-  if (checkIpAddress(serialData)) {
+  do {
+    Serial.println(message);
+    isRead = true;
+    serialReader();
     stringToIPaddress(serialData, data);
     for (int i = 0; i < 4; i++) {
       Serial.printf("[%d] ", data[i]);
     }
     Serial.printf("\n");
-  }
+  } while(!(checkIpAddress(serialData)));
+  Serial.printf("%s is write\n", message.c_str());
 }
 
 void SerialMenu::setIP() {
   Serial.printf("Network settings\n");
 
   if (confirmation("Continue? ")) {
+
+    
 
     writeNetworkData("Set ip address", connectData.ip);
     writeNetworkData("Set subnet mask", connectData.subnet);
