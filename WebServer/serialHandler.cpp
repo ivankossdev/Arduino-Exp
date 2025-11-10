@@ -140,17 +140,25 @@ void SerialMenu::menu() {
     setIP();
     serialData = "";
   } else if (serialData.compareTo("test") == 0) {
-    Serial.println("debug method checkIpAddress(): ");
-    isRead = true;
-    serialReader();
     
-    if(checkIpAddress(serialData)){
-      Serial.println("String is a ip address");
-    } else {
-      Serial.println("String is a not ip address");
-    }
+    Serial.println("Debug method checkIpAddress().");
+    Serial.println("Enter ip address string:");
+    
+    bool status = false;
+    do{
+      isRead = true;
+      serialReader();
+      status = checkIpAddress(serialData); 
+      if(status){
+        Serial.println("String is a ip address");
+      } else {
+        Serial.println("String is a not ip address");
+        Serial.println("Enter your IP address again:");
+      }
+    } while(!status);
     
     serialData = "";
+    Serial.println("Debug is over");
     Serial.print("\n");
   }
 }

@@ -176,8 +176,9 @@ void printConnectedInfo() {
   /* Данные в консоли */
   Serial.println("");
   Serial.println("WiFi connected.");
-  Serial.println("IP address: ");
+  Serial.printf("IP address: ");
   Serial.println(WiFi.localIP());
+  Serial.println("");
 
   /* Данные на дисплее */
   dsp.displayClear();
