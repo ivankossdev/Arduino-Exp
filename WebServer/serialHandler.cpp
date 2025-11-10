@@ -78,7 +78,7 @@ void SerialMenu::writeNetworkData(String message, int *data) {
     }
     Serial.printf("\n");
   } while(!(checkIpAddress(serialData)));
-  Serial.printf("%s is write\n", message.c_str());
+  Serial.printf("%s is write\n\n", message.c_str());
 }
 
 void SerialMenu::setIP() {
