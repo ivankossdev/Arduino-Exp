@@ -4,6 +4,7 @@ bool DataConvertor::checkIpAddress(String ipAddr) {
   int i = 0;
   int checkValue = 0;
   int dotCount = 0;
+  int dotCount_ = 0;
   bool status = false;
 
   do {
@@ -17,14 +18,16 @@ bool DataConvertor::checkIpAddress(String ipAddr) {
           break;
         }
       }
-      if (dotCount == 3) { status = true; }
+      if (dotCount == 3) { dotCount_++; }
     } else {
       status = false;
       break;
     }
     i++;
   } while (ipAddr.c_str()[i] != '\0');
-
+  
+  if (dotCount == 3 && dotCount_ > 1) { status = true; }
+  
   return status;
 }
 

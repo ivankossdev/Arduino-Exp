@@ -86,8 +86,6 @@ void SerialMenu::setIP() {
 
   if (confirmation("Continue? ")) {
 
-    
-
     writeNetworkData("Set ip address", connectData.ip);
     writeNetworkData("Set subnet mask", connectData.subnet);
     writeNetworkData("Set gateway", connectData.gateway);
