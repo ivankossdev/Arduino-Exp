@@ -24,14 +24,14 @@ bool DataConvertor::checkIpAddress(String ipAddr) {
       if (dotCount == 3) { dotCount_++; }
 
       // Подсчет символов в подстроке 1 - 3 не больше 
-      if (checkValue >= 0 && checkValue <= 9) {
+      if (checkValue != -2) {
         segmentCount++;
-      } else if (checkValue == -2) {
-
         if (segmentCount > 3) {
           status = false;
+          dotCount = 0;
           break;
         }
+      } else {
         segmentCount = 0;
       }
 
