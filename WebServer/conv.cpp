@@ -5,12 +5,14 @@ bool DataConvertor::checkIpAddress(String ipAddr) {
   int checkValue = 0;
   int dotCount = 0;
   int dotCount_ = 0;
+  int segmentCount = 0;
   bool status = false;
 
   do {
     checkValue = ipAddr.c_str()[i] - 0x30;
     if ((checkValue >= 0 && checkValue <= 9) || checkValue == -2) {
 
+      // Подсчет точек в строке их должно быть 3
       if (checkValue == -2) {
         dotCount++;
         if (dotCount > 3) {
@@ -18,16 +20,30 @@ bool DataConvertor::checkIpAddress(String ipAddr) {
           break;
         }
       }
+
       if (dotCount == 3) { dotCount_++; }
+
+      // Подсчет символов в подстроке 1 - 3 не больше 
+      if (checkValue >= 0 && checkValue <= 9) {
+        segmentCount++;
+      } else if (checkValue == -2) {
+
+        if (segmentCount > 3) {
+          status = false;
+          break;
+        }
+        segmentCount = 0;
+      }
+
     } else {
       status = false;
       break;
     }
     i++;
   } while (ipAddr.c_str()[i] != '\0');
-  
+
   if (dotCount == 3 && dotCount_ > 1) { status = true; }
-  
+
   return status;
 }
 
