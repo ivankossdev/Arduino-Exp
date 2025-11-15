@@ -6,6 +6,9 @@
 void clientHandler();
 void printConnectedInfo();
 
+unsigned long previousMillis = 0;
+const long interval = 500;
+void millisA0Read();
 
 void setup() {
   Serial.begin(115200);
@@ -92,6 +95,7 @@ void loop() {
     menu.isSetIP = false; 
     printConnectedInfo();
   }
+  millisA0Read();
 }
 
 void clientHandler() {
@@ -220,7 +224,14 @@ void printConnectedInfo() {
   dsp.displayPrintText(WiFi.localIP());
 }
 
+void millisA0Read() {
+  unsigned long currentMillis = millis();
 
+  if (currentMillis - previousMillis >= interval) {
+    previousMillis = currentMillis;
+    Serial.printf("A0 = %d\n", analogRead(A0));
+  }
+}
 
 
 
