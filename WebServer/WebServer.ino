@@ -133,37 +133,37 @@ void clientHandler() {
             if (header.indexOf("GET /led/on") >= 0) {
               Serial.println("Relay 1 on");
               portD5State = "on";
-              digitalWrite(pin14, LOW); 
-              //"http://192.168.0.175:10500/action"
-              clientAction("http://192.168.1.73:10500/action");
-
+              digitalWrite(pin14, LOW);
             } else if (header.indexOf("GET /led/off") >= 0) {
               Serial.println("Relay 1 off");
               portD5State = "off";
               digitalWrite(pin14, HIGH);
+            } else if (header.indexOf("GET /action/alarm") >= 0) {
+              //"http://192.168.0.175:10500/action"
+              clientAction("http://192.168.1.73:10500/action");
             }
 
-            client.println("<!DOCTYPE html><html>");
+            client.println("<!DOCTYPE html><html lang=\"ru\">");
             client.println("<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">");
             client.println("<link rel=\"icon\" href=\"data:,\">");
             client.println("<style>html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center; background-color: darkgray;}");
             client.println(".button { background-color: #195B6A; border: none; color: white; padding: 16px 40px;");
-            client.println("text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}");
+            client.println("text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer; width: 300px;}");
             client.println(".button2 {background-color: #393F40;}</style></head>");
             client.println("<body><h1>Evidence Securiy Controller</h1>");
             client.println("<p>Connected to the network " + mySSID + "</p>");
             client.println("<p>Relay 1  - " + portD5State + "</p>");
 
             if (portD5State == "off") {
-              client.println("<p><a href=\"/led/on\"><button class=\"button\">ON</button></a></p>");
+              client.println("<p><a href=\"/led/on\"><button class=\"button\">Relay ON</button></a></p>");
               dsp.displayPrintText((char *)"\nRelay 1 - Off");
             } else {
-              client.println("<p><a href=\"/led/off\"><button class=\"button button2\">OFF</button></a></p>");
+              client.println("<p><a href=\"/led/off\"><button class=\"button button2\">Relay OFF</button></a></p>");
               dsp.displayPrintText((char *)"\nRelay 1 - On");
             }
             client.println("</body></html>");
             client.println();
-
+            client.println("<p><a href=\"/action/alarm\"><button class=\"button\">Alarm</button></a></p>");
             break;
           } else {
             currentLine = "";
