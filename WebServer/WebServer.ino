@@ -10,6 +10,7 @@ unsigned long previousMillis = 0;
 const long interval = 500;
 void millisA0Read();
 void clientAction(String url);
+bool alarmStatus = false;
 
 void setup() {
   Serial.begin(115200);
@@ -157,9 +158,15 @@ void clientHandler() {
             if (portD5State == "off") {
               client.println("<p><a href=\"/led/on\"><button class=\"button\">Relay ON</button></a></p>");
               dsp.displayPrintText((char *)"\nRelay 1 - Off");
+              if (alarmStatus) {
+                dsp.displayPrintText((char *)"\nAlarm Zone 1");
+              }
             } else {
               client.println("<p><a href=\"/led/off\"><button class=\"button button2\">Relay OFF</button></a></p>");
               dsp.displayPrintText((char *)"\nRelay 1 - On");
+              if (alarmStatus) {
+                dsp.displayPrintText((char *)"\nAlarm Zone 1");
+              }
             }
             client.println("</body></html>");
             client.println();
@@ -198,38 +205,49 @@ void printConnectedInfo() {
   dsp.displayPrintText(WiFi.localIP());
 }
 
+/* Обработчик аналового порта */
 void millisA0Read() {
   unsigned long currentMillis = millis();
 
   if (currentMillis - previousMillis >= interval) {
     previousMillis = currentMillis;
     int portA0 = analogRead(A0);
-    if(portA0 > 550 && portA0 <= 1024){
-      digitalWrite(pin14, LOW);
-      Serial.printf("A0 = %d\n", analogRead(A0));
+    if (portA0 > 550 && portA0 <= 1024) {
+      if (!alarmStatus) {
+        alarmStatus = true;
+        Serial.printf("A0 = %d\n", analogRead(A0));
+        dsp.displayClear();
+        dsp.displayPrintText((char *)"WiFi connected.");
+        dsp.displayPrintText((char *)connectData.ssid);
+        dsp.displayPrintText((char *)"IP address: ");
+        dsp.displayPrintText(WiFi.localIP());
+        dsp.displayPrintText((char *)"\nAlarm Zone 1");
+        clientAction("http://192.168.1.73:10500/action");
+      }
     } else {
-      digitalWrite(pin14, HIGH);
+      if (alarmStatus) {
+        alarmStatus = false;
+        dsp.displayClear();
+        dsp.displayPrintText((char *)"WiFi connected.");
+        dsp.displayPrintText((char *)connectData.ssid);
+        dsp.displayPrintText((char *)"IP address: ");
+        dsp.displayPrintText(WiFi.localIP());
+      }
     }
   }
 }
 
+/* HTTP клиент */
 void clientAction(String url) {
   WiFiClient client;
   HTTPClient http;
 
-  Serial.print("[HTTP] begin...\n");
-  if (http.begin(client, url)) {  // HTTP
+  if (http.begin(client, url)) { 
 
     Serial.print("[HTTP] GET...\n");
-    // start connection and send HTTP header
     int httpCode = http.GET();
-
-    // httpCode will be negative on error
     if (httpCode > 0) {
-      // HTTP header has been send and Server response header has been handled
       Serial.printf("[HTTP] GET... code: %d\n", httpCode);
-
-      // file found at server
       if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY) {
         String payload = http.getString();
         Serial.println(payload);
@@ -237,7 +255,6 @@ void clientAction(String url) {
     } else {
       Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
     }
-
     http.end();
   } else {
     Serial.println("[HTTP] Unable to connect");
