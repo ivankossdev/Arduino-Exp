@@ -203,7 +203,13 @@ void millisA0Read() {
 
   if (currentMillis - previousMillis >= interval) {
     previousMillis = currentMillis;
-    Serial.printf("A0 = %d\n", analogRead(A0));
+    int portA0 = analogRead(A0);
+    if(portA0 > 550 && portA0 <= 1024){
+      digitalWrite(pin14, LOW);
+      Serial.printf("A0 = %d\n", analogRead(A0));
+    } else {
+      digitalWrite(pin14, HIGH);
+    }
   }
 }
 
