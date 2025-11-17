@@ -141,7 +141,7 @@ void clientHandler() {
               digitalWrite(pin14, HIGH);
             } else if (header.indexOf("GET /action/alarm") >= 0) {
               //"http://192.168.0.175:10500/action"
-              clientAction("http://192.168.1.73:10500/action");
+              clientAction("http://192.168.0.175:10500/action");
             }
 
             client.println("<!DOCTYPE html><html lang=\"ru\">");
@@ -222,7 +222,7 @@ void millisA0Read() {
         dsp.displayPrintText((char *)"IP address: ");
         dsp.displayPrintText(WiFi.localIP());
         dsp.displayPrintText((char *)"\nAlarm Zone 1");
-        clientAction("http://192.168.1.73:10500/action");
+        clientAction("http://192.168.0.175:10500/action");
       }
     } else {
       if (alarmStatus) {
