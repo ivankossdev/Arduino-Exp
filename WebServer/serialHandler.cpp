@@ -44,7 +44,7 @@ void SerialMenu::nameWiFi() {
   Serial.printf("\n");
 }
 
-void SerialMenu::setWiFi(){
+void SerialMenu::setWiFi() {
   Serial.println("WiFi Settings. ");
 
   Serial.println("Memory data: ");
@@ -55,6 +55,7 @@ void SerialMenu::setWiFi(){
   memory.clearBuffer();
   memory.readString(32);
   Serial.printf("Data 32 %s\n", memory.buffer);
+  Serial.print("\n");
 }
 
 void SerialMenu::relayControl() {
@@ -91,7 +92,7 @@ void SerialMenu::writeNetworkData(String message, int *data) {
       Serial.printf("[%d] ", data[i]);
     }
     Serial.printf("\n");
-  } while(!(checkIpAddress(serialData)));
+  } while (!(checkIpAddress(serialData)));
   Serial.printf("%s is write\n\n", message.c_str());
 }
 
@@ -118,6 +119,11 @@ void SerialMenu::setIP() {
     Serial.printf("Сhanges are cancelled\n");
   }
 
+  Serial.printf("\n");
+}
+
+void SerialMenu::setIpAction(){
+  Serial.println("Set ip action menu: ");
   Serial.printf("\n");
 }
 
@@ -154,6 +160,8 @@ void SerialMenu::menu() {
   } else if (serialData.compareTo("set wifi") == 0) {
     setWiFi();
     serialData = "";
-    Serial.print("\n");
+  } else if (serialData.compareTo("set action") == 0) {
+    setIpAction();
+    serialData = "";
   }
 }
