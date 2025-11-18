@@ -5,6 +5,7 @@
 #include <ESP8266WiFi.h>
 #include "conv.h"
 #include "connectData.h"
+#include "MemHandler.h"
 #define CMDCOUNT 6
 
 class SerialHandler{

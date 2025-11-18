@@ -16,5 +16,7 @@ class Memory{
   private:
    void commit(String message);
 };
+ 
+extern Memory memory;
 
 #endif

@@ -62,5 +62,5 @@ void Memory::clearBuffer(){
   for (int i = 0; i < MEMSIZE; i++) { buffer[i] = '\0'; }
 }
 
-
+Memory memory;
 

@@ -40,6 +40,15 @@ void SerialMenu::ipAddress() {
 void SerialMenu::nameWiFi() {
   Serial.println("Network name: ");
   Serial.println(connectData.ssid);
+  
+  Serial.println("Memory data: ");
+  memory.clearBuffer();
+  memory.readString(0);
+  Serial.printf("Data 0 %s\n", memory.buffer);
+  memory.clearBuffer();
+  memory.readString(32);
+  Serial.printf("Data 32 %s\n", memory.buffer);
+
   Serial.printf("\n");
 }
 
