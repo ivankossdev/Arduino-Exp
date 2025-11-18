@@ -6,7 +6,7 @@
 #include "conv.h"
 #include "connectData.h"
 #include "MemHandler.h"
-#define CMDCOUNT 6
+#define CMDCOUNT 7
 
 class SerialHandler{
   public:
@@ -19,12 +19,13 @@ class SerialHandler{
 class SerialMenu : private SerialHandler, private DataConvertor{
   public:
     void menu();
-    String command[CMDCOUNT] = {"ip a", "set ip" , "wifi", "relay","clear", "close"}; 
+    String command[CMDCOUNT] = {"ip a", "set ip" , "wifi", "set wifi", "relay", "clear", "close"}; 
     bool isSetIP = false;
 
   private: 
     void ipAddress();
     void nameWiFi();
+    void setWiFi();
     void relayControl();
     void help();
     void setIP();

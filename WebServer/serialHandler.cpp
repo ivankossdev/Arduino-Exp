@@ -40,16 +40,21 @@ void SerialMenu::ipAddress() {
 void SerialMenu::nameWiFi() {
   Serial.println("Network name: ");
   Serial.println(connectData.ssid);
-  
+
+  Serial.printf("\n");
+}
+
+void SerialMenu::setWiFi(){
+  Serial.println("WiFi Settings. ");
+
   Serial.println("Memory data: ");
   memory.clearBuffer();
   memory.readString(0);
   Serial.printf("Data 0 %s\n", memory.buffer);
+
   memory.clearBuffer();
   memory.readString(32);
   Serial.printf("Data 32 %s\n", memory.buffer);
-
-  Serial.printf("\n");
 }
 
 void SerialMenu::relayControl() {
@@ -146,26 +151,9 @@ void SerialMenu::menu() {
   } else if (serialData.compareTo("set ip") == 0) {
     setIP();
     serialData = "";
-  } else if (serialData.compareTo("test") == 0) {
-    
-    Serial.println("Debug method checkIpAddress().");
-    Serial.println("Enter ip address string:");
-    
-    bool status = false;
-    do{
-      isRead = true;
-      serialReader();
-      status = checkIpAddress(serialData); 
-      if(status){
-        Serial.println("String is a ip address");
-      } else {
-        Serial.println("String is a not ip address");
-        Serial.println("Enter your IP address again:");
-      }
-    } while(!status);
-    
+  } else if (serialData.compareTo("set wifi") == 0) {
+    setWiFi();
     serialData = "";
-    Serial.println("Debug is over");
     Serial.print("\n");
   }
 }
