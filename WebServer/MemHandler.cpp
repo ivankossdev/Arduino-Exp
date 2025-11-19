@@ -14,7 +14,8 @@ bool Memory::writeString(String str, int memoryPosition) {
     do {
       EEPROM.write(memoryPosition, str[i]);
       if (str[i] == '\r' || str[i] == '\n') break;
-      i++; memoryPosition++; 
+      i++;
+      memoryPosition++;
     } while (str[i] != '\0');
     str[i] = '\0';
 
@@ -24,19 +25,19 @@ bool Memory::writeString(String str, int memoryPosition) {
   return write;
 }
 
-void Memory::writeIntData(int data, int memoryPosition){
-  if(memoryPosition < MEMSIZE){
+void Memory::writeIntData(int data, int memoryPosition) {
+  if (memoryPosition < MEMSIZE) {
     EEPROM.write(memoryPosition, data);
   }
   commit("Memory EEPROM is write");
 }
 
-void Memory::commit(String message){
-    if (EEPROM.commit()) {
-      Serial.println(message);
-    } else {
-      Serial.println("eeprom error");
-    }
+void Memory::commit(String message) {
+  if (EEPROM.commit()) {
+    Serial.println(message);
+  } else {
+    Serial.println("eeprom error");
+  }
 }
 
 void Memory::readString(int memoryPosition) {
@@ -49,10 +50,19 @@ void Memory::readString(int memoryPosition) {
       break;
     }
     buffer[i] = (char)EEPROM.read(memoryPosition);
-    i++; memoryPosition++;
+    i++;
+    memoryPosition++;
   } while (EEPROM.read(i) != '\0');
 
   buffer[i] = '\0';
+}
+
+void Memory::readIntData(int *data, int memoryPosition, int step) {
+  if (memoryPosition < MEMSIZE) {
+    for(int i = 0; i < step; i++){
+      data[i] = (int)EEPROM.read(i + memoryPosition);
+    }
+  }
 }
 
 void Memory::clearAllMemory() {
@@ -65,9 +75,8 @@ void Memory::clearAllMemory() {
   commit("EEPROM clear");
 }
 
-void Memory::clearBuffer(){
+void Memory::clearBuffer() {
   for (int i = 0; i < MEMSIZE; i++) { buffer[i] = '\0'; }
 }
 
 Memory memory;
-

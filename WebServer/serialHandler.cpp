@@ -132,6 +132,16 @@ void SerialMenu::setIpAction() {
   Serial.printf("\n");
 }
 
+void SerialMenu::getIpAction() {
+  Serial.println("Get ip action menu: ");
+  int data[4] = { 0 };
+  memory.readIntData(data, 48, 4);
+  for(int i = 0; i < 4; i++){
+    Serial.printf("[%d] ", data[i]);
+  }
+  Serial.printf("\n\n");
+}
+
 bool SerialMenu::confirmation(String question) {
   bool state = false;
   isRead = true;
@@ -146,11 +156,11 @@ bool SerialMenu::confirmation(String question) {
 void SerialMenu::menu() {
   serialReader();
 
-  if (serialData.compareTo("ip a") == 0) {
+  if (serialData.compareTo("get ip") == 0) {
     Serial.println("Network info: ");
     ipAddress();
     serialData = "";
-  } else if (serialData.compareTo("wifi") == 0) {
+  } else if (serialData.compareTo("get wifi") == 0) {
     nameWiFi();
     serialData = "";
   } else if (serialData.compareTo("relay") == 0) {
@@ -167,6 +177,9 @@ void SerialMenu::menu() {
     serialData = "";
   } else if (serialData.compareTo("set action") == 0) {
     setIpAction();
+    serialData = "";
+  } else if (serialData.compareTo("get action") == 0) {
+    getIpAction();
     serialData = "";
   }
 }
