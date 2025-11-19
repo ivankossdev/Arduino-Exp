@@ -18,10 +18,17 @@ bool Memory::writeString(String str, int memoryPosition) {
     } while (str[i] != '\0');
     str[i] = '\0';
 
-    commit("EEPROM write");
+    commit("Memory EEPROM is write");
   }
 
   return write;
+}
+
+void Memory::writeIntData(int data, int memoryPosition){
+  if(memoryPosition < MEMSIZE){
+    EEPROM.write(memoryPosition, data);
+  }
+  commit("Memory EEPROM is write");
 }
 
 void Memory::commit(String message){

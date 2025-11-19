@@ -122,8 +122,13 @@ void SerialMenu::setIP() {
   Serial.printf("\n");
 }
 
-void SerialMenu::setIpAction(){
+void SerialMenu::setIpAction() {
   Serial.println("Set ip action menu: ");
+  Serial.print("Enter ip address ");
+  writeNetworkData("action server: ", connectData.actionServer);
+  for (int i = 0; i < 4; i++) {
+    memory.writeIntData(connectData.actionServer[i], i + 48);
+  }
   Serial.printf("\n");
 }
 

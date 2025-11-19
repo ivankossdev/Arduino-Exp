@@ -15,6 +15,7 @@ public:
   int ip[4] = { 0 };
   int gateway[4] = { 0 };
   int subnet[4] = { 0 };
+  int actionServer[4] = { 0 };
 
 
 private:

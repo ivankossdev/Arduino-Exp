@@ -9,6 +9,7 @@ class Memory{
   public:
     Memory();
     bool writeString(String str, int memoryPosition);
+    void writeIntData(int data, int memoryPosition);
     void readString(int memoryPosition);
     void clearAllMemory();
     void clearBuffer();
