@@ -22,7 +22,7 @@ void SerialHandler::serialPrint() {
   Serial.printf("\n");
 }
 
-void SerialMenu::ipAddress() {
+void SerialMenu::getIpAddress() {
   Serial.print("IP address  ");
   Serial.println(WiFi.localIP());
 
@@ -96,7 +96,7 @@ void SerialMenu::writeNetworkData(String message, int *data) {
   Serial.printf("%s is write\n\n", message.c_str());
 }
 
-void SerialMenu::setIP() {
+void SerialMenu::setIpAddress() {
   Serial.printf("Network settings\n");
 
   if (confirmation("Continue? ")) {
@@ -113,7 +113,7 @@ void SerialMenu::setIP() {
 
     WiFi.reconnect();
 
-    ipAddress();
+    getIpAddress();
     isSetIP = true;
   } else {
     Serial.printf("Сhanges are cancelled\n");
@@ -158,7 +158,7 @@ void SerialMenu::menu() {
 
   if (serialData.compareTo("get ip") == 0) {
     Serial.println("Network info: ");
-    ipAddress();
+    getIpAddress();
     serialData = "";
   } else if (serialData.compareTo("get wifi") == 0) {
     nameWiFi();
@@ -170,7 +170,7 @@ void SerialMenu::menu() {
     help();
     serialData = "";
   } else if (serialData.compareTo("set ip") == 0) {
-    setIP();
+    setIpAddress();
     serialData = "";
   } else if (serialData.compareTo("set wifi") == 0) {
     setWiFi();

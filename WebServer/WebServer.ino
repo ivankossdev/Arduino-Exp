@@ -9,6 +9,7 @@ void printConnectedInfo();
 unsigned long previousMillis = 0;
 const long interval = 500;
 void millisA0Read();
+String urlClientAction = "http://192.168.0.175:10500/action";
 void clientAction(String url);
 bool alarmStatus = false;
 
@@ -140,8 +141,7 @@ void clientHandler() {
               portD5State = "off";
               digitalWrite(pin14, HIGH);
             } else if (header.indexOf("GET /action/alarm") >= 0) {
-              //"http://192.168.0.175:10500/action"
-              clientAction("http://192.168.0.207:10500/action");
+              clientAction(urlClientAction);
             }
 
             client.println("<!DOCTYPE html><html lang=\"ru\">");
@@ -222,7 +222,7 @@ void millisA0Read() {
         dsp.displayPrintText((char *)"IP address: ");
         dsp.displayPrintText(WiFi.localIP());
         dsp.displayPrintText((char *)"\nAlarm Zone 1");
-        clientAction("http://192.168.0.207:10500/action");
+        clientAction(urlClientAction);
       }
     } else {
       if (alarmStatus) {

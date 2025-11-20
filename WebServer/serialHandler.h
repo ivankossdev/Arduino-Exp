@@ -23,12 +23,12 @@ class SerialMenu : private SerialHandler, private DataConvertor{
     bool isSetIP = false;
 
   private: 
-    void ipAddress();
+    void getIpAddress();
     void nameWiFi();
     void setWiFi();
     void relayControl();
     void help();
-    void setIP();
+    void setIpAddress();
     void setIpAction();
     void getIpAction();
     void writeNetworkData(String message, int *data);
