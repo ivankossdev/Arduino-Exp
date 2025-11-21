@@ -25,14 +25,14 @@ void setup() {
   searchWiFi();
 
   /* Авторизайия в сети WiFi */
-  /* Чтение названия точки доступа из памяти устройства*/
+  /* Чтение названия точки доступа из памяти устройства */
   memory.clearBuffer();
-  memory.readString(0);
+  memory.readString(ENTERSSID);
   connectData.enterSSID(memory.buffer);
 
   /* Чтение пароля из памяти устройства*/
   memory.clearBuffer();
-  memory.readString(32);
+  memory.readString(ENTERPASS);
   connectData.enterPASS(memory.buffer);
 
   dsp.displayClear();
@@ -40,6 +40,14 @@ void setup() {
   Serial.println("Connetcting to \nWiFi...");
 
   /* Подключение к сети WiFi */
+
+  /*-------------Сделать функцию-----------------------------*/
+  IPAddress ip(192, 168, 0, 60);
+  IPAddress subnet(255, 255, 255, 0);
+  IPAddress gateway(192, 168, 0, 1);
+  WiFi.config(ip, subnet, gateway);
+  /*---------------------------------------------------------*/
+
   Serial.print("Connecting to ");
   Serial.println(connectData.ssid);
   WiFi.begin(connectData.ssid, connectData.pass);

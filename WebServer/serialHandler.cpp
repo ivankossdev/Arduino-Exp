@@ -49,11 +49,11 @@ void SerialMenu::setWiFi() {
 
   Serial.println("Memory data: ");
   memory.clearBuffer();
-  memory.readString(0);
+  memory.readString(ENTERSSID);
   Serial.printf("Data 0 %s\n", memory.buffer);
 
   memory.clearBuffer();
-  memory.readString(32);
+  memory.readString(ENTERPASS);
   Serial.printf("Data 32 %s\n", memory.buffer);
   Serial.print("\n");
 }
@@ -126,8 +126,8 @@ void SerialMenu::setIpAction() {
   Serial.println("Set ip action menu: ");
   Serial.print("Enter ip address ");
   writeNetworkData("action server: ", connectData.actionServer);
-  for (int i = 0; i < 4; i++) {
-    memory.writeIntData(connectData.actionServer[i], i + 48);
+  for (int i = 0; i < IPCNT; i++) {
+    memory.writeIntData(connectData.actionServer[i], i + IPACTION);
   }
   Serial.printf("\n");
 }

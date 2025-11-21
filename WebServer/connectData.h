@@ -4,6 +4,11 @@
 #include "Arduino.h"
 #include <EEPROM.h>
 
+#define ENTERSSID 0
+#define ENTERPASS 32
+#define IPACTION 48
+#define IPCNT 4
+
 class ConnectData {
 public:
   void enterSSID();
@@ -16,7 +21,7 @@ public:
   int gateway[4] = { 0 };
   int subnet[4] = { 0 };
   int actionServer[4] = { 0 };
-  String urlClientAction ;
+  String urlClientAction;
 
 
 private:
