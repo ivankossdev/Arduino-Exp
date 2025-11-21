@@ -76,8 +76,8 @@ void setup() {
 
       /* Запись в память логин и пароль */
       memory.clearAllMemory();
-      memory.writeString(connectData.ssid, 0);
-      memory.writeString(connectData.pass, 32);
+      memory.writeString(connectData.ssid, ENTERSSID);
+      memory.writeString(connectData.pass, ENTERPASS);
       WiFi.begin(connectData.ssid, connectData.pass);
 
       stateConnection = false;
