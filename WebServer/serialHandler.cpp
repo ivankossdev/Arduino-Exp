@@ -134,11 +134,11 @@ void SerialMenu::setIpAction() {
 
 void SerialMenu::getIpAction() {
   Serial.println("Address action server: ");
-  int data[4] = { 0 };
-  memory.readIntData(data, 48, 4);
+  int data[IPCNT] = { 0 };
+  memory.readIntData(data, IPACTION, IPCNT);
   Serial.printf("IP: ");
-  for(int i = 0; i < 4; i++){  
-    if(i < 3){
+  for(int i = 0; i < IPCNT; i++){  
+    if(i < IPCNT - 1){
       Serial.printf("%d.", data[i]);
     } else {
       Serial.printf("%d", data[i]);
