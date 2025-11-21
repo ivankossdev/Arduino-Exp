@@ -16,6 +16,7 @@ public:
   int gateway[4] = { 0 };
   int subnet[4] = { 0 };
   int actionServer[4] = { 0 };
+  String urlClientAction ;
 
 
 private:
