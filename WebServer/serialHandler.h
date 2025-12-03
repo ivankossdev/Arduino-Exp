@@ -33,6 +33,7 @@ class SerialMenu : private SerialHandler, private DataConvertor{
     void getIpAction();
     void writeNetworkData(String message, int *data);
     bool confirmation(String question);
+    void showMemory();
 };
 
 #endif

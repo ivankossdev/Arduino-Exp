@@ -8,6 +8,8 @@
 #define ENTERPASS 32
 #define IPACTION 48
 #define IPCNT 4
+#define IPADDRESS 53 
+#define ENDPOSITION 64
 
 class ConnectData {
 public:

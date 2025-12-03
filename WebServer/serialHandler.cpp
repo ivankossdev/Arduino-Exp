@@ -158,6 +158,14 @@ bool SerialMenu::confirmation(String question) {
   return state;
 }
 
+void SerialMenu::showMemory(){
+  int data[64] = { 0 };
+  memory.readIntData(data, 0, ENDPOSITION);
+  for(int i = 0; i < 64; i++){
+    Serial.printf("[%d] = %d \n", i, data[i]);
+  }
+}
+
 void SerialMenu::menu() {
   serialReader();
 
@@ -185,6 +193,9 @@ void SerialMenu::menu() {
     serialData = "";
   } else if (serialData.compareTo("get action") == 0) {
     getIpAction();
+    serialData = "";
+  } else if (serialData.compareTo("get memory") == 0){
+    showMemory(); 
     serialData = "";
   }
 }
