@@ -159,9 +159,10 @@ bool SerialMenu::confirmation(String question) {
 }
 
 void SerialMenu::showMemory(){
-  int data[64] = { 0 };
+  int data[ENDPOSITION] = { 0 };
   memory.readIntData(data, 0, ENDPOSITION);
-  for(int i = 0; i < 64; i++){
+  Serial.printf("\n");
+  for(int i = IPACTION; i < ENDPOSITION; i++){
     Serial.printf("[%d] = %d \n", i, data[i]);
   }
 }
