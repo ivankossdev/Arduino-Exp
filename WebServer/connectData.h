@@ -6,10 +6,13 @@
 
 #define ENTERSSID 0
 #define ENTERPASS 32
-#define IPACTION 48
-#define IPCNT 4
-#define IPADDRESS 52 
-#define MASK 56
+/* Настройки сети */
+#define IPCNT 4       // Шаг для чтения из памяти IP адресов
+#define IPACTION 48   // адрес сервера событий 
+#define IPADDRESS 52  // адрес контроллера 
+#define MASK 56       // маска 
+#define GETWAY 60     // шлюз 
+
 #define ENDPOSITION 64
 
 class ConnectData {
