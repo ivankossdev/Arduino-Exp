@@ -137,8 +137,8 @@ void SerialMenu::getIpAction() {
   int data[IPCNT] = { 0 };
   memory.readIntData(data, IPACTION, IPCNT);
   Serial.printf("IP: ");
-  for(int i = 0; i < IPCNT; i++){  
-    if(i < IPCNT - 1){
+  for (int i = 0; i < IPCNT; i++) {
+    if (i < IPCNT - 1) {
       Serial.printf("%d.", data[i]);
     } else {
       Serial.printf("%d", data[i]);
@@ -158,11 +158,23 @@ bool SerialMenu::confirmation(String question) {
   return state;
 }
 
-void SerialMenu::showMemory(){
+void SerialMenu::showMemory() {
   int data[ENDPOSITION] = { 0 };
   memory.readIntData(data, 0, ENDPOSITION);
   Serial.printf("\n");
-  for(int i = IPACTION; i < ENDPOSITION; i++){
+  for (int i = IPACTION; i < IPACTION + IPCNT; i++) {
+    Serial.printf("[%d] = %d \n", i, data[i]);
+  }
+  Serial.printf("\n");
+  for (int i = IPADDRESS; i < IPADDRESS + IPCNT; i++) {
+    Serial.printf("[%d] = %d \n", i, data[i]);
+  }
+  Serial.printf("\n");
+  for (int i = MASK; i < MASK + IPCNT; i++) {
+    Serial.printf("[%d] = %d \n", i, data[i]);
+  }
+  Serial.printf("\n");
+  for (int i = GETWAY; i < GETWAY + IPCNT; i++) {
     Serial.printf("[%d] = %d \n", i, data[i]);
   }
 }
@@ -195,8 +207,8 @@ void SerialMenu::menu() {
   } else if (serialData.compareTo("get action") == 0) {
     getIpAction();
     serialData = "";
-  } else if (serialData.compareTo("get memory") == 0){
-    showMemory(); 
+  } else if (serialData.compareTo("get memory") == 0) {
+    showMemory();
     serialData = "";
   }
 }
