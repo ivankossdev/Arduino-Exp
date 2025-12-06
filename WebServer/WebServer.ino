@@ -42,9 +42,11 @@ void setup() {
   /* Подключение к сети WiFi */
 
   /*-------------Сделать функцию-----------------------------*/
+
+  /* Нужно доработать фунцию чтобы не было дерьмокода */
   int data[ENDPOSITION] = { 0 };
   memory.readIntData(data, 0, ENDPOSITION);
-  
+
   for (int i = IPADDRESS, i__ = 0; i < IPADDRESS + IPCNT; i++, i__++) {
     connectData.ip[i__] = data[i];
   }
