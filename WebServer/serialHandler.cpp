@@ -170,24 +170,27 @@ bool SerialMenu::confirmation(String question) {
   return state;
 }
 
-void SerialMenu::showMemory() {
+void SerialMenu::getNetworkInMemory() {
   int data[ENDPOSITION] = { 0 };
   memory.readIntData(data, 0, ENDPOSITION);
+  // Serial.printf("\n");
+  // for (int i = IPACTION, i__ = 0; i < IPACTION + IPCNT; i++, i__++) {
+  //   Serial.printf("[%d] = %d \n", i, data[i]);
+  // }
   Serial.printf("\n");
-  for (int i = IPACTION; i < IPACTION + IPCNT; i++) {
-    Serial.printf("[%d] = %d \n", i, data[i]);
+  for (int i = IPADDRESS, i__ = 0; i < IPADDRESS + IPCNT; i++, i__++) {
+    connectData.ip[i__] = data[i];
+    Serial.printf("[%d] = %d \n", i, connectData.ip[i__]);
   }
   Serial.printf("\n");
-  for (int i = IPADDRESS; i < IPADDRESS + IPCNT; i++) {
-    Serial.printf("[%d] = %d \n", i, data[i]);
+  for (int i = MASK, i__ = 0; i < MASK + IPCNT; i++, i__++) {
+    connectData.subnet[i__] = data[i]; 
+    Serial.printf("[%d] = %d \n", i, connectData.subnet[i__]);
   }
   Serial.printf("\n");
-  for (int i = MASK; i < MASK + IPCNT; i++) {
-    Serial.printf("[%d] = %d \n", i, data[i]);
-  }
-  Serial.printf("\n");
-  for (int i = GETWAY; i < GETWAY + IPCNT; i++) {
-    Serial.printf("[%d] = %d \n", i, data[i]);
+  for (int i = GETWAY, i__ = 0; i < GETWAY + IPCNT; i++, i__++) {
+    connectData.gateway[i__] = data[i];
+    Serial.printf("[%d] = %d \n", i, connectData.gateway[i__]);
   }
 }
 
@@ -220,7 +223,7 @@ void SerialMenu::menu() {
     getIpAction();
     serialData = "";
   } else if (serialData.compareTo("get memory") == 0) {
-    showMemory();
+    getNetworkInMemory();
     serialData = "";
   }
 }
