@@ -42,9 +42,23 @@ void setup() {
   /* Подключение к сети WiFi */
 
   /*-------------Сделать функцию-----------------------------*/
-  IPAddress ip(192, 168, 0, 60);
-  IPAddress subnet(255, 255, 255, 0);
-  IPAddress gateway(192, 168, 0, 1);
+  int data[ENDPOSITION] = { 0 };
+  memory.readIntData(data, 0, ENDPOSITION);
+  
+  for (int i = IPADDRESS, i__ = 0; i < IPADDRESS + IPCNT; i++, i__++) {
+    connectData.ip[i__] = data[i];
+  }
+
+  for (int i = MASK, i__ = 0; i < MASK + IPCNT; i++, i__++) {
+    connectData.subnet[i__] = data[i];
+  }
+
+  for (int i = GETWAY, i__ = 0; i < GETWAY + IPCNT; i++, i__++) {
+    connectData.gateway[i__] = data[i];
+  }
+  IPAddress ip(connectData.ip[0], connectData.ip[1], connectData.ip[2], connectData.ip[3]);
+  IPAddress subnet(connectData.subnet[0], connectData.subnet[1], connectData.subnet[2], connectData.subnet[3]);
+  IPAddress gateway(connectData.gateway[0], connectData.gateway[1], connectData.gateway[2], connectData.gateway[3]);
   WiFi.config(ip, subnet, gateway);
   /*---------------------------------------------------------*/
 
@@ -94,7 +108,7 @@ void setup() {
   }
 
   /* Адрес сервера обработчика событий */
-  connectData.urlClientAction = "http://192.168.0.175:10500/action"; 
+  connectData.urlClientAction = "http://192.168.0.175:10500/action";
 }
 
 void loop() {
@@ -252,7 +266,7 @@ void clientAction(String url) {
   WiFiClient client;
   HTTPClient http;
 
-  if (http.begin(client, url)) { 
+  if (http.begin(client, url)) {
 
     Serial.print("[HTTP] GET...\n");
     int httpCode = http.GET();
