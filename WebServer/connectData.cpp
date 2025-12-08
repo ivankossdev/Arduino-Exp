@@ -39,7 +39,7 @@ void ConnectData::enterSSID() {
   enterSerialDataInArray(ssid, "Please enter WiFi network: ");
 }
 
-void ConnectData::enterSSID(char *memData_){
+void ConnectData::enterSSID(char *memData_) {
   writeDataInArray(ssid, memData_);
 }
 
@@ -47,8 +47,14 @@ void ConnectData::enterPASS() {
   enterSerialDataInArray(pass, "Please enter password: ");
 }
 
-void ConnectData::enterPASS(char *memData_){
+void ConnectData::enterPASS(char *memData_) {
   writeDataInArray(pass, memData_);
+}
+
+void ConnectData::enterNetData(int *data, int arrayPos) {
+  for (int i = 0; i < IPCNT; i++) {
+    memory.writeIntData(data[i], i + arrayPos);
+  }
 }
 
 ConnectData connectData;

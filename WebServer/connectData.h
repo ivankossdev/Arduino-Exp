@@ -3,6 +3,7 @@
 
 #include "Arduino.h"
 #include <EEPROM.h>
+#include "MemHandler.h"
 
 #define ENTERSSID 0
 #define ENTERPASS 32
@@ -21,6 +22,7 @@ public:
   void enterSSID(char *memData_);
   void enterPASS();
   void enterPASS(char *memData_);
+  void enterNetData(int *data, int arrayPos);
   char ssid[32] = {'\0'};
   char pass[32] = {'\0'};
   int ip[4] = { 0 };

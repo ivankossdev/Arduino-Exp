@@ -107,17 +107,9 @@ void SerialMenu::setIpAddress() {
     writeNetworkData("Set subnet mask", connectData.subnet);
     writeNetworkData("Set gateway", connectData.gateway);
 
-    for (int i = 0; i < IPCNT; i++) {
-      memory.writeIntData(connectData.ip[i], i + IPADDRESS);
-    }
-
-    for (int i = 0; i < IPCNT; i++) {
-      memory.writeIntData(connectData.subnet[i], i + MASK);
-    }
-
-    for (int i = 0; i < IPCNT; i++) {
-      memory.writeIntData(connectData.gateway[i], i + GETWAY);
-    }
+    connectData.enterNetData(connectData.ip, IPADDRESS);
+    connectData.enterNetData(connectData.subnet, MASK);
+    connectData.enterNetData(connectData.gateway, GETWAY);
 
     IPAddress ip(connectData.ip[0], connectData.ip[1], connectData.ip[2], connectData.ip[3]);
     IPAddress subnet(connectData.subnet[0], connectData.subnet[1], connectData.subnet[2], connectData.subnet[3]);
