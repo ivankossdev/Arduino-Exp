@@ -41,9 +41,8 @@ void setup() {
 
   /* Подключение к сети WiFi */
 
-  /*-------------Сделать функцию-----------------------------*/
+  /*------------- Чтение настроек из памяти -----------------------------*/
 
-  /* Нужно доработать фунцию чтобы не было дерьмокода */
   int data[ENDPOSITION] = { 0 };
   memory.readIntData(data, 0, ENDPOSITION);
 
@@ -55,7 +54,7 @@ void setup() {
   IPAddress subnet(connectData.subnet[0], connectData.subnet[1], connectData.subnet[2], connectData.subnet[3]);
   IPAddress gateway(connectData.gateway[0], connectData.gateway[1], connectData.gateway[2], connectData.gateway[3]);
   WiFi.config(ip, subnet, gateway);
-  /*---------------------------------------------------------*/
+  /*---------------------------------------------------------------------*/
 
   Serial.print("Connecting to ");
   Serial.println(connectData.ssid);

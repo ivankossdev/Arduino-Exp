@@ -166,7 +166,6 @@ bool SerialMenu::confirmation(String question) {
 
 void SerialMenu::setNetworkInMemory() {
   
-  /* Нужно доработать фунцию чтобы не было дерьмокода */
   int data[ENDPOSITION] = { 0 };
   memory.readIntData(data, 0, ENDPOSITION);
 
