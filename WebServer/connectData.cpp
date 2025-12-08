@@ -51,9 +51,15 @@ void ConnectData::enterPASS(char *memData_) {
   writeDataInArray(pass, memData_);
 }
 
-void ConnectData::enterNetData(int *data, int arrayPos) {
+void ConnectData::writeMemoryNetData(int *data, int arrayPos) {
   for (int i = 0; i < IPCNT; i++) {
     memory.writeIntData(data[i], i + arrayPos);
+  }
+}
+
+void ConnectData::writeMemoryToArrayData(int *data, int *internalArray, int arrayPos){
+  for (int i = arrayPos, i__ = 0; i < arrayPos + IPCNT; i++, i__++) {
+    internalArray[i__] = data[i];
   }
 }
 

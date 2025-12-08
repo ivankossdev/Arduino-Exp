@@ -22,7 +22,8 @@ public:
   void enterSSID(char *memData_);
   void enterPASS();
   void enterPASS(char *memData_);
-  void enterNetData(int *data, int arrayPos);
+  void writeMemoryNetData(int *data, int arrayPos);
+  void writeMemoryToArrayData(int *data, int *internalArray, int arrayPos);
   char ssid[32] = {'\0'};
   char pass[32] = {'\0'};
   int ip[4] = { 0 };

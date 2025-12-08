@@ -47,17 +47,10 @@ void setup() {
   int data[ENDPOSITION] = { 0 };
   memory.readIntData(data, 0, ENDPOSITION);
 
-  for (int i = IPADDRESS, i__ = 0; i < IPADDRESS + IPCNT; i++, i__++) {
-    connectData.ip[i__] = data[i];
-  }
+  connectData.writeMemoryToArrayData(data, connectData.ip, IPADDRESS);
+  connectData.writeMemoryToArrayData(data, connectData.subnet, MASK);
+  connectData.writeMemoryToArrayData(data, connectData.gateway, GETWAY);
 
-  for (int i = MASK, i__ = 0; i < MASK + IPCNT; i++, i__++) {
-    connectData.subnet[i__] = data[i];
-  }
-
-  for (int i = GETWAY, i__ = 0; i < GETWAY + IPCNT; i++, i__++) {
-    connectData.gateway[i__] = data[i];
-  }
   IPAddress ip(connectData.ip[0], connectData.ip[1], connectData.ip[2], connectData.ip[3]);
   IPAddress subnet(connectData.subnet[0], connectData.subnet[1], connectData.subnet[2], connectData.subnet[3]);
   IPAddress gateway(connectData.gateway[0], connectData.gateway[1], connectData.gateway[2], connectData.gateway[3]);
