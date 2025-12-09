@@ -165,13 +165,11 @@ bool SerialMenu::confirmation(String question) {
 }
 
 void SerialMenu::setNetworkInMemory() {
-  
-  int data[ENDPOSITION] = { 0 };
-  memory.readIntData(data, 0, ENDPOSITION);
+  memory.readIntData(connectData.rawData, 0, ENDPOSITION);
 
-  connectData.writeMemoryToArrayData(data, connectData.ip, IPADDRESS);
-  connectData.writeMemoryToArrayData(data, connectData.subnet, MASK);
-  connectData.writeMemoryToArrayData(data, connectData.gateway, GETWAY);
+  connectData.writeMemoryToArrayData(connectData.rawData, connectData.ip, IPADDRESS);
+  connectData.writeMemoryToArrayData(connectData.rawData, connectData.subnet, MASK);
+  connectData.writeMemoryToArrayData(connectData.rawData, connectData.gateway, GETWAY);
 
   Serial.printf("\nip %d.%d.%d.%d\n", connectData.ip[0], connectData.ip[1], connectData.ip[2], connectData.ip[3]);
   Serial.printf("mask %d.%d.%d.%d\n", connectData.subnet[0], connectData.subnet[1], connectData.subnet[2], connectData.subnet[3]);

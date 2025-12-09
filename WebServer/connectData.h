@@ -31,6 +31,7 @@ public:
   int subnet[4] = { 0 };
   int actionServer[4] = { 0 };
   String urlClientAction;
+  int rawData[ENDPOSITION] = { 0 };
 
 
 private:
