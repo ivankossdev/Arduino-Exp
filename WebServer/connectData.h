@@ -23,7 +23,7 @@ public:
   void enterPASS();
   void enterPASS(char *memData_);
   void writeMemoryNetData(int *data, int arrayPos);
-  void writeMemoryToArrayData(int arrayPos);
+  void getNetworkInMemory(int arrayPos);
   char ssid[32] = {'\0'};
   char pass[32] = {'\0'};
   int ip[4] = { 0 };

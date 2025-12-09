@@ -44,9 +44,9 @@ void setup() {
   /*------------- Чтение настроек из памяти -----------------------------*/
   memory.readIntData(connectData.rawData, 0, ENDPOSITION);
 
-  connectData.writeMemoryToArrayData(IPADDRESS);
-  connectData.writeMemoryToArrayData(MASK);
-  connectData.writeMemoryToArrayData(GETWAY);
+  connectData.getNetworkInMemory(IPADDRESS);
+  connectData.getNetworkInMemory(MASK);
+  connectData.getNetworkInMemory(GETWAY);
 
   IPAddress ip(connectData.ip[0], connectData.ip[1], connectData.ip[2], connectData.ip[3]);
   IPAddress subnet(connectData.subnet[0], connectData.subnet[1], connectData.subnet[2], connectData.subnet[3]);

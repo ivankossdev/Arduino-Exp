@@ -57,7 +57,7 @@ void ConnectData::writeMemoryNetData(int *data, int arrayPos) {
   }
 }
 
-void ConnectData::writeMemoryToArrayData(int arrayPos) {
+void ConnectData::getNetworkInMemory(int arrayPos) {
   for (int i = arrayPos, i__ = 0; i < arrayPos + IPCNT; i++, i__++) {
     switch (arrayPos) {
       case IPADDRESS:
