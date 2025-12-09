@@ -57,9 +57,19 @@ void ConnectData::writeMemoryNetData(int *data, int arrayPos) {
   }
 }
 
-void ConnectData::writeMemoryToArrayData(int *data, int *internalArray, int arrayPos){
+void ConnectData::writeMemoryToArrayData(int arrayPos) {
   for (int i = arrayPos, i__ = 0; i < arrayPos + IPCNT; i++, i__++) {
-    internalArray[i__] = data[i];
+    switch (arrayPos) {
+      case IPADDRESS:
+        ip[i__] = rawData[i];
+        break;
+      case MASK:
+        subnet[i__] = rawData[i];
+        break;
+      case GETWAY:
+        gateway[i__] = rawData[i];
+        break;
+    }
   }
 }
 
