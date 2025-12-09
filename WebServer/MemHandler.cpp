@@ -75,6 +75,15 @@ void Memory::clearAllMemory() {
   commit("EEPROM clear");
 }
 
+void Memory::clearSegmentMemory(int startPosition, int stopPosition){
+  if(startPosition < stopPosition){
+    for(int i = startPosition; i < stopPosition; i++){
+      EEPROM.write(i, '\0');
+    }
+  }
+  commit("EEPROM segment clear");
+}
+
 void Memory::clearBuffer() {
   for (int i = 0; i < MEMSIZE; i++) { buffer[i] = '\0'; }
 }

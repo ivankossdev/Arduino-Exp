@@ -13,6 +13,7 @@ public:
   void readString(int memoryPosition);
   void readIntData(int *data, int memoryPosition, int step);
   void clearAllMemory();
+  void clearSegmentMemory(int startPosition, int stopPosition);
   void clearBuffer();
   char buffer[MEMSIZE] = { '\0' };
 private:
