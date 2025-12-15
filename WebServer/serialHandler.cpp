@@ -1,6 +1,7 @@
 #include "serialHandler.h"
 
 void SerialHandler::serialReader() {
+  isRead = true;
   do {
     if (Serial.available() > 0) {
       serialData = Serial.readString();
@@ -56,12 +57,24 @@ void SerialMenu::setWiFi() {
   memory.readString(ENTERPASS);
   Serial.printf("Data 32 %s\n", memory.buffer);
   Serial.print("\n");
+
+  if(confirmation("Change WiFi settings?")){
+    Serial.println("Enter WiFi network:");
+    serialReader();
+    Serial.println(serialData.c_str());
+
+    Serial.println("Enter password:");
+    serialReader();
+    Serial.println(serialData.c_str());    
+  }  else {
+    Serial.println("Change is cancel.");
+  }
 }
 
 void SerialMenu::relayControl() {
   Serial.println("Relay cmd -> \"on\" | \"off\"");
 
-  isRead = true;
+  // isRead = true;
   serialReader();
 
   if (serialData.compareTo("on") == 0) {
@@ -85,7 +98,7 @@ void SerialMenu::help() {
 void SerialMenu::writeNetworkData(String message, int *data) {
   do {
     Serial.println(message);
-    isRead = true;
+    // isRead = true;
     serialReader();
     stringToIPaddress(serialData, data);
     for (int i = 0; i < 4; i++) {
