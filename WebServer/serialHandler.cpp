@@ -51,22 +51,26 @@ void SerialMenu::setWiFi() {
   Serial.println("Memory data: ");
   memory.clearBuffer();
   memory.readString(ENTERSSID);
-  Serial.printf("Data 0 %s\n", memory.buffer);
+  Serial.printf("Wifi %s\n", memory.buffer);
+
+  if (confirmation("Change WiFi network?")) {
+    Serial.println("Enter WiFi network:");
+    serialReader();
+    Serial.printf("New WiFi network  %s\n", serialData.c_str());
+  } else {
+    Serial.println("Change is cancel.");
+  }
 
   memory.clearBuffer();
   memory.readString(ENTERPASS);
-  Serial.printf("Data 32 %s\n", memory.buffer);
+  Serial.printf("Password %s\n", memory.buffer);
   Serial.print("\n");
 
-  if(confirmation("Change WiFi settings?")){
-    Serial.println("Enter WiFi network:");
-    serialReader();
-    Serial.println(serialData.c_str());
-
+  if (confirmation("Change password")) {
     Serial.println("Enter password:");
     serialReader();
-    Serial.println(serialData.c_str());    
-  }  else {
+    Serial.printf("New passowrd %s\n",serialData.c_str());
+  } else {
     Serial.println("Change is cancel.");
   }
 }
