@@ -55,16 +55,16 @@ void setup() {
   /* Подключение к сети WiFi */
 
   /*------------- Чтение настроек из памяти -----------------------------*/
-  // memory.readIntData(connectData.rawData, 0, ENDPOSITION);
+  memory.readIntData(connectData.rawData, 0, ENDPOSITION);
 
-  // connectData.getNetworkInMemory(IPADDRESS);
-  // connectData.getNetworkInMemory(MASK);
-  // connectData.getNetworkInMemory(GETWAY);
+  connectData.getNetworkInMemory(IPADDRESS);
+  connectData.getNetworkInMemory(MASK);
+  connectData.getNetworkInMemory(GETWAY);
 
-  // IPAddress ip(connectData.ip[0], connectData.ip[1], connectData.ip[2], connectData.ip[3]);
-  // IPAddress subnet(connectData.subnet[0], connectData.subnet[1], connectData.subnet[2], connectData.subnet[3]);
-  // IPAddress gateway(connectData.gateway[0], connectData.gateway[1], connectData.gateway[2], connectData.gateway[3]);
-  // WiFi.config(ip, subnet, gateway);
+  IPAddress ip(connectData.ip[0], connectData.ip[1], connectData.ip[2], connectData.ip[3]);
+  IPAddress subnet(connectData.subnet[0], connectData.subnet[1], connectData.subnet[2], connectData.subnet[3]);
+  IPAddress gateway(connectData.gateway[0], connectData.gateway[1], connectData.gateway[2], connectData.gateway[3]);
+  WiFi.config(ip, subnet, gateway);
   /*---------------------------------------------------------------------*/
 
   Serial.print("Connecting to ");
