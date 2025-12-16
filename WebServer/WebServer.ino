@@ -26,13 +26,26 @@ void setup() {
 
   /* Авторизайия в сети WiFi */
   /* Чтение названия точки доступа из памяти устройства */
-  memory.clearBuffer();
+
+  String ssid = "Thech";
+  // memory.clearBuffer();
+  memory.writeString(ssid, ENTERSSID);
   memory.readString(ENTERSSID);
+
+  Serial.print("Ssid in memo ");
+  Serial.println(memory.buffer);
+
   connectData.enterSSID(memory.buffer);
 
   /* Чтение пароля из памяти устройства*/
-  memory.clearBuffer();
+  String psw = "12345678";
+  // memory.clearBuffer();
+  memory.writeString(psw, ENTERPASS);
   memory.readString(ENTERPASS);
+
+  Serial.print("Pass in memo ");
+  Serial.println(memory.buffer);
+
   connectData.enterPASS(memory.buffer);
 
   dsp.displayClear();
@@ -42,16 +55,16 @@ void setup() {
   /* Подключение к сети WiFi */
 
   /*------------- Чтение настроек из памяти -----------------------------*/
-  memory.readIntData(connectData.rawData, 0, ENDPOSITION);
+  // memory.readIntData(connectData.rawData, 0, ENDPOSITION);
 
-  connectData.getNetworkInMemory(IPADDRESS);
-  connectData.getNetworkInMemory(MASK);
-  connectData.getNetworkInMemory(GETWAY);
+  // connectData.getNetworkInMemory(IPADDRESS);
+  // connectData.getNetworkInMemory(MASK);
+  // connectData.getNetworkInMemory(GETWAY);
 
-  IPAddress ip(connectData.ip[0], connectData.ip[1], connectData.ip[2], connectData.ip[3]);
-  IPAddress subnet(connectData.subnet[0], connectData.subnet[1], connectData.subnet[2], connectData.subnet[3]);
-  IPAddress gateway(connectData.gateway[0], connectData.gateway[1], connectData.gateway[2], connectData.gateway[3]);
-  WiFi.config(ip, subnet, gateway);
+  // IPAddress ip(connectData.ip[0], connectData.ip[1], connectData.ip[2], connectData.ip[3]);
+  // IPAddress subnet(connectData.subnet[0], connectData.subnet[1], connectData.subnet[2], connectData.subnet[3]);
+  // IPAddress gateway(connectData.gateway[0], connectData.gateway[1], connectData.gateway[2], connectData.gateway[3]);
+  // WiFi.config(ip, subnet, gateway);
   /*---------------------------------------------------------------------*/
 
   Serial.print("Connecting to ");

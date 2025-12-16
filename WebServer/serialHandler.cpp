@@ -1,7 +1,6 @@
 #include "serialHandler.h"
 
 void SerialHandler::serialReader() {
-  isRead = true;
   do {
     if (Serial.available() > 0) {
       serialData = Serial.readString();
@@ -55,7 +54,10 @@ void SerialMenu::setWiFi() {
 
   if (confirmation("Change WiFi network?")) {
     Serial.println("Enter WiFi network:");
+
+    isRead = true;
     serialReader();
+
     Serial.printf("New WiFi network  %s\n", serialData.c_str());
   } else {
     Serial.println("Change is cancel.");
@@ -68,6 +70,7 @@ void SerialMenu::setWiFi() {
 
   if (confirmation("Change password")) {
     Serial.println("Enter password:");
+    isRead = true;
     serialReader();
     Serial.printf("New passowrd %s\n",serialData.c_str());
   } else {
@@ -78,7 +81,7 @@ void SerialMenu::setWiFi() {
 void SerialMenu::relayControl() {
   Serial.println("Relay cmd -> \"on\" | \"off\"");
 
-  // isRead = true;
+  isRead = true;
   serialReader();
 
   if (serialData.compareTo("on") == 0) {
@@ -102,8 +105,10 @@ void SerialMenu::help() {
 void SerialMenu::writeNetworkData(String message, int *data) {
   do {
     Serial.println(message);
-    // isRead = true;
+
+    isRead = true;
     serialReader();
+
     stringToIPaddress(serialData, data);
     for (int i = 0; i < 4; i++) {
       Serial.printf("[%d] ", data[i]);
@@ -174,7 +179,9 @@ bool SerialMenu::confirmation(String question) {
   bool state = false;
   isRead = true;
 
-  Serial.printf(PSTR("%s \"yes\" or \"no\"\n"), question.c_str());  //
+  Serial.printf(PSTR("%s \"yes\" or \"no\"\n"), question.c_str());
+
+  isRead = true;
   serialReader();
 
   if ((serialData.compareTo("yes") == 0) || (serialData.compareTo("y") == 0)) state = true;

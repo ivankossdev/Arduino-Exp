@@ -12,6 +12,7 @@ bool Memory::writeString(String str, int memoryPosition) {
     write = true;
     int i = 0;
     do {
+       
       EEPROM.write(memoryPosition, str[i]);
       if (str[i] == '\r' || str[i] == '\n') break;
       i++;
@@ -52,7 +53,7 @@ void Memory::readString(int memoryPosition) {
     buffer[i] = (char)EEPROM.read(memoryPosition);
     i++;
     memoryPosition++;
-  } while (EEPROM.read(i) != '\0');
+  } while (EEPROM.read(memoryPosition) != '\0');
 
   buffer[i] = '\0';
 }
