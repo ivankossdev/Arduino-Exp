@@ -26,24 +26,19 @@ void setup() {
 
   /* Авторизайия в сети WiFi */
   /* Чтение названия точки доступа из памяти устройства */
-
-  String ssid = "Thech";
-  // memory.clearBuffer();
-  memory.writeString(ssid, ENTERSSID);
+  memory.clearBuffer();
   memory.readString(ENTERSSID);
 
-  Serial.print("Ssid in memo ");
+  Serial.print("WiFi ");
   Serial.println(memory.buffer);
 
   connectData.enterSSID(memory.buffer);
 
   /* Чтение пароля из памяти устройства*/
-  String psw = "12345678";
-  // memory.clearBuffer();
-  memory.writeString(psw, ENTERPASS);
+  memory.clearBuffer();
   memory.readString(ENTERPASS);
 
-  Serial.print("Pass in memo ");
+  Serial.print("Password ");
   Serial.println(memory.buffer);
 
   connectData.enterPASS(memory.buffer);

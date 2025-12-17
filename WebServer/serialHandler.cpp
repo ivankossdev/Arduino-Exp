@@ -188,27 +188,6 @@ bool SerialMenu::confirmation(String question) {
   return state;
 }
 
-void SerialMenu::setNetworkInMemory() {
-  memory.readIntData(connectData.rawData, 0, ENDPOSITION);
-
-  connectData.getNetworkInMemory(IPADDRESS);
-  connectData.getNetworkInMemory(MASK);
-  connectData.getNetworkInMemory(GETWAY);
-
-  Serial.printf("\nip %d.%d.%d.%d\n", connectData.ip[0], connectData.ip[1], connectData.ip[2], connectData.ip[3]);
-  Serial.printf("mask %d.%d.%d.%d\n", connectData.subnet[0], connectData.subnet[1], connectData.subnet[2], connectData.subnet[3]);
-  Serial.printf("geteway %d.%d.%d.%d\n\n", connectData.gateway[0], connectData.gateway[1], connectData.gateway[2], connectData.gateway[3]);
-
-  IPAddress ip(connectData.ip[0], connectData.ip[1], connectData.ip[2], connectData.ip[3]);
-  IPAddress subnet(connectData.subnet[0], connectData.subnet[1], connectData.subnet[2], connectData.subnet[3]);
-  IPAddress gateway(connectData.gateway[0], connectData.gateway[1], connectData.gateway[2], connectData.gateway[3]);
-
-  WiFi.config(ip, subnet, gateway);
-  WiFi.reconnect();
-  getIpAddress();
-  isSetIP = true;
-}
-
 void SerialMenu::menu() {
   serialReader();
 
@@ -237,8 +216,8 @@ void SerialMenu::menu() {
   } else if (serialData.compareTo("get action") == 0) {
     getIpAction();
     serialData = "";
-  } else if (serialData.compareTo("set ip_m") == 0) {
-    setNetworkInMemory();
+  } else if (serialData.compareTo("mem_test") == 0) {
+    Serial.println("Test clear memory");
     serialData = "";
   }
 }

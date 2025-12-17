@@ -19,7 +19,7 @@ class SerialHandler{
 class SerialMenu : private SerialHandler, private DataConvertor{
   public:
     void menu();
-    String command[CMDCOUNT] = {"get ip", "set ip" , "get wifi", "set wifi", "set action", "get action", "relay", "clear", "close", "set ip_m"}; 
+    String command[CMDCOUNT] = {"get ip", "set ip" , "get wifi", "set wifi", "set action", "get action", "relay", "clear", "close", "mem_test"}; 
     bool isSetIP = false;
 
   private: 
@@ -33,7 +33,6 @@ class SerialMenu : private SerialHandler, private DataConvertor{
     void getIpAction();
     void writeNetworkData(String message, int *data);
     bool confirmation(String question);
-    void setNetworkInMemory();
 };
 
 #endif
