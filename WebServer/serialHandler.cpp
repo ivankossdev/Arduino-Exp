@@ -37,7 +37,7 @@ void SerialMenu::getIpAddress() {
   Serial.printf("\n");
 }
 
-void SerialMenu::nameWiFi() {
+void SerialMenu::getWiFi() {
   Serial.println("Network name: ");
   Serial.println(connectData.ssid);
 
@@ -58,7 +58,11 @@ void SerialMenu::setWiFi() {
     isRead = true;
     serialReader();
 
-    Serial.printf("New WiFi network  %s\n", serialData.c_str());
+    memory.writeString(serialData, ENTERSSID);
+    memory.clearBuffer();
+    memory.readString(ENTERSSID);
+    Serial.printf("New WiFi network  %s\n", memory.buffer);
+
   } else {
     Serial.println("Change is cancel.");
   }
@@ -70,15 +74,17 @@ void SerialMenu::setWiFi() {
 
   if (confirmation("Change password")) {
     Serial.println("Enter password:");
+
     isRead = true;
     serialReader();
+    
     Serial.printf("New passowrd %s\n",serialData.c_str());
   } else {
     Serial.println("Change is cancel.");
   }
 }
 
-void SerialMenu::relayControl() {
+void SerialMenu::setRelay() {
   Serial.println("Relay cmd -> \"on\" | \"off\"");
 
   isRead = true;
@@ -196,10 +202,10 @@ void SerialMenu::menu() {
     getIpAddress();
     serialData = "";
   } else if (serialData.compareTo("get wifi") == 0) {
-    nameWiFi();
+    getWiFi();
     serialData = "";
   } else if (serialData.compareTo("relay") == 0) {
-    relayControl();
+    setRelay();
     serialData = "";
   } else if (serialData.compareTo("help") == 0) {
     help();

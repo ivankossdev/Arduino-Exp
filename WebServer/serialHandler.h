@@ -24,9 +24,9 @@ class SerialMenu : private SerialHandler, private DataConvertor{
 
   private: 
     void getIpAddress();
-    void nameWiFi();
+    void getWiFi();
     void setWiFi();
-    void relayControl();
+    void setRelay();
     void help();
     void setIpAddress();
     void setIpAction();
