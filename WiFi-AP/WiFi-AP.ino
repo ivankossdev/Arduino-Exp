@@ -18,12 +18,13 @@ void setup() {
   Serial.begin(115200);
   Serial.println();
   Serial.print("Configuring access point...");
-  // IPAddress ip(192,168,1,200);     
-  // IPAddress gateway(192,168,1,1);   
-  // IPAddress subnet(255,255,255,0);
+  
+  IPAddress ip(192,168,0,100);     
+  IPAddress gateway(192,168,0,1);   
+  IPAddress subnet(255,255,255,0);
 
-  // WiFi.softAPConfig(ip, gateway, subnet);
-  WiFi.softAP(ssid, password);
+  WiFi.softAPConfig(ip, gateway, subnet);
+  WiFi.softAP(ssid, password, 5);
 
   IPAddress myIP = WiFi.softAPIP();
   Serial.print("AP IP address: ");
