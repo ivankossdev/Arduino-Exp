@@ -17,7 +17,6 @@ LiquidCrystal_I2C lcd(0x27, lcdColumns, lcdRows);
 I2C_Device search;
 String messageToScroll = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
 BH1750 lightMeter(0x23);
-char luxValue[16] = { '\0' };
 
 void setup() {
   Wire.begin();
