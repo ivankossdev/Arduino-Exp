@@ -1,6 +1,6 @@
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
-#include "I2C_Device.h"
+
 #define printByte(args) write(args);
 
 /* 
@@ -13,31 +13,37 @@ int lcdColumns = 16;
 int lcdRows = 2;
 
 LiquidCrystal_I2C lcd(0x27, lcdColumns, lcdRows);
-I2C_Device search;
 
-byte customChar[] = {
+byte custChar_1[] = {
   B11011,
-  B10001,
-  B10101,
-  B10101,
   B10101,
   B10101,
   B10001,
+  B10001,
+  B10101,
+  B10101,
   B11011
 };
+
+byte custChar_2[] = {
+  B11011,
+  B10101,
+  B10001,
+  B10101,
+  B10001,
+  B10001,
+  B10101,
+  B11011
+};
+
 
 void setup() {
 
   lcd.init();
   lcd.backlight();
   lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print("Display test");
-  lcd.setCursor(0, 1);
-  lcd.print(search.searchDevice());
-  delay(1000);
-  lcd.clear();
-  lcd.createChar(0, customChar);
+  lcd.createChar(0, custChar_1);
+  lcd.createChar(1, custChar_2);
   lcd.home();
 }
 
@@ -47,7 +53,7 @@ void loop() {
     lcd.setCursor(i, 0);
     lcd.printByte(0);
     lcd.setCursor(i, 1);
-    lcd.printByte(0);
+    lcd.printByte(1);
     delay(100);
   }
 
