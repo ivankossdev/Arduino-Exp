@@ -14,7 +14,6 @@ String devices = "";
 
 LiquidCrystal_I2C lcd(0x27, lcdColumns, lcdRows);
 I2C_Device search;
-String messageToScroll = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
 
 void setup() {
 
@@ -30,9 +29,8 @@ void setup() {
 
 
 void loop() {
-  lcd.setCursor(0, 0);
-  lcd.print("Scroll string");
-  scrollText(1, messageToScroll, 350, lcdColumns);
+
+  
 }
 
 void scrollText(int row, String message, int delayTime, int lcdColumns) {
