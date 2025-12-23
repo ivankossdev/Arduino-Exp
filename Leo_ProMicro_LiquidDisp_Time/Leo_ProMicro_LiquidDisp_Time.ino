@@ -1,5 +1,5 @@
 #include <Wire.h>
-#include <LiquidCrystal_I2C.h>
+#include "lcdTime.h"
 
 #define printByte(args) write(args);
 
@@ -12,22 +12,20 @@
 int lcdColumns = 16;
 int lcdRows = 2;
 
-LiquidCrystal_I2C lcd(0x27, lcdColumns, lcdRows);
-
-void charInit();
+LcdTime lcdTime(0x27, lcdColumns, lcdRows);
 
 void setup() {
-  lcd.init();
-  lcd.backlight();
-  lcd.clear();
+  lcdTime.init();
+  lcdTime.backlight();
+  lcdTime.clear();
 }
 
 void loop() {
-  for(int i = 0; i < 100; i++){
-    lcd.setCursor(0, 0);
-    lcd.print(i); 
-    delay(500);
+  for (int i = 0; i < 24; i++) {
+    lcdTime.printTime(i, i, i);
+    delay(250);
   }
-  lcd.clear();
+  delay(2500);
+  lcdTime.clear();
+  delay(250);
 }
-
