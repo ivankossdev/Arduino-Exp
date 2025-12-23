@@ -10,5 +10,3 @@ void displayInit() {
 void displayClear() {
   mylcd.LCDClear(0x00);
 }
-
-
