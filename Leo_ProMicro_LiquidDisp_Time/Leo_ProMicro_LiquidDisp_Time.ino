@@ -27,5 +27,6 @@ void loop() {
   ds.getTime();
   lcdTime.printTime(ds.timeString[2], ds.timeString[1], ds.timeString[0]);
   ds.getDate();
-  lcdTime.printDate(ds.Date);
+  ds.getMonth();
+  lcdTime.printDate(ds.Date, ds.Month);
 }

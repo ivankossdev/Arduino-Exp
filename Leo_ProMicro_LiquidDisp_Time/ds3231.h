@@ -20,6 +20,7 @@ public:
   int Month = 0;
   int Year = 0;
   void getDate();
+  void getMonth();
 
 private:
   uint8_t address;
