@@ -15,7 +15,7 @@ int lcdRows = 2;
 LcdTime lcdTime(0x27, lcdColumns, lcdRows);
 I2C_Device i2cDev; 
 SystemTime ds(DS3231);
-SerialSet set;
+SerialSet set(9600);
 
 
 void setup() {
@@ -33,6 +33,8 @@ void loop() {
   ds.getDate();
   ds.getMonth();
   ds.getYear(); 
-  lcdTime.printDate(ds.Year, ds.Date, ds.Month);
+  ds.getDay();
+
+  lcdTime.printDate(ds.Year, ds.Date, ds.Month, ds.Day);
   set.SetSerial();
 }

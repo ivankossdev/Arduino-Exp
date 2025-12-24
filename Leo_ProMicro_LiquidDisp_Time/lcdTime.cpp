@@ -22,7 +22,7 @@ void LcdTime::printTime(int h, int m, int s) {
   print(conv.OneFormat(s));
 }
 
-void LcdTime::printDate(int year, int date, int month) {
+void LcdTime::printDate(int year, int date, int month, String Day) {
   setCursor(0, 1);
   print("20");
 
@@ -46,4 +46,8 @@ void LcdTime::printDate(int year, int date, int month) {
   print(conv.TenFormat(month));
   setCursor(9, 1);
   print(conv.OneFormat(month));
+
+  setCursor(9, 0);
+  
+  print(Day);
 }

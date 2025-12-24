@@ -1,8 +1,7 @@
 #include "serialSet.h"
 
-SerialSet::SerialSet() {
-  Serial.begin(9600);
-  Serial.println("Start programm: ");
+SerialSet::SerialSet(unsigned long speed) {
+  Serial.begin(speed);
 }
 
 void SerialSet::SetSerial() {

@@ -15,7 +15,7 @@
 
 class SerialSet {
 public:
-  SerialSet();
+  SerialSet(unsigned long speed);
   void SetSerial();
 private:
   SystemTime systime{ DS3231 };

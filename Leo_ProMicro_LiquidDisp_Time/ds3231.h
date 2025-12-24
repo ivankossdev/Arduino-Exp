@@ -19,9 +19,11 @@ public:
   int Date = 0;
   int Month = 0;
   int Year = 0;
+  String Day = "";
   void getDate();
   void getMonth();
   void getYear();
+  void getDay();
 
 private:
   uint8_t address;
