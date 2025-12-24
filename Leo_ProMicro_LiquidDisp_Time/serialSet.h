@@ -16,7 +16,7 @@
 class SerialSet {
 public:
   SerialSet(unsigned long speed);
-  void SetSerial();
+  void SetCMD();
 private:
   SystemTime systime{ DS3231 };
   uint8_t TwoCharToInt(char c1, char c0);

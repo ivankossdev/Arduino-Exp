@@ -1,10 +1,11 @@
 #include "serialSet.h"
 
+
 SerialSet::SerialSet(unsigned long speed) {
   Serial.begin(speed);
 }
 
-void SerialSet::SetSerial() {
+void SerialSet::SetCMD() {
   String dsCmd;
   if (Serial.available() > 0) {
     dsCmd = Serial.readString();

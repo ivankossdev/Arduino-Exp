@@ -62,6 +62,6 @@ void SystemTime::getDay() {
     case 5: Day = "Fri"; break;
     case 6: Day = "Sat"; break;
     case 7: Day = "Sun"; break;
-    default: Day = "Error param"; break;
+    default: Day = "Err"; break;
   }
 }

@@ -7,7 +7,7 @@ class LcdTime : public LiquidCrystal_I2C {
 public:
   using LiquidCrystal_I2C::LiquidCrystal_I2C;
   void printTime(int h, int m, int s); 
-  void printDate(int year, int date, int month, String Day);
+  void printDate(int year, int date, int month, String &Day);
   
 private:
   Convertor conv; 

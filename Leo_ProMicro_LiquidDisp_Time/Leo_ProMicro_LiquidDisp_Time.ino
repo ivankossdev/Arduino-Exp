@@ -28,13 +28,13 @@ void setup() {
 }
 
 void loop() {
+  set.SetCMD();
   ds.getTime();
   lcdTime.printTime(ds.timeString[2], ds.timeString[1], ds.timeString[0]);
   ds.getDate();
   ds.getMonth();
   ds.getYear(); 
   ds.getDay();
-
   lcdTime.printDate(ds.Year, ds.Date, ds.Month, ds.Day);
-  set.SetSerial();
+  
 }
