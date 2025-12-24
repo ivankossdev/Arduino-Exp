@@ -21,6 +21,7 @@ public:
   int Year = 0;
   void getDate();
   void getMonth();
+  void getYear();
 
 private:
   uint8_t address;

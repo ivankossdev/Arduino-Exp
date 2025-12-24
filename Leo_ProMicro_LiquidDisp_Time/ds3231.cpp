@@ -35,11 +35,16 @@ void SystemTime::getTime() {
 }
 
 void SystemTime::getDate() {
-  ReadRegister(4, (size_t)1, OneRegisterData);
+  ReadRegister(4, 1, OneRegisterData);
   Date = conv.FromEightToDec(OneRegisterData[0] & 0x3f);
 }
 
 void SystemTime::getMonth() {
-  ReadRegister(5, (size_t)1, OneRegisterData);
+  ReadRegister(5, 1, OneRegisterData);
   Month = conv.FromEightToDec(OneRegisterData[0] & 0x1f);
+}
+
+void SystemTime::getYear() {
+  ReadRegister(6, 1, OneRegisterData);
+  Year = conv.FromEightToDec(OneRegisterData[0]);
 }
