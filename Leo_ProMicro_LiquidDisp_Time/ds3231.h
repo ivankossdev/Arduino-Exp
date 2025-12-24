@@ -3,6 +3,8 @@
 #include <Arduino.h>
 #include "convertor.h"
 
+#define DS3231 0x68
+
 enum class TimeData {
   sec,
   min,
@@ -12,11 +14,19 @@ enum class TimeData {
 class SystemTime {
 public:
   SystemTime(uint8_t address_);
-
+  void getTime();
+  int timeString[3] = { '\0' };
+  int Date = 0;
+  int Month = 0;
+  int Year = 0;
+  void getDate();
 
 private:
   uint8_t address;
   Convertor conv;
+  int OneRegisterData[1] = { '\0' };
+  void WriteToRegister(uint8_t regAddr, uint8_t data);
+  void ReadRegister(uint8_t regAddr, uint8_t size, int *data);
 };
 
 #endif

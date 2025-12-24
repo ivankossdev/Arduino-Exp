@@ -28,3 +28,18 @@ void LcdTime::printTime(int h, int m, int s) {
   setCursor(7, 0);
   print(S1);
 }
+
+void LcdTime::printDate(int date) {
+  Date0 = date / 10;
+  Date1 = date % 10;
+  setCursor(2, 1);
+  print('-');
+
+  setCursor(3, 1);
+  print(Date0);
+  setCursor(4, 1);
+  print(Date1);
+
+  setCursor(5, 1);
+  print('-');
+}
