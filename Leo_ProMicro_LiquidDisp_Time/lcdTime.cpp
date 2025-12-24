@@ -24,23 +24,26 @@ void LcdTime::printTime(int h, int m, int s) {
 
 void LcdTime::printDate(int year, int date, int month) {
   setCursor(0, 1);
-  print(conv.TenFormat(year));
-  setCursor(1, 1);
-  print(conv.OneFormat(year));
+  print("20");
 
   setCursor(2, 1);
-  print('-');
-
+  print(conv.TenFormat(year));
   setCursor(3, 1);
-  print(conv.TenFormat(date));
+  print(conv.OneFormat(year));
+
   setCursor(4, 1);
-  print(conv.OneFormat(date));
+  print('-');
 
   setCursor(5, 1);
+  print(conv.TenFormat(date));
+  setCursor(6, 1);
+  print(conv.OneFormat(date));
+
+  setCursor(7, 1);
   print('-');
 
-  setCursor(6, 1);
+  setCursor(8, 1);
   print(conv.TenFormat(month));
-  setCursor(7, 1);
+  setCursor(9, 1);
   print(conv.OneFormat(month));
 }
