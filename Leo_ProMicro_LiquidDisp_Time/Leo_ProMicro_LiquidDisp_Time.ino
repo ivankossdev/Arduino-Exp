@@ -21,11 +21,9 @@ void setup() {
 }
 
 void loop() {
-  for (int i = 0; i < 24; i++) {
-    lcdTime.printTime(i, i, i);
+  for (int i = 1; i < 04; i++) {
+    lcdTime.printTime(i + 3, i + 1, i);
     delay(500);
   }
-  delay(2500);
-  lcdTime.clear();
   delay(500);
 }

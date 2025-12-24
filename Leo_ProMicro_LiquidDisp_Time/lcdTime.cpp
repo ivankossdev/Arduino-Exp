@@ -8,9 +8,9 @@ void LcdTime::printTime(int h, int m, int s) {
   H1 = h % 10;
 
   setCursor(0, 0);
-  print(S0);
+  print(H0);
   setCursor(1, 0);
-  print(S1);
+  print(H1);
 
   setCursor(2, 0);
   print(':');
@@ -24,7 +24,7 @@ void LcdTime::printTime(int h, int m, int s) {
   print(':');
 
   setCursor(6, 0);
-  print(H0);
+  print(S0);
   setCursor(7, 0);
-  print(H1);
+  print(S1);
 }
