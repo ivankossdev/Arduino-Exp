@@ -24,6 +24,7 @@ public:
   void getMonth();
   void getYear();
   void getDay();
+  void setDay(uint8_t data);
 
 private:
   uint8_t address;

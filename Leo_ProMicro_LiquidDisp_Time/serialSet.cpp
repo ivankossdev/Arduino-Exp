@@ -12,11 +12,19 @@ void SerialSet::SetCMD() {
     CmdHandler(dsCmd);
   }
 }
-void SerialSet::CmdHandler(String &data){
+
+void SerialSet::CmdHandler(String &data) {
+  data.getBytes(cmd, 4);
+  String dataCmd(cmd);
+  dataCmd.trim();
+
+  if (dataCmd.equals("set")) {
     Serial.println(data);
-    data.getBytes(cmd, 4);
-    Serial.println(cmd);
-    Serial.println(data.substring(4));
+    Serial.println(dataCmd.substring(4));
+  } else {
+      Serial.print(dataCmd + " ");
+      Serial.println(" - cmd is not found");
+  }
 }
 
 uint8_t SerialSet::TwoCharToInt(char c1, char c0) {

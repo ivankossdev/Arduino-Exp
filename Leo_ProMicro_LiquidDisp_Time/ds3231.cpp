@@ -51,7 +51,7 @@ void SystemTime::getYear() {
 
 void SystemTime::getDay() {
   int day = 0;
-  ReadRegister(3, (size_t)1, OneRegisterData);
+  ReadRegister(3, 1, OneRegisterData);
   day = conv.FromEightToDec(OneRegisterData[0] & 0x07);
   Day = ""; 
   switch (day) {
@@ -64,4 +64,8 @@ void SystemTime::getDay() {
     case 7: Day = "Sun"; break;
     default: Day = "Err"; break;
   }
+}
+
+void SystemTime::setDay(uint8_t data) {
+  WriteToRegister(3, data);
 }
