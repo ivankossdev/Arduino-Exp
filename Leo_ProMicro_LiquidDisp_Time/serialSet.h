@@ -2,7 +2,9 @@
 #define _SERIALSET_H
 #include <Arduino.h>
 #include "ds3231.h"
+#include "convertor.h"
 #define DS3231 0x68
+
 
 /*
   CMD:
@@ -22,6 +24,8 @@ private:
   void CmdHandler(String &data);
   uint8_t TwoCharToInt(char c1, char c0);
   char cmd[8] = {'\0'};
+  void setDay(int day);
+  Convertor conv; 
 };
 
 #endif
