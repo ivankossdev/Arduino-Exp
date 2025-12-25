@@ -19,7 +19,9 @@ public:
   void SetCMD();
 private:
   SystemTime systime{ DS3231 };
+  void CmdHandler(String &data);
   uint8_t TwoCharToInt(char c1, char c0);
+  char cmd[8] = {'\0'};
 };
 
 #endif

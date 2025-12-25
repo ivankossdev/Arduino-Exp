@@ -22,7 +22,7 @@ void setup() {
   lcdTime.init();
   lcdTime.backlight();
   lcdTime.clear();
-  delay(100);
+  delay(500);
   Serial.begin(9600);
   Serial.println(i2cDev.searchDevice());
 }
