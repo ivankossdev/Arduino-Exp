@@ -44,14 +44,26 @@ void SystemTime::getDate() {
   Date = conv.FromEightToDec(OneRegisterData[0] & 0x3f);
 }
 
+void SystemTime::setDate(uint8_t data) {
+  WriteToRegister(4, data & 0x3f);
+}
+
 void SystemTime::getMonth() {
   ReadRegister(5, 1, OneRegisterData);
   Month = conv.FromEightToDec(OneRegisterData[0] & 0x1f);
 }
 
+void SystemTime::setMonth(uint8_t data) {
+  WriteToRegister(5, data & 0x1f);
+}
+
 void SystemTime::getYear() {
   ReadRegister(6, 1, OneRegisterData);
   Year = conv.FromEightToDec(OneRegisterData[0]);
+}
+
+void SystemTime::SetYear(uint8_t data) {
+  WriteToRegister(6, data);
 }
 
 void SystemTime::getDay() {

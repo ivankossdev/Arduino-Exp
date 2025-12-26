@@ -22,8 +22,11 @@ public:
   int Year = 0;
   String Day = "";
   void getDate();
+  void setDate(uint8_t data);
   void getMonth();
+  void setMonth(uint8_t data);
   void getYear();
+  void SetYear(uint8_t data);
   void getDay();
   void setDay(uint8_t data);
 
