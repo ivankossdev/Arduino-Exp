@@ -28,10 +28,15 @@ void SerialSet::CmdHandler(String &data) {
 
   if (dataCmd.equals("set")) {
     dataCmd = data.substring(3);
-    int param = dataCmd.toInt();
+    long param = dataCmd.toInt();
 
     switch (param % 10) {
-      case 1: Serial.println("Set time"); break;
+      case 1:
+        Serial.println("Set time");
+        setTime(param);
+        for (int i = 0; i < 3; i++)
+          Serial.println(time_[i]);
+        break;
       case 2: setDay(conv.TenFormat(param)); break;
       case 3: Serial.println("Set date"); break;
       default: Serial.println("-1");
@@ -50,6 +55,15 @@ void SerialSet::setDay(int day) {
   } else {
     Serial.println("Error cmd");
   }
+}
+
+void SerialSet::setTime(long time) {
+  long temp = time / 10;
+  for (int i = 0; i < 3; i++) {
+    time_[i] = int(temp % 100);
+    temp = temp / 100;
+  }
+  systime.SetTime(time_);
 }
 
 uint8_t SerialSet::TwoCharToInt(char c1, char c0) {

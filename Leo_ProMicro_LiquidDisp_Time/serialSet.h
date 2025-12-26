@@ -25,6 +25,8 @@ private:
   uint8_t TwoCharToInt(char c1, char c0);
   char cmd[8] = {'\0'};
   void setDay(int day);
+  void setTime(long time);
+  int  time_[3] = {'\0'};
   Convertor conv; 
 };
 

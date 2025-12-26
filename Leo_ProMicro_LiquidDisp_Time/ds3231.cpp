@@ -34,6 +34,11 @@ void SystemTime::getTime() {
   }
 }
 
+void SystemTime::SetTime(int *time){
+  for(int i = 0; i < 3; i++)
+    WriteToRegister(i, time[i]);
+}
+
 void SystemTime::getDate() {
   ReadRegister(4, 1, OneRegisterData);
   Date = conv.FromEightToDec(OneRegisterData[0] & 0x3f);

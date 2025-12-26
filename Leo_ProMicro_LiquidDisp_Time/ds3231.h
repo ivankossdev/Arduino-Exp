@@ -15,6 +15,7 @@ class SystemTime {
 public:
   SystemTime(uint8_t address_);
   void getTime();
+  void SetTime(int *time);
   int timeString[3] = { '\0' };
   int Date = 0;
   int Month = 0;
