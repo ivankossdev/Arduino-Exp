@@ -35,7 +35,7 @@ void SerialSet::CmdHandler(String &data) {
         Serial.println("Set time");
         setTime(param);
         for (int i = 0; i < 3; i++)
-          Serial.println(time_[i]);
+          Serial.println(insertData[i]);
         break;
       case 2: setDay(conv.TenFormat(param)); break;
       case 3: Serial.println("Set date"); break;
@@ -58,14 +58,19 @@ void SerialSet::setDay(int day) {
 }
 
 void SerialSet::setTime(long time) {
-  long temp = time / 10;
-  for (int i = 0; i < 3; i++) {
-    time_[i] = int(temp % 100);
-    temp = temp / 100;
-  }
-  systime.SetTime(time_);
+  formatData(time, insertData);
+  systime.SetTime(insertData);
 }
 
-uint8_t SerialSet::TwoCharToInt(char c1, char c0) {
-  return ((c1 & 0x0f) * 10) + (c0 & 0x0f);
+void SerialSet::setDate(long date){
+  formatData(date, insertData);
 }
+
+void SerialSet::formatData(long data, int *intData){
+  long temp = data / 10;
+  for (int i = 0; i < 3; i++) {
+    insertData[i] = int(temp % 100);
+    temp = temp / 100;
+  }
+}
+
