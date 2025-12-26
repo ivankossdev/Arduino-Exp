@@ -20,7 +20,7 @@ void setup() {
   Serial.print("Configuring access point...");
   
   IPAddress ip(192,168,0,100);     
-  IPAddress gateway(192,168,0,1);   
+  IPAddress gateway(192,168,0,100);   
   IPAddress subnet(255,255,255,0);
 
   WiFi.softAPConfig(ip, gateway, subnet);
