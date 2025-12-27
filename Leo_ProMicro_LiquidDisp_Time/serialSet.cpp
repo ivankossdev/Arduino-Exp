@@ -15,8 +15,9 @@ void SerialSet::SetCMD() {
 
 /*
   CMD: 
-    set2359591   (1 - com set time)
-    set12 ... 52 (5 - com set day)
+    set2359591   (1 - com set time 23:59:59)
+    set2512312.  (2 - com set date 25-12-31)
+    set13 ... 53 (3 - com set 5 day fri)
 */
 
 void SerialSet::CmdHandler(String &data) {
@@ -31,14 +32,9 @@ void SerialSet::CmdHandler(String &data) {
     long param = dataCmd.toInt();
 
     switch (param % 10) {
-      case 1:
-        Serial.println("Set time");
-        setTime(param);
-        for (int i = 0; i < 3; i++)
-          Serial.println(insertData[i]);
-        break;
-      case 2: setDay(conv.TenFormat(param)); break;
-      case 3: Serial.println("Set date"); break;
+      case 1: setTime(param); break;
+      case 2: setDate(param); break;
+      case 3: setDay(conv.TenFormat(param)); break;
       default: Serial.println("-1");
     }
   } else {
@@ -47,9 +43,6 @@ void SerialSet::CmdHandler(String &data) {
 }
 
 void SerialSet::setDay(int day) {
-  Serial.print("Set day ");
-  Serial.println(day);
-
   if (day >= 1 && day <= 7) {
     systime.setDay((uint8_t)day);
   } else {
@@ -64,6 +57,9 @@ void SerialSet::setTime(long time) {
 
 void SerialSet::setDate(long date){
   formatData(date, insertData);
+  systime.setDate(insertData[0]);
+  systime.setMonth(insertData[1]);
+  systime.SetYear(insertData[2]);
 }
 
 void SerialSet::formatData(long data, int *intData){

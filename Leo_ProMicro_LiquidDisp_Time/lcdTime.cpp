@@ -35,17 +35,17 @@ void LcdTime::printDate(int year, int date, int month, String &Day) {
   print('-');
 
   setCursor(5, 1);
-  print(conv.TenFormat(date));
+  print(conv.TenFormat(month));
   setCursor(6, 1);
-  print(conv.OneFormat(date));
+  print(conv.OneFormat(month));
 
   setCursor(7, 1);
   print('-');
 
   setCursor(8, 1);
-  print(conv.TenFormat(month));
+  print(conv.TenFormat(date));
   setCursor(9, 1);
-  print(conv.OneFormat(month));
+  print(conv.OneFormat(date));
 
   setCursor(13, 1);
   
