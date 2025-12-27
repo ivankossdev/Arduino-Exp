@@ -86,3 +86,15 @@ void SystemTime::getDay() {
 void SystemTime::setDay(uint8_t data) {
   WriteToRegister(3, data);
 }
+
+void SystemTime::getTemperature() {
+  ReadRegister(0x11, (size_t)1, OneRegisterData);
+  int t0x11 = conv.FromEightToDec(OneRegisterData[0]);
+  Temp[0] = conv.TenFormat(t0x11) | 0x30;
+  Temp[1] = conv.OneFormat(t0x11) | 0x30;
+
+  ReadRegister(0x12, (size_t)1, OneRegisterData);
+  int t0x12 = (OneRegisterData[0] >> 6) * 25;
+  Temp[3] = conv.TenFormat(t0x12) | 0x30;
+  Temp[4] = conv.OneFormat(t0x12) | 0x30;
+}

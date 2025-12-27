@@ -62,6 +62,7 @@ void SerialSet::setDate(long date){
   systime.SetYear(insertData[2]);
 }
 
+
 void SerialSet::formatData(long data, int *intData){
   long temp = data / 10;
   for (int i = 0; i < 3; i++) {

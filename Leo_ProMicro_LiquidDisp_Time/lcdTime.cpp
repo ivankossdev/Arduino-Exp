@@ -51,3 +51,14 @@ void LcdTime::printDate(int year, int date, int month, String &Day) {
   
   print(Day);
 }
+
+void LcdTime::printTemperature(char *temperature){
+  setCursor(10, 0);
+  print('t');
+  setCursor(11, 0);
+  print(temperature);
+}
+
+
+
+

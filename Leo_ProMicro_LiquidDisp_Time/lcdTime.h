@@ -8,6 +8,7 @@ public:
   using LiquidCrystal_I2C::LiquidCrystal_I2C;
   void printTime(int h, int m, int s); 
   void printDate(int year, int date, int month, String &Day);
+  void printTemperature(char *temperature);
   
 private:
   Convertor conv; 

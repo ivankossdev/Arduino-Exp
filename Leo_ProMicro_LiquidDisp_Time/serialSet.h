@@ -5,7 +5,6 @@
 #include "convertor.h"
 #define DS3231 0x68
 
-
 /*
   CMD:
     Set time:  settm235959 (23:59:59)

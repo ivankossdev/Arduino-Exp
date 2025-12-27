@@ -36,5 +36,7 @@ void loop() {
   ds.getYear(); 
   ds.getDay();
   lcdTime.printDate(ds.Year, ds.Date, ds.Month, ds.Day);
+  ds.getTemperature();
+  lcdTime.printTemperature(ds.Temp);
   
 }

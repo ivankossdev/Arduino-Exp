@@ -21,6 +21,7 @@ public:
   int Month = 0;
   int Year = 0;
   String Day = "";
+  char Temp[6] = { '0', '0', '.',  '0', '0'};
   void getDate();
   void setDate(uint8_t data);
   void getMonth();
@@ -29,6 +30,7 @@ public:
   void SetYear(uint8_t data);
   void getDay();
   void setDay(uint8_t data);
+  void getTemperature();
 
 private:
   uint8_t address;
