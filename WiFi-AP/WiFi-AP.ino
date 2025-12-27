@@ -17,7 +17,7 @@ void setup() {
   delay(1000);
   Serial.begin(115200);
   Serial.println();
-  Serial.print("Configuring access point...");
+  Serial.print("Configuring access point...\n");
   
   IPAddress ip(192,168,0,100);     
   IPAddress gateway(192,168,0,100);   
