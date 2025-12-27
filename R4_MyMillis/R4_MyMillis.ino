@@ -12,7 +12,7 @@ int count_1 = 0;
 int count_2 = 0;
 
 void printCount(int posY, int &c) {
-  if (c > 10) {
+  if (c > 99) {
     lcd.clear();
     c = 0;
   }
