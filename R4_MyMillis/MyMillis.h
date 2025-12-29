@@ -5,11 +5,11 @@
 class MyMillis{
   public: 
     MyMillis(unsigned long interval_);
-    bool tic();
-    bool tic(void (*prnt)(void));
-    bool tic(void (*prnt)(int, int&), int i, int& c);
-    bool state = false;
+    void tic(void (*prnt)(void));
+    void tic(void (*prnt)(int, int&), int i, int& c);
   private:
+    bool tic_();
+    bool state = false;
     long interval; 
     unsigned long previous = 0;
 }; 

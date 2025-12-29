@@ -3,7 +3,7 @@ MyMillis::MyMillis(unsigned long interval_){
   this->interval = interval_; 
 }
 
-bool MyMillis::tic(){
+bool MyMillis::tic_(){
   unsigned long current = millis();
   
   if (current - previous >= interval){
@@ -12,24 +12,25 @@ bool MyMillis::tic(){
   }
   return state;
 }
-bool MyMillis::tic(void (*prnt)(void)){
-  unsigned long current = millis();
-  
-  if (current - previous >= interval){
-    prnt();
-    previous = current;
-    state = true; 
+void MyMillis::tic(void (*prnt)(void)){
+  if(tic_()){
+    prnt(); 
+    state = false; 
   }
-  return state;
 }
 
-bool MyMillis::tic(void (*prnt)(int, int&), int i, int& c){
-  unsigned long current = millis();
-  
-  if (current - previous >= interval){
-    prnt(i, c);
-    previous = current;
-    state = true; 
+void MyMillis::tic(void (*prnt)(int, int&), int i, int& c){
+  if(tic_()){
+    prnt(i, c); 
+    state = false; 
   }
-  return state;
 }
+
+
+
+
+
+
+
+
+
