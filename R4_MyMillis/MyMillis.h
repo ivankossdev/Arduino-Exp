@@ -7,6 +7,7 @@ class MyMillis{
     MyMillis(unsigned long interval_);
     void tic(void (*prnt)(void));
     void tic(void (*prnt)(int, int&), int i, int& c);
+    void tic(void(*prnt)(int , String, int l), int row, String message, int lcdColumns);
   private:
     bool tic_();
     bool state = false;

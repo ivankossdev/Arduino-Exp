@@ -26,6 +26,13 @@ void MyMillis::tic(void (*prnt)(int, int&), int i, int& c){
   }
 }
 
+void MyMillis::tic(void(*prnt)(int , String , int l), int row, String message, int lcdColumns){
+  if(tic_()){
+    prnt(row, message, lcdColumns); 
+    state = false;
+  }
+}
+
 
 
 
