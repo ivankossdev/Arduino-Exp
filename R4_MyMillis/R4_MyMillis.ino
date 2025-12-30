@@ -12,10 +12,10 @@ MyMillis scroll(500);
 int count_1 = 0;
 int count_2 = 0;
 
-int pos = 0; 
-String message = "Hello led!!!"; 
+int pos = 0;
+String scrollMessage = "Hello led!!!"; 
 
-void printCount(int posY, int &c) {
+void printCount(int posY, int& c) {
   lcd.setCursor(0, posY);
   if (c > 99) {
     c = 0;
@@ -31,20 +31,25 @@ void setup() {
   lcd.init();
   lcd.backlight();
   lcd.clear();
+  scrollMessageInit(scrollMessage, 5);
 }
 
 void loop() {
   interval_1.tic(printCount, 0, count_1);
   interval_2.tic(printCount, 1, count_2);
-  scroll.tic(scrollText, 0, "Hello led!!!", 5); 
+  scroll.tic(scrollText, 0, scrollMessage, 5);
+}
+
+void scrollMessageInit(String& message, int lcdColumns) {
+  for (int i = 0; i < lcdColumns; i++) {
+    message = " " + message;
+  }
 }
 
 void scrollText(int row, String message, int lcdColumns) {
-  if(pos >= message.length()){
-    pos = 0; 
-    // for (int i = 0; i < lcdColumns; i++) {
-    //   message = " " + message;
-    // }
+  if (pos >= message.length()) {
+
+    pos = 0;
   }
   message = message + " ";
   lcd.setCursor(11, row);
