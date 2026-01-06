@@ -37,6 +37,8 @@ void SerialSet::CmdHandler(String &data) {
       case 3: setDay(conv.TenFormat(param)); break;
       default: Serial.println("-1");
     }
+  } else if (dataCmd.equals("i2c")) {
+    Serial.println(i2cDev.searchDevice());
   } else {
     Serial.println(data + " - cmd is not found");
   }
@@ -55,7 +57,7 @@ void SerialSet::setTime(long time) {
   systime.SetTime(insertData);
 }
 
-void SerialSet::setDate(long date){
+void SerialSet::setDate(long date) {
   formatData(date, insertData);
   systime.setDate(insertData[0]);
   systime.setMonth(insertData[1]);
@@ -63,11 +65,10 @@ void SerialSet::setDate(long date){
 }
 
 
-void SerialSet::formatData(long data, int *intData){
+void SerialSet::formatData(long data, int *intData) {
   long temp = data / 10;
   for (int i = 0; i < 3; i++) {
     insertData[i] = int(temp % 100);
     temp = temp / 100;
   }
 }
-
