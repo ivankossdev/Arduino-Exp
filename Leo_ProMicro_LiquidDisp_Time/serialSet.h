@@ -4,7 +4,9 @@
 #include "ds3231.h"
 #include "convertor.h"
 #include "I2C_Device.h"
-#define DS3231 0x68
+#include "ex_eeprom.h"
+// #define DS3231 0x68
+// #define EEPROM 0x57
 
 class SerialSet {
 public:

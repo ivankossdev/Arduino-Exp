@@ -39,6 +39,9 @@ void SerialSet::CmdHandler(String &data) {
     }
   } else if (dataCmd.equals("i2c")) {
     Serial.println(i2cDev.searchDevice());
+  } else if (dataCmd.equals("mem")) {
+    Serial.println("test memory: ");
+    
   } else {
     Serial.println(data + " - cmd is not found");
   }
