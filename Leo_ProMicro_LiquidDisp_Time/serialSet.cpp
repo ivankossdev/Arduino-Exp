@@ -42,6 +42,13 @@ void SerialSet::CmdHandler(String &data) {
   } else if (dataCmd.equals("mem")) {
     Serial.println("test memory: ");
     
+    at24.writeByte(0x00, '5');  
+    delay(10);                
+    Serial.println("Write complete.");
+    byte data = at24.readByte(0x00);
+    Serial.print("Data read from EEPROM: 0x");
+    Serial.println(data, HEX);
+    /*------------------------------------------------------------------*/
   } else {
     Serial.println(data + " - cmd is not found");
   }

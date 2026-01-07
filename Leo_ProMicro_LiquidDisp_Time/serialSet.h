@@ -4,9 +4,7 @@
 #include "ds3231.h"
 #include "convertor.h"
 #include "I2C_Device.h"
-#include "ex_eeprom.h"
-// #define DS3231 0x68
-// #define EEPROM 0x57
+#include "AT24xx.h"
 
 class SerialSet {
 public:
@@ -15,6 +13,7 @@ public:
   
 private:
   SystemTime systime{ DS3231 };
+  At24 at24{ EEPROM_I2C_ADDRESS }; 
   Convertor conv; 
   void CmdHandler(String &data);
   char cmd[8] = {'\0'};
