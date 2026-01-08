@@ -10,6 +10,8 @@ public:
   At24(uint8_t address_);
   void writeByte(unsigned int memAddress, byte data);
   byte readByte(unsigned int memAddress);
+  void writeArrayByte(unsigned int memAddress, byte *data, int length);
+  void readArrayByte(unsigned int memAddress, byte *buffer, int length);
 private:
 uint8_t address;
 };

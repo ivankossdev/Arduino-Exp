@@ -26,3 +26,32 @@ byte At24::readByte(unsigned int memAddress) {
   if (Wire.available()) data = Wire.read();
   return data;
 }
+
+void At24::writeArrayByte(unsigned int memAddress, byte *data, int length){
+  Wire.beginTransmission(EEPROM_I2C_ADDRESS);
+  Wire.write((memAddress >> 8) & 0xFF);
+  Wire.write(memAddress & 0xFF);
+  for(int i = 0; i < length; i++){
+    Wire.write(data[i]);
+  }
+  Wire.endTransmission();
+  delay(5);
+}
+
+void At24::readArrayByte(unsigned int memAddress, byte *buffer, int length) {
+  Wire.beginTransmission(EEPROM_I2C_ADDRESS);
+  Wire.write((memAddress >> 8) & 0xFF);
+  Wire.write(memAddress & 0xFF);
+  Wire.endTransmission();
+
+  Wire.requestFrom(EEPROM_I2C_ADDRESS, length);
+  for (int i = 0; i < length && Wire.available(); i++) {
+    buffer[i] = Wire.read();
+  }
+}
+
+
+
+
+
+
