@@ -12,6 +12,7 @@ public:
   byte readByte(unsigned int memAddress);
   void writeArrayByte(unsigned int memAddress, byte *data, int length);
   void readArrayByte(unsigned int memAddress, byte *buffer, int length);
+  byte buffer[64] = {'\0'};
 private:
 uint8_t address;
 };

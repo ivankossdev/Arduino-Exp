@@ -40,14 +40,11 @@ void SerialSet::CmdHandler(String &data) {
   } else if (dataCmd.equals("i2c")) {
     Serial.println(i2cDev.searchDevice());
   } else if (dataCmd.equals("mem")) {
-    Serial.println("test memory: ");
+    Serial.println("Read memory address 0x00 + 10: ");
     
-    at24.writeByte(0x00, '5');  
-    delay(10);                
-    Serial.println("Write complete.");
-    byte data = at24.readByte(0x00);
-    Serial.print("Data read from EEPROM: 0x");
-    Serial.println(data, HEX);
+    at24.readArrayByte(0x00, at24.buffer, 10);
+    Serial.println((char *)at24.buffer);              
+
     /*------------------------------------------------------------------*/
   } else {
     Serial.println(data + " - cmd is not found");
