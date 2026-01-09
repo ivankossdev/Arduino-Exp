@@ -5,15 +5,32 @@
 #define DIO 3
 
 TM1637Display display(CLK, DIO);
-uint8_t data[4] = {'\0'};
+int seconds = 0;
+int minutes = 0;
+bool colonState = true;
+int endSecond = 59; 
+int endMinutes = 59; 
 
 void setup() {
   display.setBrightness(0x00);
 }
 
 void loop() {
-  for(int i = 0; i < 100; i++){
-    display.showNumberDec(i, true);
-    delay(100);
+
+  if (seconds > endSecond) {
+    seconds = 0;
+    minutes++;
+  } 
+  if (minutes > endMinutes){
+    seconds = 0;
+    minutes = 0;
   }
+  int timeValue = minutes * 100 + seconds;
+  
+  display.showNumberDecEx(timeValue, colonState ? (0x80 >> 1) : 0b00000000, true);
+  colonState = !colonState;
+
+  seconds++;
+  delay(1000);
 }
+
