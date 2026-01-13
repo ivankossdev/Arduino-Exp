@@ -6,29 +6,25 @@
 #define DIO 4 // data digital pin
 
 TM1638 tm(CLK,DIO,STB);
+int8_t digit[10] = {0b00111111, 0b00000110, 0b01011011, 0b01001111, 0b01100110, 0b01101101, 0b01111101, 0b00000111, 0b01111111, 0b01101111}; 
 
 void setup() {
-  Serial.begin(9600);
   tm.reset();
-  tm.test();
 }
 
-pulse_t pulse=PULSE1_16;
 
 void loop() {
-  tm.displayDig(0, 0x6);
-  // for(int i = 0; i < 0xff; i++){
-  //   tm.displayDig(0, i);
-  //   Serial.println(i, HEX);
-  //   delay(1000);
-  // }
 
-  // const uint8_t text[]={0x7c,0x1c,0x78,0x78,0x5c,0x54};
-  // for (uint8_t i=0;i<sizeof(text);i++)
-  //   tm.displayDig(7-i, text[i]);
+  for(int i = 0, i_ = 9; i < 10; i++, i_--){
+    tm.displayDig(0, digit[i]);
+    tm.displayDig(7, digit[i_]);
+    delay(500);
+  }
 
-  // uint8_t buttons = tm.getButtons();
-  // tm.writeLeds(buttons);
+  uint8_t buttons = tm.getButtons();
+  tm.writeLeds(buttons);
+  
+}
 
   // static uint32_t timer = millis();
   
@@ -37,5 +33,3 @@ void loop() {
   //   tm.displaySetBrightness(pulse);
   //   pulse = (pulse==PULSE1_16) ? PULSE14_16 : PULSE1_16;
   // }
-  
-}
