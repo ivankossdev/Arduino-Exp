@@ -7,6 +7,20 @@
 
 TM1638 tm(CLK,DIO,STB);
 int8_t digit[10] = {0b00111111, 0b00000110, 0b01011011, 0b01001111, 0b01100110, 0b01101101, 0b01111101, 0b00000111, 0b01111111, 0b01101111}; 
+unsigned int seg[4] = {'\0'};
+
+unsigned int *decToSegment(int digital, int count){
+
+    int x = 1; 
+
+    do{
+        count--;
+        seg[count] = digital / x % 10; 
+        x *= 10;
+    } while( digital / x);
+
+   return seg;  
+}
 
 void setup() {
   tm.reset();
@@ -15,10 +29,14 @@ void setup() {
 
 void loop() {
 
-  for(int i = 0, i_ = 9; i < 10; i++, i_--){
-    tm.displayDig(0, digit[i]);
-    tm.displayDig(7, digit[i_]);
-    delay(500);
+  for(unsigned int i = 0; i < 999; i++){
+    decToSegment(i, 4);
+    tm.displayDig(2, digit[seg[3]]);
+    tm.displayDig(3, digit[seg[2]]);
+    tm.displayDig(4, digit[seg[1]]);
+    tm.displayDig(5, digit[seg[0]]);
+
+    delay(100);
   }
 
   uint8_t buttons = tm.getButtons();
