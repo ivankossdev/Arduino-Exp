@@ -4,8 +4,8 @@
 #include <ESP8266mDNS.h>
 
 #ifndef STASSID
-#define STASSID "Thech"
-#define STAPSK "12345678"
+#define STASSID "Beeline_2G_FF3761"
+#define STAPSK "qJaHxeUC"
 #endif
 
 const char* ssid = STASSID;
@@ -23,14 +23,9 @@ const String postForms = "<html>\
     </style>\
   </head>\
   <body>\
-    <h1>POST plain text to /postplain/</h1><br>\
-    <form method=\"post\" enctype=\"text/plain\" action=\"/postplain/\">\
-      <input type=\"text\" name=\'{\"hello\": \"world\", \"trash\": \"\' value=\'\"}\'><br>\
-      <input type=\"submit\" value=\"Submit\">\
-    </form>\
     <h1>POST form data to /postform/</h1><br>\
     <form method=\"post\" enctype=\"application/x-www-form-urlencoded\" action=\"/postform/\">\
-      <input type=\"text\" name=\"hello\" value=\"world\"><br>\
+      <input type=\"text\" name=\"send actiom\"><br>\
       <input type=\"submit\" value=\"Submit\">\
     </form>\
   </body>\
@@ -42,18 +37,6 @@ void handleRoot() {
   digitalWrite(led, 0);
 }
 
-void handlePlain() {
-  if (server.method() != HTTP_POST) {
-    digitalWrite(led, 1);
-    server.send(405, "text/plain", "Method Not Allowed");
-    digitalWrite(led, 0);
-  } else {
-    digitalWrite(led, 1);
-    server.send(200, "text/plain", "POST body was:\n" + server.arg("plain"));
-    digitalWrite(led, 0);
-  }
-}
-
 void handleForm() {
   if (server.method() != HTTP_POST) {
     digitalWrite(led, 1);
@@ -62,7 +45,10 @@ void handleForm() {
   } else {
     digitalWrite(led, 1);
     String message = "POST form was:\n";
-    for (uint8_t i = 0; i < server.args(); i++) { message += " " + server.argName(i) + ": " + server.arg(i) + "\n"; }
+    for (uint8_t i = 0; i < server.args(); i++) {
+      message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
+    }
+    Serial.println(message);
     server.send(200, "text/plain", message);
     digitalWrite(led, 0);
   }
@@ -104,8 +90,6 @@ void setup(void) {
   if (MDNS.begin("esp8266")) { Serial.println("MDNS responder started"); }
 
   server.on("/", handleRoot);
-
-  server.on("/postplain/", handlePlain);
 
   server.on("/postform/", handleForm);
 
