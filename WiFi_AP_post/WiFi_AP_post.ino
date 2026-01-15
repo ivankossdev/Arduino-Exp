@@ -18,7 +18,7 @@ void handleForm() {
   } else {
     String message = "POST form was:\n";
     for (uint8_t i = 0; i < server.args(); i++) {
-      message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
+      message += server.argName(i) + ": " + server.arg(i) + "\n";
     }
     Serial.println(message);
     server.send(200, "text/plain", message);

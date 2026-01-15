@@ -3,9 +3,12 @@
 
 class Page{
 public: 
+    Page();
     String main();
+    String style();
 private:
     String main_ = ""; 
+    String style_ = ""; 
 };
 
 extern Page page;

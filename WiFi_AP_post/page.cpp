@@ -1,13 +1,7 @@
 #include "page.h"
 
-String Page::main(){
-main_ = "<!DOCTYPE html>\n\
-<html lang=\"en\">\n\
-<head>\n\
-    <meta charset=\"UTF-8\">\n\
-    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n\
-    <title>Send String </title>\n\
-    <style>\n\
+Page::Page(){
+  style_ = "    <style>\n\
         button,input,select,textarea,optgroup{font:inherit;margin:0}optgroup{font-weight:bold}\n\
         button,input{overflow:visible}button,select{text-transform:none}\n\
         button,[type=button],[type=reset],[type=submit]{-webkit-appearance:button}\n\
@@ -24,8 +18,17 @@ main_ = "<!DOCTYPE html>\n\
         .w3-btn:hover{box-shadow:0 8px 16px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19)}\n\
         .w3-black,.w3-hover-black:hover{color:#fff!important;background-color:#000!important}\n\
         .w3-display-topmiddle{position:absolute;left:50%;top:0;transform:translate(-50%,0%);-ms-transform:translate(-50%,0%)}\n\
-    </style>\n\
-</head>\n\
+    </style>\n"; 
+}
+
+String Page::main(){
+main_ = "<!DOCTYPE html>\n\
+<html lang=\"en\">\n\
+<head>\n\
+    <meta charset=\"UTF-8\">\n\
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n\
+    <title>Send String </title>\n" + style_ + \
+"</head>\n\
 <body class=\"w3-container w3-blue-grey\">\n\
     <div class=\"w3-container\">\n\
         <div class=\"w3-display-topmiddle\">\n\
@@ -40,6 +43,10 @@ main_ = "<!DOCTYPE html>\n\
 </body>\n\
 </html>\n";
   return main_;
+}
+
+String Page::style(){
+  return style_; 
 }
 
 
