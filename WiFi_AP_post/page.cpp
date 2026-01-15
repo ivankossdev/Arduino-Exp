@@ -1,6 +1,7 @@
-#ifndef _VAR_H_
+#include "page.h"
 
-const String postForms = "<!DOCTYPE html>\n\
+String Page::main(){
+main_ = "<!DOCTYPE html>\n\
 <html lang=\"en\">\n\
 <head>\n\
     <meta charset=\"UTF-8\">\n\
@@ -38,5 +39,8 @@ const String postForms = "<!DOCTYPE html>\n\
     </div>\n\
 </body>\n\
 </html>\n";
+  return main_;
+}
 
-#endif 
+
+Page page;

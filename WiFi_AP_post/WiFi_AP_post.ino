@@ -1,7 +1,7 @@
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
-#include "var.h"
+#include "page.h"
 
 const char *ssid = "ESP-AP";
 const char *password = "12345678";
@@ -9,7 +9,7 @@ const char *password = "12345678";
 ESP8266WebServer server(80);
 
 void handleRoot() {
-  server.send(200, "text/html", postForms);
+  server.send(200, "text/html", page.main());
 }
 
 void handleForm() {
