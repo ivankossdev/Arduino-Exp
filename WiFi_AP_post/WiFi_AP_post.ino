@@ -3,7 +3,7 @@
 #include <ESP8266WebServer.h>
 #include "page.h"
 
-const char *ssid = "ESP-AP";
+const char *ssid = "SC-AP";
 const char *password = "12345678";
 
 ESP8266WebServer server(80);
