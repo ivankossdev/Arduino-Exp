@@ -3,17 +3,17 @@
 #include <Arduino.h>
 #include <Wire.h>
 
-#define EEPROM_I2C_ADDRESS 0x57
-
 class At24{
 public:
-  At24(uint8_t address_);
+  At24(int address_);
   void writeByte(unsigned int memAddress, byte data);
   byte readByte(unsigned int memAddress);
   void writeArrayByte(unsigned int memAddress, byte *data, int length);
   void readArrayByte(unsigned int memAddress, byte *buffer, int length);
+  void writeWord(int memAddress, char *word);
+  void readWord(int memAddress, char *word);
 private:
-uint8_t address;
+int address;
 };
 
 #endif /* _AT24XX_H_ */
