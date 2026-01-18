@@ -3,6 +3,8 @@
 #include <Arduino.h>
 #include <Wire.h>
 
+#define LENGHT_PAGE 64
+
 class At24{
 public:
   At24(int address_);
@@ -12,6 +14,7 @@ public:
   void readArrayByte(unsigned int memAddress, byte *buffer, int length);
   void writeWord(int memAddress, char *word);
   void readWord(int memAddress, char *word);
+  void clearPage(int memAddress);
 private:
 int address;
 };
