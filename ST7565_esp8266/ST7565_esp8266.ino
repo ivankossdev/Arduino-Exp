@@ -5,18 +5,20 @@
 
 /*
 GMG12864-06D ver 2.2	ESP8266
-                  CS	D8(CS)
+
+                  CS	D8(CS) --- 15
                  RSE	3.3v
-                  RS	D4
-                 SCL	D5(SCLK)
-                  SI	D7(MOSI)
-                  VDD	3.3v
-                  VSS	GND
+                  RS	D4 ------- 2
+                 SCL	D5(SCLK) - 14
+                  SI	D7(MOSI) - 13
+                 VDD	3.3v
+                 VSS	GND
+
 A — Анод подсветки (+)	3.3v или PWM D
 K — Катод подсветки (-)	GND
 */ 
 
-U8G2_ST7565_ERC12864_F_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/D8, /* dc=*/D4, /* reset=*/ 0);
+U8G2_ST7565_ERC12864_F_4W_HW_SPI u8g2(U8G2_MIRROR_VERTICAL, /* cs=*/D8, /* dc=*/D4, /* reset=*/ 0);
 
 static unsigned char caticon[] U8X8_PROGMEM = {
     0x10, 0x00, 0x02, 0x30, 0x00, 0x03, 0xf0, 0xf1, 0x03, 0xf0, 0xff, 0x03,
@@ -30,7 +32,7 @@ void setup() {
   u8g2.begin();
   u8g2.enableUTF8Print();
   u8g2.setFlipMode(1);
-  u8g2.setContrast(60);
+  u8g2.setContrast(10);
 }
 
 void loop() {
