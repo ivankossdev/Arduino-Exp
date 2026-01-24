@@ -13,29 +13,33 @@ void setup() {
 }
 
 void loop() {
-  for (int i = 0; i < 60; i++) {
-    prntSec(i);
-    delay(250);
+  for(int i = 0; i < 60; i++){
+    printDig(i);
+    delay(500);
   }
+
 }
 
-void prntSec(unsigned int digital) {
-  int count = 2;
-  int x = 1;
+void printDig(uint64_t digital) {
+  int count = 6;
+  uint64_t div = 1;
+
+  for(int i = 0; i < count; i++) data[i] = 0;
+
   do {
     count--;
-    int d = digital / x % 10;
+    uint64_t d = digital / div % 10;
     switch (count) {
-      case 0: data[4] = display.encodeDigit(d); break;
-      case 1: data[3] = display.encodeDigit(d); break;
+      case 0: data[2] = display.encodeDigit(d); break;
+      case 1: data[1] = display.encodeDigit(d); break;
+      case 2: data[0] = display.encodeDigit(d); break;
+      case 3: data[5] = display.encodeDigit(d); break;
+      case 4: data[4] = display.encodeDigit(d); break;
+      case 5: data[3] = display.encodeDigit(d); break;
     }
-    x *= 10;
-  } while (digital / x);
 
-  data[2] = 0;
-  data[1] = 0 | 0b10000000;
-  data[0] = 0;
-  data[5] = 0 | 0b10000000;
+    div *= 10;
+  } while (digital / div);
 
   display.setSegments(data, 6);
 }
