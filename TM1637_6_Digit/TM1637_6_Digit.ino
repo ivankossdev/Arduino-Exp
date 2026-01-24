@@ -15,7 +15,7 @@ void setup() {
 void loop() {
   for(int i = 0; i < 60; i++){
     printDig(i);
-    delay(500);
+    delay(100);
   }
 
 }
@@ -23,12 +23,13 @@ void loop() {
 void printDig(uint64_t digital) {
   int count = 6;
   uint64_t div = 1;
+  uint64_t d = 0; 
 
   for(int i = 0; i < count; i++) data[i] = 0;
 
   do {
     count--;
-    uint64_t d = digital / div % 10;
+    d = digital / div % 10;
     switch (count) {
       case 0: data[2] = display.encodeDigit(d); break;
       case 1: data[1] = display.encodeDigit(d); break;
