@@ -10,7 +10,8 @@ bool dotState = true;
 
 void setup() {
   display.setBrightness(0x2);
-  // Serial.begin(9600);
+  Serial.begin(9600);
+  setZero(0b00001100);
 }
 
 void loop() {
@@ -20,13 +21,26 @@ void loop() {
   }
 }
 
+void setZero(uint8_t mask){
+  for (int i = 0; i < 6; i++) {
+    
+    switch (i) {
+      case 5: data[2] = (mask >> i) & 1 == 1 ? display.encodeDigit(0) : 0; break;
+      case 4: data[1] = (mask >> i) & 1 == 1 ? display.encodeDigit(0) : 0; break;
+      case 3: data[0] = (mask >> i) & 1 == 1 ? display.encodeDigit(0) : 0; break;
+      case 2: data[5] = (mask >> i) & 1 == 1 ? display.encodeDigit(0) : 0; break;
+      case 1: data[4] = (mask >> i) & 1 == 1 ? display.encodeDigit(0) : 0; break;
+      case 0: data[3] = (mask >> i) & 1 == 1 ? display.encodeDigit(0) : 0; break;
+    }
+  }
+}
+
 void printDig(uint64_t digital) {
   int count = 6;
   uint64_t div = 1;
   uint64_t d = 0;
 
-  for (int i = 0; i < count; i++) data[i] = 0;
-  data[4] = display.encodeDigit(0);
+  setZero(0b00110011);
   /* Мигающие точки  */
   data[5] |= dotState ? 0b10000000 : (0b10000000 & ~0b10000000);
   data[1] |= dotState ? 0b10000000 : (0b10000000 & ~0b10000000);
