@@ -10,8 +10,7 @@ bool dotState = true;
 
 void setup() {
   display.setBrightness(0x2);
-  Serial.begin(9600);
-  setZero(0b00001100);
+  // Serial.begin(9600);
 }
 
 void loop() {
