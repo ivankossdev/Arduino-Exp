@@ -9,7 +9,7 @@ TM1637Display display(CLK, DIO);
 bool dotState = true;
 
 void setup() {
-  display.setBrightness(0x2);
+  display.setBrightness(0x1);
   // Serial.begin(9600);
 }
 
