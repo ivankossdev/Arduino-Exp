@@ -9,20 +9,21 @@ TM1637Display display(CLK, DIO);
 bool dotState = true;
 
 void setup() {
-  display.setBrightness(0x1);
+  display.setBrightness(0x0);
   // Serial.begin(9600);
 }
 
 void loop() {
-  for (int i = 0; i < 60; i++) {
+  for (int i = 80; i < 159; i++) {
+
     printDig(i);
-    delay(250);
+    delay(100);
   }
 }
 
-void setZero(uint8_t mask){
+void setZero(uint8_t mask) {
   for (int i = 0; i < 6; i++) {
-    
+
     switch (i) {
       case 5: data[2] = (mask >> i) & 1 == 1 ? display.encodeDigit(0) : 0; break;
       case 4: data[1] = (mask >> i) & 1 == 1 ? display.encodeDigit(0) : 0; break;
@@ -39,11 +40,7 @@ void printDig(uint64_t digital) {
   uint64_t div = 1;
   uint64_t d = 0;
 
-  setZero(0b00110011);
-  /* Мигающие точки  */
-  data[5] |= dotState ? 0b10000000 : (0b10000000 & ~0b10000000);
-  data[1] |= dotState ? 0b10000000 : (0b10000000 & ~0b10000000);
-  dotState = !dotState;
+  setZero(0b00111111);
 
   do {
     count--;
@@ -60,6 +57,11 @@ void printDig(uint64_t digital) {
 
     div *= 10;
   } while (digital / div);
+
+  /* Мигающие точки  */
+  data[5] |= dotState ? 0b10000000 : (0b10000000 & ~0b10000000);
+  data[1] |= dotState ? 0b10000000 : (0b10000000 & ~0b10000000);
+  dotState = !dotState;
 
   display.setSegments(data, 6);
 }
