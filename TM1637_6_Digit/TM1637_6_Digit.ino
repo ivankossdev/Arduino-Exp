@@ -8,17 +8,39 @@ uint8_t data[6] = { '\0' };
 TM1637Display display(CLK, DIO);
 bool dotState = true;
 
+int sec = 00;
+int min = 47;
+int hr = 14;
+
 void setup() {
   display.setBrightness(0x0);
   // Serial.begin(9600);
 }
 
 void loop() {
-  for (int i = 80; i < 159; i++) {
-
-    printDig(i);
-    delay(100);
+  sec++;
+  delay(1000);
+  if (sec > 59) {
+    sec = 0;
+    min++;
   }
+
+  if (min > 59) {
+    min = 0;
+    hr++;
+  }
+
+  if (hr > 23) {
+    hr = 0;
+  }
+  
+  printDig(showTime(hr, min, sec));
+}
+
+uint64_t showTime(int hr, int min, int sec) {
+  uint64_t time = 0;
+  time = hr * 100 + min;
+  return time * 100 + sec;
 }
 
 void setZero(uint8_t mask) {
