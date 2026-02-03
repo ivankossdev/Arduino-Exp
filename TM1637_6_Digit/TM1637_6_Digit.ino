@@ -1,40 +1,33 @@
 #include <Arduino.h>
 #include <TM1637Display.h>
+#include "ds3231.h"
+#include "serialSet.h"
 
 #define CLK 2
 #define DIO 3
+
+/*
+  A4 SDA
+  A5 SCL
+*/
+
+SystemTime sysTime(DS3231);
+SerialSet set(9600);
 
 uint8_t data[6] = { '\0' };
 TM1637Display display(CLK, DIO);
 bool dotState = true;
 
-int sec = 00;
-int min = 47;
-int hr = 14;
-
 void setup() {
   display.setBrightness(0x0);
-  // Serial.begin(9600);
+  Serial.begin(9600);
 }
 
 void loop() {
-  sec++;
-  delay(1000);
-  if (sec > 59) {
-    sec = 0;
-    min++;
-  }
-
-  if (min > 59) {
-    min = 0;
-    hr++;
-  }
-
-  if (hr > 23) {
-    hr = 0;
-  }
-  
-  printDig(showTime(hr, min, sec));
+  set.SetCMD();
+  sysTime.getTime();
+  printDig(showTime(sysTime.timeString[2], sysTime.timeString[1], sysTime.timeString[0]));
+  delay(100);
 }
 
 uint64_t showTime(int hr, int min, int sec) {
