@@ -43,8 +43,12 @@ void SerialSet::CmdHandler(String &data) {
   } else if (dataCmd.equals("get")) {
     dataCmd = data.substring(3);
 
-    if (dataCmd.equals(" time")) Serial.println("Get time");
-    if (dataCmd.equals(" date")) Serial.println("Get date");
+    if (dataCmd.equals(" time")) {
+      showTime();
+    }
+    if (dataCmd.equals(" date")) {
+      showDate();
+    }
 
   } else if (dataCmd.equals("mem")) {
     Serial.println("Read memory address 0x00 + 10: ");
@@ -55,6 +59,28 @@ void SerialSet::CmdHandler(String &data) {
   } else {
     Serial.println(data + " - cmd is not found");
   }
+}
+
+void SerialSet::showTime() {
+  systime.getTime();
+  Serial.print("time ");
+  Serial.print(systime.timeString[2]);
+  Serial.print(":");
+  Serial.print(systime.timeString[1]);
+  Serial.print(":");
+  Serial.println(systime.timeString[0]);
+}
+
+void SerialSet::showDate() {
+  systime.getDate();
+  systime.getMonth();
+  systime.getYear();
+  Serial.print("date ");
+  Serial.print(systime.Year);
+  Serial.print("-");
+  Serial.print(systime.Month);
+  Serial.print("-");
+  Serial.println(systime.Date);
 }
 
 void SerialSet::setDay(int day) {

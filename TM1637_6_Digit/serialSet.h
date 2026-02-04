@@ -23,6 +23,8 @@ private:
   void setTime(long time);
   void setDate(long date);
   void formatData(long data, int *intData);
+  void showDate(); 
+  void showTime(); 
 };
 
 #endif
