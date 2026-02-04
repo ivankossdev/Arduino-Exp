@@ -1,7 +1,7 @@
 #include "serialSet.h"
 
-SerialSet::SerialSet(unsigned long speed_){
-  this->speed = speed_; 
+SerialSet::SerialSet(unsigned long speed_) {
+  this->speed = speed_;
 }
 
 void SerialSet::Init() {
@@ -40,13 +40,18 @@ void SerialSet::CmdHandler(String &data) {
       case 3: setDay(conv.TenFormat(param)); break;
       default: Serial.println("-1");
     }
+  } else if (dataCmd.equals("get")) {
+    dataCmd = data.substring(3);
+
+    if (dataCmd.equals(" time")) Serial.println("Get time");
+    if (dataCmd.equals(" date")) Serial.println("Get date");
+
   } else if (dataCmd.equals("mem")) {
     Serial.println("Read memory address 0x00 + 10: ");
-    
-    at24.readArrayByte(0x00, at24.buffer, 10);
-    Serial.println((char *)at24.buffer);              
 
-    /*------------------------------------------------------------------*/
+    at24.readArrayByte(0x00, at24.buffer, 10);
+    Serial.println((char *)at24.buffer);
+
   } else {
     Serial.println(data + " - cmd is not found");
   }
