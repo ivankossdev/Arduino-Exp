@@ -12,7 +12,7 @@
 */
 
 SystemTime sysTime(DS3231);
-SerialSet set(9600);
+SerialSet serialSet(9600);
 
 uint8_t data[6] = { '\0' };
 TM1637Display display(CLK, DIO);
@@ -20,11 +20,11 @@ bool dotState = true;
 
 void setup() {
   display.setBrightness(0x0);
-  Serial.begin(9600);
+  serialSet.Init();
 }
 
 void loop() {
-  set.SetCMD();
+  serialSet.SetCMD();
   sysTime.getTime();
   printDig(showTime(sysTime.timeString[2], sysTime.timeString[1], sysTime.timeString[0]));
   delay(100);

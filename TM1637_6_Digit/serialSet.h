@@ -7,13 +7,15 @@
 
 class SerialSet {
 public:
-  SerialSet(unsigned long speed);
+  SerialSet(unsigned long speed_);
+  void Init();
   void SetCMD();
   
 private:
   SystemTime systime{ DS3231 };
   At24 at24{ EEPROM_I2C_ADDRESS }; 
   Convertor conv; 
+  unsigned long speed = 0; 
   void CmdHandler(String &data);
   char cmd[8] = {'\0'};
   int  insertData[3] = {'\0'};

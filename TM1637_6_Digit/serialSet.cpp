@@ -1,7 +1,10 @@
 #include "serialSet.h"
 
+SerialSet::SerialSet(unsigned long speed_){
+  this->speed = speed_; 
+}
 
-SerialSet::SerialSet(unsigned long speed) {
+void SerialSet::Init() {
   Serial.begin(speed);
 }
 
