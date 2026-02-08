@@ -5,13 +5,12 @@ SerialSet serialSet(9600);
 
 void setup() {
   serialSet.Init();
-  pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(5, OUTPUT);
+  digitalWrite(5, LOW);
+  pinMode(6, OUTPUT);
+  digitalWrite(6, LOW);
 }
 
 void loop() {
   serialSet.SetCMD();
-  digitalWrite(LED_BUILTIN, HIGH);
-  delay(100);
-  digitalWrite(LED_BUILTIN, LOW);
-  delay(100);
 }

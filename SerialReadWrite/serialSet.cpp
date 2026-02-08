@@ -16,27 +16,24 @@ void SerialSet::SetCMD() {
   }
 }
 
-/*
-  CMD: 
-    set2359591   (1 - com set time 23:59:59)
-    set2512312.  (2 - com set date 25-12-31)
-    set13 ... 53 (3 - com set 5 day fri)
-*/
-
 void SerialSet::CmdHandler(String &data) {
   data.trim();
   data.getBytes(cmd, 4);
   String dataCmd(cmd);
   dataCmd.trim();
   int res = 0;
-if (dataCmd.equals("get")) {
+if (dataCmd.equals("pin")) {
     dataCmd = data.substring(3);
 
-    if (dataCmd.equals(" time")) {
-      Serial.println("CMD get time");
+    if (dataCmd.equals(" on")) {
+      Serial.println("pin ON");
+      digitalWrite(6, HIGH);
+      digitalWrite(5, HIGH);
     }
-    if (dataCmd.equals(" date")) {
-      Serial.println("CMD get date");
+    if (dataCmd.equals(" off")) {
+      Serial.println("pin OFF");
+      digitalWrite(6, LOW);
+      digitalWrite(5, LOW);
     }
 
   } else {
