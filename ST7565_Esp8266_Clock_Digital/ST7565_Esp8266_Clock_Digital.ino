@@ -119,3 +119,31 @@ void drawDecorations() {
   u8g2.drawPixel(127, 63);
 }
 
+void drawWithProgressBar() {
+  u8g2.firstPage();
+  do {
+    // Основное время
+    drawMainTime();
+    
+    // Прогресс-бар секунд (0-59)
+    int barWidth = map(seconds, 0, 59, 0, 118);
+    int barY = 42;
+    
+    // Фон прогресс-бара
+    u8g2.drawFrame(5, barY, 118, 6);
+    // Заполнение
+    u8g2.drawBox(5, barY, barWidth, 6);
+    
+    // Секунды цифрами над прогресс-баром
+    u8g2.setFont(u8g2_font_logisoso16_tf);
+    char secStr[3];
+    sprintf(secStr, "%02d", seconds);
+    int secWidth = u8g2.getStrWidth(secStr);
+    u8g2.drawStr((128 - secWidth)/2, barY - 18, secStr);
+    
+    // Дата под прогресс-баром
+    u8g2.setFont(u8g2_font_6x10_tf);
+    u8g2.drawStr(40, barY + 15, "15.12.2024");
+    
+  } while(u8g2.nextPage());
+}
