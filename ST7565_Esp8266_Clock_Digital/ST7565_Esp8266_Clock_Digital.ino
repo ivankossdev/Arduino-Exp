@@ -1,20 +1,25 @@
 #include <Arduino.h>
 #include <U8g2lib.h>
 #include <SPI.h>
+#include "ds3231.h"
  
 U8G2_ST7565_ERC12864_F_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/D8, /* dc=*/D4, /* reset=*/ 0);
 
 // Переменные времени
-int hours = 14;
-int minutes = 30;
-int seconds = 45;
+int hours = 0;
+int minutes = 0;
+int seconds = 0;
+
 bool colonVisible = true;
 unsigned long lastUpdate = 0;
 
+// Инициализация системных часов
+SystemTime sysTime(DS3231);
+
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   u8g2.begin();
-  u8g2.setContrast(5); // Оптимально для ST7565: 120-180
+  u8g2.setContrast(5);   // Оптимально для ST7565: 5 - 15
   u8g2.setFontMode(0);   // Режим с заливкой фона
   u8g2.setFontDirection(0);
 }
@@ -23,18 +28,12 @@ void loop() {
   unsigned long currentMillis = millis();
   
   // Обновление времени каждую секунду
-  if (currentMillis - lastUpdate >= 1000) {
+  if (currentMillis - lastUpdate >= 500) {
     lastUpdate = currentMillis;
-    seconds++;
-    if (seconds >= 60) {
-      seconds = 0;
-      minutes++;
-      if (minutes >= 60) {
-        minutes = 0;
-        hours++;
-        if (hours >= 24) hours = 0;
-      }
-    }
+    sysTime.getTime();
+    hours = sysTime.timeString[2]; 
+    minutes = sysTime.timeString[1];
+    seconds = sysTime.timeString[0]; 
     colonVisible = !colonVisible;
   }
   
@@ -68,8 +67,6 @@ void drawMainTime() {
   sprintf(hourStr, "%02d", hours);
   sprintf(minuteStr, "%02d", minutes);
   
-  // Шрифт ПРАВИЛЬНОГО размера для 128x64
-  // u8g2_font_logisoso32_tn = 32px высотой (оптимально!)
   u8g2.setFont(u8g2_font_logisoso20_tn);
   
   // Рассчитываем позиции
