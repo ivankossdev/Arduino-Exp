@@ -30,14 +30,20 @@ void loop() {
   unsigned long currentMillis = millis();
   serialSet.SetCMD();
   sysTime.getTime();
+
+  hours = sysTime.timeString[2]; 
+  minutes = sysTime.timeString[1];
+  seconds = sysTime.timeString[0]; 
+
+  sysTime.getDate();
+  sysTime.getMonth();
+  sysTime.getYear();
+
   drawDigitalDisplay();
 
-  // Обновление времени каждую секунду
+  // Мигающие точки 
   if (currentMillis - lastUpdate >= 500) {
     lastUpdate = currentMillis;
-    hours = sysTime.timeString[2]; 
-    minutes = sysTime.timeString[1];
-    seconds = sysTime.timeString[0]; 
     colonVisible = !colonVisible;
   }
 }
@@ -54,7 +60,7 @@ void drawDigitalDisplay() {
     drawMainTime();
     
     // 2. СЕКУНДЫ И ДАТА
-    drawSecondaryInfo();
+    drawSecondaryInfo(sysTime.Year, sysTime.Month, sysTime.Date);
     
     // 3. ДЕКОРАТИВНЫЕ ЭЛЕМЕНТЫ
     drawDecorations();
@@ -91,9 +97,12 @@ void drawMainTime() {
   u8g2.drawStr(startX + digitWidth + colonWidth, yPos, minuteStr);
 }
 
-void drawSecondaryInfo() {
-  char secondStr[3];
+void drawSecondaryInfo(int year, int month, int dateday) {
+  char secondStr[3] = {'\0'};
+  char date[16] = {'\0'};
+  
   sprintf(secondStr, "%02d", seconds);
+  sprintf(date, "20%d.%02d.%02d", year, month, dateday);
   
   // Секунды (под основным временем)
   u8g2.setFont(u8g2_font_logisoso16_tf); // 16px высотой
@@ -103,7 +112,7 @@ void drawSecondaryInfo() {
   
   // Дата (пример)
   u8g2.setFont(u8g2_font_7x13B_tf); // 13px высотой
-  u8g2.drawStr(30, 55, "15.12.2024");
+  u8g2.drawStr(30, 55, date);
 }
 
 void drawDecorations() {
