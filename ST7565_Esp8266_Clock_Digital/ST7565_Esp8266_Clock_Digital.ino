@@ -2,6 +2,7 @@
 #include <U8g2lib.h>
 #include <SPI.h>
 #include "ds3231.h"
+#include "serialSet.h"
  
 U8G2_ST7565_ERC12864_F_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/D8, /* dc=*/D4, /* reset=*/ 0);
 
@@ -15,29 +16,30 @@ unsigned long lastUpdate = 0;
 
 // Инициализация системных часов
 SystemTime sysTime(DS3231);
+SerialSet serialSet(115200);
 
 void setup() {
-  Serial.begin(115200);
   u8g2.begin();
   u8g2.setContrast(5);   // Оптимально для ST7565: 5 - 15
   u8g2.setFontMode(0);   // Режим с заливкой фона
   u8g2.setFontDirection(0);
+  serialSet.Init();
 }
 
 void loop() {
   unsigned long currentMillis = millis();
-  
+  serialSet.SetCMD();
+  sysTime.getTime();
+  drawDigitalDisplay();
+
   // Обновление времени каждую секунду
   if (currentMillis - lastUpdate >= 500) {
     lastUpdate = currentMillis;
-    sysTime.getTime();
     hours = sysTime.timeString[2]; 
     minutes = sysTime.timeString[1];
     seconds = sysTime.timeString[0]; 
     colonVisible = !colonVisible;
   }
-  
-  drawDigitalDisplay();
 }
 
 void drawDigitalDisplay() {

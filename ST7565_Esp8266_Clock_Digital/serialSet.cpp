@@ -25,7 +25,7 @@ void SerialSet::SetCMD() {
 
 void SerialSet::CmdHandler(String &data) {
   data.trim();
-  data.getBytes(cmd, 4);
+  data.getBytes((unsigned char *)cmd, 4);
   String dataCmd(cmd);
   dataCmd.trim();
   int res = 0;
