@@ -9,7 +9,7 @@ const char *password = "12345678";
 ESP8266WebServer server(80);
 
 void handleRoot() {
-  server.send(200, "text/html", page.main());
+  server.send(200, "text/html", page.mainPage);
 }
 
 void handleForm() {

@@ -4,11 +4,10 @@
 class Page{
 public: 
     Page();
-    String main();
-    String style();
+    String mainPage; 
 private:
-    String main_ = ""; 
-    String style_ = ""; 
+    String index();
+
 };
 
 extern Page page;
