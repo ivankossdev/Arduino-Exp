@@ -8,7 +8,7 @@ Memory::Memory(){
 
 bool Memory::writeString() {
   bool write = false;
-
+  
   if (Serial.available() > 0) {
     write = true;
     clearString();
@@ -30,7 +30,6 @@ bool Memory::writeString() {
         Serial.println("eeprom error");
       }
     }
-
   }
 
   return write;
