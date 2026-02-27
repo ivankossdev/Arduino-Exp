@@ -73,7 +73,8 @@ void setup() {
 
 void loop() {
   server.handleClient();
-  matr.scrollLeftString(100);
+  matr.scrollLeftString();
+  // matr.scrollLeftString(100);
 }
 
 void scrollRightDispaly() {
