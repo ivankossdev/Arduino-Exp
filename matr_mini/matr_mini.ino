@@ -11,7 +11,7 @@ void scrollRightDispaly();
 void digtalCounter();
 
 /* -----------------------------------------------------------------------*/
-const char *ssid = "SC-AP";
+const char *ssid = "RunString";
 const char *password = "12345678";
 
 ESP8266WebServer server(80);
