@@ -39,7 +39,8 @@ private:
   unsigned long _lastStepTime;         // время последнего шага (для millis)
   unsigned long _stepInterval;         // интервал между шагами (бывший score)
   unsigned int _charCounter = 0;      // счетчик строки
-  unsigned int _shiftCounter = 7; 
+  int _shiftCounter = 7; 
+  int w = 0;
 };
 
 #endif

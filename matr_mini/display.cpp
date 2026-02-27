@@ -318,7 +318,7 @@ void Display::scrollLeftString(unsigned long score) {
 }
 
 /* Установливает скорость бегущей строки */
-void Display::setScore(unsigned long score_){
+void Display::setScore(unsigned long score_) {
   _stepInterval = score_;
 }
 
@@ -327,19 +327,38 @@ void Display::scrollLeftString() {
 
   if (!_scrollingActive) return;
 
-  /* Формирует задержку */ 
-  unsigned long now = millis();
-  if (now - _lastStepTime < _stepInterval) {
-    return;  
-  }
-  _lastStepTime = now;
-  /* ------------------ */ 
-
   if (memory.buffer[_charCounter] == '\0') {
     _charCounter = 0;
   }
 
-  Serial.printf("[%d]-> %c\n", _charCounter, memory.buffer[_charCounter]);
-  _charCounter++;
+  unsigned short int arrNum = 0;
 
+  if (_shiftCounter >= w) {
+
+    /* Формирует задержку */
+    unsigned long now = millis();
+    if (now - _lastStepTime < _stepInterval) return;
+    _lastStepTime = now;
+    /* ------------------ */
+
+    scrollLeft(1);
+    /* Проверка символа memory.buffer[i] ACII или нет */
+    if (memory.buffer[_charCounter] == 0xd0 || memory.buffer[_charCounter] == 0xd1) {
+      arrNum |= memory.buffer[_charCounter] << 8;
+      _charCounter++;
+      arrNum |= memory.buffer[_charCounter] & 0xff;
+      w = 6 - getWidthShape(getCyrillicArray(arrNum));
+      sliceShapeByCordY(getCyrillicArray(arrNum), _shiftCounter);
+    } else {
+      /* Сдвигает символ строки на 8 позиций */
+      w = 6 - getWidthShape(getAsciiArray(memory.buffer[_charCounter]));
+      sliceShapeByCordY(getAsciiArray(memory.buffer[_charCounter]), _shiftCounter);
+    }
+    _shiftCounter--;
+    return;
+  }
+  
+  showDisplay();
+  _shiftCounter = 7;
+  _charCounter++;
 }
