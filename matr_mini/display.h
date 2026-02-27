@@ -20,7 +20,7 @@ public:
   void printChar(char ch);
   void scrollLeftString(unsigned long score);
   void scrollLeftString();
-  unsigned int score = 100;
+  void setScore(unsigned long score_);
 
 protected:
   uint8_t reverseChar(uint8_t ch);
@@ -35,10 +35,11 @@ private:
   void sliceShapeByCordY(uint8_t *shape, int position);
   uint8_t *buffer = (uint8_t *)calloc(8, sizeof(uint8_t));
 
-  bool _scrollingActive;       // флаг: идёт ли прокрутка сейчас
-  unsigned int _lastStepTime;  // время последнего шага (для millis)
-  unsigned int _stepInterval;  // интервал между шагами (бывший score)
-  unsigned int _strCounter = 0;    // счетчик строки
+  bool _scrollingActive = true;       // флаг: идёт ли прокрутка сейчас
+  unsigned long _lastStepTime;         // время последнего шага (для millis)
+  unsigned long _stepInterval;         // интервал между шагами (бывший score)
+  unsigned int _charCounter = 0;      // счетчик строки
+  unsigned int _shiftCounter = 7; 
 };
 
 #endif

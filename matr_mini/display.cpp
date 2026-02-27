@@ -317,18 +317,29 @@ void Display::scrollLeftString(unsigned long score) {
   } while (memory.buffer[i] != '\0');
 }
 
+/* Установливает скорость бегущей строки */
+void Display::setScore(unsigned long score_){
+  _stepInterval = score_;
+}
+
 /* Неблокирующая функция бегущей строки */
 void Display::scrollLeftString() {
 
-  //
-  if (memory.writeString()) {
-    clearDisplay();
-  }
-  if (memory.buffer[_strCounter] == '\0') {
-    _strCounter = 0;
-  }
-  Serial.printf("[%d]-> %c\n", _strCounter, memory.buffer[_strCounter]); 
-  _strCounter++;
+  if (!_scrollingActive) return;
 
-  delay(500);
+  /* Формирует задержку */ 
+  unsigned long now = millis();
+  if (now - _lastStepTime < _stepInterval) {
+    return;  
+  }
+  _lastStepTime = now;
+  /* ------------------ */ 
+
+  if (memory.buffer[_charCounter] == '\0') {
+    _charCounter = 0;
+  }
+
+  Serial.printf("[%d]-> %c\n", _charCounter, memory.buffer[_charCounter]);
+  _charCounter++;
+
 }
