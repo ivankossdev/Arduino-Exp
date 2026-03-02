@@ -274,7 +274,7 @@ void Display::sliceShapeByCordY(uint8_t *shape, int position) {
   if (position > 7) position = 7;
   int setZeroPozition = 8 - getWidthShape(shape);
   uint8_t shapePositoin = 0;
-  int serialCount = 0;
+  // int serialCount = 0;
   for (int i = 0, r = 7; i < 8; i++, r--) {
     shapePositoin = (uint8_t)(shape[i] << setZeroPozition);
     displayBuffer[r] |= reverseChar((shapePositoin & (0x01 << position)) >> position);
@@ -310,6 +310,7 @@ void Display::scrollLeftString(unsigned long score) {
         w = 6 - getWidthShape(getAsciiArray(memory.buffer[i]));
         sliceShapeByCordY(getAsciiArray(memory.buffer[i]), _i);
       }
+      
       showDisplay();
       delay(score);
     }
@@ -333,7 +334,7 @@ void Display::scrollLeftString() {
 
   unsigned short int arrNum = 0;
 
-  if (_shiftCounter >= w) {
+  if (_shiftCounter > w) {
 
     /* Формирует задержку */
     unsigned long now = millis();
@@ -358,7 +359,6 @@ void Display::scrollLeftString() {
     return;
   }
   
-  showDisplay();
-  _shiftCounter = 7;
+  // _shiftCounter = 7;
   _charCounter++;
 }

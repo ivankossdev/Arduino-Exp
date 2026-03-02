@@ -69,13 +69,13 @@ void setup() {
   server.begin();
   Serial.println("HTTP server started");
   /* -----------------------------------------------------------------------*/
-  matr.setScore(100);
+  matr.setScore(500);
 }
 
 void loop() {
   server.handleClient();
   matr.scrollLeftString();
-  //matr.scrollLeftString(100);
+  // matr.scrollLeftString(2500);
 }
 
 void scrollRightDispaly() {
