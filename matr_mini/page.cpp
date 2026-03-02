@@ -168,7 +168,7 @@ String Page::index(){
         <form class="action-form" id="sendForm" action="/postform/" method="post">
             <div class="input-group">
                 <span class="field-icon">📝</span>
-                <input type="text" name="user_name" id="inputData" class="input-field" 
+                <input type="text" name="message" id="inputData" class="input-field" 
                        placeholder="Введите сообщение" required>
             </div>
             <button type="submit" class="submit-btn">

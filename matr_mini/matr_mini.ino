@@ -24,9 +24,9 @@ void handleForm() {
   if (server.method() != HTTP_POST) {
     server.send(405, "text/plain", "Method Not Allowed");
   } else {
-    String message = "POST form was:\n";
+    String message = "";
     for (uint8_t i = 0; i < server.args(); i++) {
-      message += server.argName(i) + ": " + server.arg(i) + "\n";
+      message += server.argName(i) + ": " + server.arg(i);
     }
     Serial.println(message);
     server.send(200, "text/plain", message);

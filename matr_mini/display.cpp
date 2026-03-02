@@ -310,7 +310,7 @@ void Display::scrollLeftString(unsigned long score) {
         w = 6 - getWidthShape(getAsciiArray(memory.buffer[i]));
         sliceShapeByCordY(getAsciiArray(memory.buffer[i]), _i);
       }
-      
+
       showDisplay();
       delay(score);
     }
@@ -326,7 +326,12 @@ void Display::setScore(unsigned long score_) {
 /* Неблокирующая функция бегущей строки */
 void Display::scrollLeftString() {
 
-  if (!_scrollingActive) return;
+  if (memory.writeString()) {
+    clearDisplay();
+    _shiftCounter = 7;
+    _charCounter = 0;
+    return;
+  };
 
   if (memory.buffer[_charCounter] == '\0') {
     _charCounter = 0;
