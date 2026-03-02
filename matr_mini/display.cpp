@@ -356,9 +356,10 @@ void Display::scrollLeftString() {
       sliceShapeByCordY(getAsciiArray(memory.buffer[_charCounter]), _shiftCounter);
     }
     _shiftCounter--;
+    showDisplay();
     return;
   }
-  
-  // _shiftCounter = 7;
+  showDisplay();
+  _shiftCounter = 7;
   _charCounter++;
 }
