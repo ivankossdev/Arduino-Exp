@@ -30,9 +30,9 @@ void handleForm() {
     }
     message += " "; 
     
-    Serial.println(message);
-    Serial.printf("state: %d", matr._scrollingActive); 
-    server.send(200, "text/plain", message);
+    // Serial.println(message);
+    // server.send(200, "text/plain", message);
+    server.send(200, "text/html", page.mainPage);
     matr._scrollingActive = true;
     matr.memory.writeString(message); 
   }
