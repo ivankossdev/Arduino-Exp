@@ -9,6 +9,7 @@ class Memory{
   public:
     Memory();
     bool writeString();
+    bool writeString(String &str); 
     void readString();
     void clearString();
     char buffer[512] = {'\0'};

@@ -1,6 +1,6 @@
 #include "MemHandler.h"
 
-Memory::Memory(){
+Memory::Memory() {
   Serial.begin(115200);
   EEPROM.begin(512);
   readString();
@@ -8,7 +8,7 @@ Memory::Memory(){
 
 bool Memory::writeString() {
   bool write = false;
-  
+
   if (Serial.available() > 0) {
     write = true;
     clearString();
@@ -19,10 +19,10 @@ bool Memory::writeString() {
       do {
         EEPROM.write(i, str[i]);
         i++;
-        if(str[i] == '\r' || str[i] == '\n') break;
+        if (str[i] == '\r' || str[i] == '\n') break;
       } while (str[i] != '\0');
       str[i] = '\0';
-      
+
       if (EEPROM.commit()) {
         Serial.println("eeprom write");
         readString();
@@ -35,9 +35,35 @@ bool Memory::writeString() {
   return write;
 }
 
+bool Memory::writeString(String &str) {
+  bool write = false;
+
+  clearString();
+
+  if (str.length() <= 512) {
+    int i = 0;
+    do {
+      EEPROM.write(i, str[i]);
+      i++;
+      if (str[i] == '\r' || str[i] == '\n') break;
+    } while (str[i] != '\0');
+    str[i] = '\0';
+
+    if (EEPROM.commit()) {
+      Serial.println("eeprom write");
+      write = true;
+      readString();
+    } else {
+      Serial.println("eeprom error");
+    }
+  }
+
+  return write;
+}
+
 void Memory::readString() {
   int i = 0;
-  
+
   do {
     if (i > 512) {
       Serial.println("Error readString()");

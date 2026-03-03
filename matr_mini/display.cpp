@@ -326,10 +326,11 @@ void Display::setScore(unsigned long score_) {
 /* Неблокирующая функция бегущей строки */
 void Display::scrollLeftString() {
 
-  if (memory.writeString()) {
+  if (memory.writeString() || _scrollingActive) {
     clearDisplay();
     _shiftCounter = 7;
     _charCounter = 0;
+    _scrollingActive = false;
     return;
   };
 

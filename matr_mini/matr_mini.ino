@@ -26,10 +26,15 @@ void handleForm() {
   } else {
     String message = "";
     for (uint8_t i = 0; i < server.args(); i++) {
-      message += server.argName(i) + ": " + server.arg(i);
+      message += server.arg(i);
     }
+    message += " "; 
+    
     Serial.println(message);
+    Serial.printf("state: %d", matr._scrollingActive); 
     server.send(200, "text/plain", message);
+    matr._scrollingActive = true;
+    matr.memory.writeString(message); 
   }
 }
 
