@@ -84,19 +84,23 @@ void SerialMenu::setWiFi() {
   }
 }
 
-void SerialMenu::setRelay() {
-  Serial.println("Relay cmd -> \"on\" | \"off\"");
+void SerialMenu::setRelayON() {
+  // isRead = true;
 
-  isRead = true;
-  serialReader();
+  // serialReader();
+  Serial.println("Relay ON");
+  digitalWrite(14, LOW);
 
-  if (serialData.compareTo("on") == 0) {
-    Serial.println("Relay ON");
-    digitalWrite(14, LOW);
-  } else if (serialData.compareTo("off") == 0) {
-    Serial.println("Relay OFF");
-    digitalWrite(14, HIGH);
-  }
+  Serial.printf("\n");
+}
+
+void SerialMenu::setRelayOFF(){
+  // isRead = true;
+
+  // serialReader();
+  Serial.println("Relay OFF");
+  digitalWrite(14, HIGH);
+  
   Serial.printf("\n");
 }
 
@@ -204,8 +208,12 @@ void SerialMenu::menu() {
   } else if (serialData.compareTo("get wifi") == 0) {
     getWiFi();
     serialData = "";
-  } else if (serialData.compareTo("relay") == 0) {
-    setRelay();
+    // Управление реле переделываем под UI интрерфейс
+  } else if (serialData.compareTo("relay on") == 0) { 
+    setRelayON();
+    serialData = "";
+  } else if (serialData.compareTo("relay off") == 0) { 
+    setRelayOFF();
     serialData = "";
   } else if (serialData.compareTo("help") == 0) {
     help();
