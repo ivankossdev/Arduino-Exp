@@ -85,23 +85,13 @@ void SerialMenu::setWiFi() {
 }
 
 void SerialMenu::setRelayON() {
-  // isRead = true;
-
-  // serialReader();
   Serial.println("Relay ON");
   digitalWrite(14, LOW);
-
-  Serial.printf("\n");
 }
 
 void SerialMenu::setRelayOFF(){
-  // isRead = true;
-
-  // serialReader();
   Serial.println("Relay OFF");
   digitalWrite(14, HIGH);
-  
-  Serial.printf("\n");
 }
 
 void SerialMenu::help() {
