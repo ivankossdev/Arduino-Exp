@@ -1,4 +1,3 @@
-// UserInput.cpp
 #include "UserInput.h"
 #include "WiFiScanner.h"
 

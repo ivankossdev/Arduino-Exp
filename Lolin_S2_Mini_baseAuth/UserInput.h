@@ -1,4 +1,3 @@
-// UserInput.h
 #ifndef UserInput_H
 #define UserInput_H
 

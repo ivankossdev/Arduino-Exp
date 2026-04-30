@@ -1,4 +1,3 @@
-// WiFiScanner.h
 #ifndef WiFiScanner_H
 #define WiFiScanner_H
 

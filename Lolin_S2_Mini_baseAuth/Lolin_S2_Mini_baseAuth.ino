@@ -1,7 +1,7 @@
-// main.ino
 #include <HTTPClient.h>
 #include <base64.h>
 #include "WiFiManager.h"
+#include "LedManager.h"
 
 // Настройки Basic Auth
 const char* AUTH_USERNAME = "myuser";
@@ -9,9 +9,13 @@ const char* AUTH_PASSWORD = "mypassword";
 
 WiFiManager wifiManager;
 
+LedManager ledPin(LED_BUILTIN);
+
 void setup() {
   Serial.begin(115200);
+
   delay(1000);
+
   Serial.println("ESP32 starting...");
 
   if (wifiManager.begin()) {
@@ -23,6 +27,7 @@ void setup() {
 
 void loop() {
   if (wifiManager.isConnected()) {
+    ledPin.On();
     HTTPClient http;
     http.begin(wifiManager.getServerURL());
 
@@ -49,6 +54,6 @@ void loop() {
     Serial.println("WiFi not connected, attempting reconnect...");
     wifiManager.begin(); // Пытаемся переподключиться
   }
-
+  ledPin.Off();
   delay(10000); // Повторяем каждые 10 секунд
 }

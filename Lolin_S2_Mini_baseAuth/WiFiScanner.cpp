@@ -1,4 +1,3 @@
-// WiFiScanner.cpp
 #include "WiFiScanner.h"
 
 void WiFiScanner::scanNetworks() {

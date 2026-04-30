@@ -1,4 +1,3 @@
-// WiFiManager.h (обновлённый)
 #ifndef WiFiManager_H
 #define WiFiManager_H
 

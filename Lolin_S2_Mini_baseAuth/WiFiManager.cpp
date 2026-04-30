@@ -1,9 +1,9 @@
-// WiFiManager.cpp (обновлённый)
 #include "WiFiManager.h"
 
 WiFiManager::WiFiManager() {}
 
 bool WiFiManager::begin() {
+  Serial.println("WiFi init");
   preferences.begin(namespaceName, false);
 
   // Проверяем, хочет ли пользователь изменить настройки
