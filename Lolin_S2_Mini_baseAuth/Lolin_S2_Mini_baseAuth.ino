@@ -6,15 +6,15 @@
 // Настройки Basic Auth
 const char* AUTH_USERNAME = "myuser";
 const char* AUTH_PASSWORD = "mypassword";
-const char* SERVER_URL = "http://192.168.0.175:8090/auth";
 
 WiFiManager wifiManager;
 
 void setup() {
   Serial.begin(115200);
 
-  // Запускаем менеджер WiFi — он либо подключится с сохранёнными данными,
-  // либо запустит интерактивный режим настройки
+  Serial.println("ESP32 starting...");
+  Serial.println("Press 'y' within 10 seconds to edit settings");
+
   if (wifiManager.begin()) {
     Serial.println("WiFi connected successfully!");
   } else {
@@ -25,7 +25,7 @@ void setup() {
 void loop() {
   if (wifiManager.isConnected()) {
     HTTPClient http;
-    http.begin(SERVER_URL);
+    http.begin(wifiManager.getServerURL());
 
     // Кодируем логин:пароль в Base64
     String authString = String(AUTH_USERNAME) + ":" + String(AUTH_PASSWORD);

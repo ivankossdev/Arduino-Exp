@@ -3,11 +3,14 @@
 #define UserInput_H
 
 #include <Arduino.h>
+#include "WiFiScanner.h"
 
 class UserInput {
 public:
-  String readSSID();
+  String readSSID(WiFiScanner& scanner);  
   String readPassword();
+  String readServerURL();
+  bool confirmWithTimeout(unsigned long timeoutMs);
   bool confirmSelection();
 
 private:
