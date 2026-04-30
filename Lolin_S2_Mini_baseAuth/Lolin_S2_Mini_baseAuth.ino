@@ -11,9 +11,8 @@ WiFiManager wifiManager;
 
 void setup() {
   Serial.begin(115200);
-
+  delay(1000);
   Serial.println("ESP32 starting...");
-  Serial.println("Press 'y' within 10 seconds to edit settings");
 
   if (wifiManager.begin()) {
     Serial.println("WiFi connected successfully!");
