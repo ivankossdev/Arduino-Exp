@@ -22,11 +22,7 @@ void Menu::begin() {
   preferences.begin("menu", false);  // Инициализация Preferences с пространством имён "menu"
   loadSettings();                    // Загрузка настроек из памяти
 
-  if (ledState) {
-    digitalWrite(ledPin, LOW);
-  } else {
-    digitalWrite(ledPin, HIGH);
-  }
+  applyLedState();                   // Применение настроик
 
   printMenu();
 }
@@ -40,9 +36,9 @@ void Menu::update() {
     if (menuChoice != 0) {
       Serial.println("\nПоказать меню: 0");
     }
-
-    SerialBuferClear();  // Очищаем буфер порта от мусора
+  SerialBuferClear();  // Очищаем буфер порта от мусора
   }
+  
 }
 
 /* Очистка буфера COM порта */
@@ -91,9 +87,9 @@ void Menu::handleMenuChoice(int choice) {
       break;
     case 5:
       ledState = false;
-      digitalWrite(ledPin, HIGH);
       saveSettings();
-      Serial.println("Настройки настройки сброшены");
+      applyLedState();
+      Serial.println("Настройки сброшены");
       break;
     case 0:
       printMenu();
@@ -108,6 +104,17 @@ void Menu::handleMenuChoice(int choice) {
 void Menu::saveSettings() {
   preferences.putBool("led_state", ledState);
 }
+
+
 void Menu::loadSettings() {
   ledState = preferences.getBool("led_state", false);
+}
+
+
+void Menu::applyLedState() {
+  if (ledState) {
+    digitalWrite(ledPin, LOW);  // Включить
+  } else {
+    digitalWrite(ledPin, HIGH); // Выключить
+  }
 }

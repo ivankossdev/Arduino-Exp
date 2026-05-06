@@ -14,6 +14,7 @@ private:
   void SerialBuferClear();
   void saveSettings();
   void loadSettings();
+  void applyLedState();
   Preferences preferences;
 
 public:
