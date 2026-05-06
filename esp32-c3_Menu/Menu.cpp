@@ -1,6 +1,7 @@
 #include "Menu.h"
 
-Menu::Menu(int pin) : ledPin(pin), ledState(false), menuChoice(0) {}
+Menu::Menu(int pin)
+  : ledPin(pin), ledState(false), menuChoice(0) {}
 
 void Menu::begin() {
   Serial.begin(115200);
@@ -17,16 +18,26 @@ void Menu::begin() {
   digitalWrite(ledPin, HIGH);
   delay(100);
 
+
+  preferences.begin("menu", false);  // Инициализация Preferences с пространством имён "menu"
+  loadSettings();                    // Загрузка настроек из памяти
+
+  if (ledState) {
+    digitalWrite(ledPin, LOW);
+  } else {
+    digitalWrite(ledPin, HIGH);
+  }
+
   printMenu();
 }
 
-void Menu::update(){
+void Menu::update() {
   if (Serial.available() > 0) {
 
     menuChoice = Serial.parseInt();
     handleMenuChoice(menuChoice);
 
-    if(menuChoice != 0){
+    if (menuChoice != 0) {
       Serial.println("\nПоказать меню: 0");
     }
 
@@ -48,6 +59,8 @@ void Menu::printMenu() {
   Serial.println("1. Включить светодиод");
   Serial.println("2. Выключить светодиод");
   Serial.println("3. Показать состояние");
+  Serial.println("4. Сохранить настройки");
+  Serial.println("5. Сброс на заводсике настройки");
   Serial.println("0. Показать меню снова");
 }
 
@@ -72,11 +85,29 @@ void Menu::handleMenuChoice(int choice) {
       Serial.print("Состояние светодиода: ");
       Serial.println(ledState ? "ВКЛЮЧЕН" : "ВЫКЛЮЧЕН");
       break;
+    case 4:
+      saveSettings();
+      Serial.println("Настройки сохранены");
+      break;
+    case 5:
+      ledState = false;
+      digitalWrite(ledPin, HIGH);
+      saveSettings();
+      Serial.println("Настройки настройки сброшены");
+      break;
     case 0:
       printMenu();
       break;
     default:
-      Serial.println("Неверная опция! Выберите 0–3.");
+      Serial.println("Неверная опция! Выберите 0–5.");
       break;
   }
+}
+
+
+void Menu::saveSettings() {
+  preferences.putBool("led_state", ledState);
+}
+void Menu::loadSettings() {
+  ledState = preferences.getBool("led_state", false);
 }
