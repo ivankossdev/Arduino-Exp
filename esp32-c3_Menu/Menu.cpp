@@ -1,31 +1,36 @@
 #include "Menu.h"
 
+
 Menu::Menu(int pin)
   : ledPin(pin), ledState(false), menuChoice(0) {}
 
+
 void Menu::begin() {
+  // Инициализация порта 
+  pinMode(ledPin, OUTPUT);
+  blink();
+  preferences.begin("menu", false);  // Инициализация Preferences с пространством имён "menu"
+  loadSettings();                    // Загрузка настроек из памяти
+  applyLedState();                   // Применение настроик
+
   Serial.begin(115200);
 
   while (!Serial) {
-    delay(100);
+     delay(100);
   }
 
   SerialBuferClear();
-  pinMode(ledPin, OUTPUT);
+  printMenu();
+}
 
+
+void Menu::blink(){
   digitalWrite(ledPin, LOW);
   delay(100);
   digitalWrite(ledPin, HIGH);
   delay(100);
-
-
-  preferences.begin("menu", false);  // Инициализация Preferences с пространством имён "menu"
-  loadSettings();                    // Загрузка настроек из памяти
-
-  applyLedState();                   // Применение настроик
-
-  printMenu();
 }
+
 
 void Menu::update() {
   if (Serial.available() > 0) {
@@ -36,10 +41,11 @@ void Menu::update() {
     if (menuChoice != 0) {
       Serial.println("\nПоказать меню: 0");
     }
-  SerialBuferClear();  // Очищаем буфер порта от мусора
+
+    SerialBuferClear();  // Очищаем буфер порта от мусора
   }
-  
 }
+
 
 /* Очистка буфера COM порта */
 void Menu::SerialBuferClear() {

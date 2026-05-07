@@ -21,6 +21,7 @@ public:
   Menu(int pin);
   void begin();
   void update();
+  void blink();
 };
 
 #endif
