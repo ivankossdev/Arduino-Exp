@@ -62,7 +62,6 @@ void Menu::begin() {
 }
 
 
-
 void Menu::update() {
   if (Serial.available() > 0) {
 
