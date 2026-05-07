@@ -5,22 +5,62 @@ Menu::Menu(int pin)
   : ledPin(pin), menuChoice(0) {}
 
 
-void Menu::begin() {
-  led.begin(ledPin);
-  led.blink(); 
-  preferences.begin("menu", false);  // Инициализация Preferences с пространством имён "menu"
-  loadSettings();                    // Загрузка настроек из памяти
-  applyLedState();                   // Применение настроек
+// void Menu::begin() {
+//   Serial.begin(115200);
 
+//   unsigned long startTime = millis();
+//   while (!Serial && (millis() - startTime < 2000)) { // Ждём 2 с
+//     delay(10);
+//   }
+
+//   if (!led.begin(ledPin)) {
+//     Serial.println("[ОШИБКА] Некорректный пин для светодиода");
+//     while (true);  // Остановка программы
+//   }
+
+//   led.blink();
+//   preferences.begin("menu", false);  // Инициализация Preferences с пространством имён "menu"
+//   loadSettings();                    // Загрузка настроек из памяти
+//   applyLedState();                   // Применение настроек
+
+
+//   SerialBuferClear();
+//   printMenu();
+// }
+
+void Menu::begin() {
   Serial.begin(115200);
 
-  while (!Serial) {
-     delay(100);
+  const unsigned long SERIAL_TIMEOUT_MS = 2000;
+  unsigned long startTime = millis();
+  while (!Serial && (millis() - startTime < SERIAL_TIMEOUT_MS)) {
+    delay(10);
   }
 
+  if (Serial) {
+    Serial.println("ESP32-C3 Super Mini: старт инициализации...");
+  }
+
+  if (!led.begin(ledPin)) {
+    if (Serial) {
+      Serial.println("[ОШИБКА] Некорректный пин для светодиода");
+    }
+    while (true);
+  }
+
+  led.blink(); // Сигнал старта
+
+  preferences.begin("menu", false);
+  loadSettings();
+  applyLedState();
+
+  if (Serial) {
+    Serial.println("Инициализация завершена. Готов к работе!");
+  }
   SerialBuferClear();
   printMenu();
 }
+
 
 
 void Menu::update() {
@@ -102,7 +142,7 @@ void Menu::saveSettings() {
 
 
 void Menu::loadSettings() {
-  led.setState(preferences.getBool("led_state", false)); 
+  led.setState(preferences.getBool("led_state", false));
 }
 
 

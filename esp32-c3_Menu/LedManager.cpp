@@ -1,11 +1,16 @@
 #include "LedManager.h"
 
 
-void LedManager::begin(int pin){
+bool LedManager::begin(int pin) {
+  if (pin < 0 || pin > 33) {
+    return false;
+  }
   _pin = pin;
-  _state = false; 
+  _state = false;
   pinMode(_pin, OUTPUT);
+  return true;
 }
+
 
 
 void LedManager::on(){
