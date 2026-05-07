@@ -5,6 +5,7 @@
 #include <Preferences.h>
 #include "LedManager.h"
 
+
 class Menu {
 private:
   int menuChoice;
@@ -15,9 +16,10 @@ private:
   void saveSettings();
   void loadSettings();
   void applyLedState();
+  void printFlashInfo();
+  void printSystemStatus();
   Preferences preferences;
   LedManager led; 
-  
 
 public:
   Menu(int pin);

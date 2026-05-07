@@ -4,35 +4,39 @@
 Menu::Menu(int pin)
   : ledPin(pin), menuChoice(0) {}
 
+void Menu::printSystemStatus() {
+  Serial.println("\n=== СТАТУС СИСТЕМЫ ===");
 
-// void Menu::begin() {
-//   Serial.begin(115200);
+  // Свободная RAM
+  Serial.print("Свободная RAM: ");
+  Serial.print(ESP.getFreeHeap());
+  Serial.println(" байт");
 
-//   unsigned long startTime = millis();
-//   while (!Serial && (millis() - startTime < 2000)) { // Ждём 2 с
-//     delay(10);
-//   }
+  // Размер Flash
+  printFlashInfo();
 
-//   if (!led.begin(ledPin)) {
-//     Serial.println("[ОШИБКА] Некорректный пин для светодиода");
-//     while (true);  // Остановка программы
-//   }
+  // Остаток стека
+  unsigned long stackFree = uxTaskGetStackHighWaterMark(NULL);
+  Serial.printf("Остаток стека: %lu байт\n", stackFree);
 
-//   led.blink();
-//   preferences.begin("menu", false);  // Инициализация Preferences с пространством имён "menu"
-//   loadSettings();                    // Загрузка настроек из памяти
-//   applyLedState();                   // Применение настроек
+  Serial.println("====================\n");
+}
 
 
-//   SerialBuferClear();
-//   printMenu();
-// }
+void Menu::printFlashInfo() {
+  Serial.printf("Размер Flash: %lu МБ\n",
+    ESP.getFlashChipSize() / (1024 * 1024));
+  Serial.printf("Скорость Flash: %lu МГц\n", ESP.getFlashChipSpeed() / 1000000);
+}
+
 
 void Menu::begin() {
   Serial.begin(115200);
 
   const unsigned long SERIAL_TIMEOUT_MS = 2000;
   unsigned long startTime = millis();
+
+  // 
   while (!Serial && (millis() - startTime < SERIAL_TIMEOUT_MS)) {
     delay(10);
   }
@@ -40,6 +44,8 @@ void Menu::begin() {
   if (Serial) {
     Serial.println("ESP32-C3 Super Mini: старт инициализации...");
   }
+
+  printSystemStatus();
 
   if (!led.begin(ledPin)) {
     if (Serial) {
