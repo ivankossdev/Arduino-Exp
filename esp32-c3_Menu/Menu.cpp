@@ -2,13 +2,12 @@
 
 
 Menu::Menu(int pin)
-  : ledPin(pin), ledState(false), menuChoice(0) {}
+  : ledPin(pin), menuChoice(0) {}
 
 
 void Menu::begin() {
-  // Инициализация порта 
-  pinMode(ledPin, OUTPUT);
-  blink();
+  led.begin(ledPin);
+  led.blink(); 
   preferences.begin("menu", false);  // Инициализация Preferences с пространством имён "menu"
   loadSettings();                    // Загрузка настроек из памяти
   applyLedState();                   // Применение настроик
@@ -21,14 +20,6 @@ void Menu::begin() {
 
   SerialBuferClear();
   printMenu();
-}
-
-
-void Menu::blink(){
-  digitalWrite(ledPin, LOW);
-  delay(100);
-  digitalWrite(ledPin, HIGH);
-  delay(100);
 }
 
 
@@ -74,25 +65,23 @@ void Menu::handleMenuChoice(int choice) {
 
   switch (choice) {
     case 1:
-      digitalWrite(ledPin, LOW);
-      ledState = true;
+      led.on();
       Serial.println("Светодиод ВКЛЮЧЕН");
       break;
     case 2:
-      digitalWrite(ledPin, HIGH);
-      ledState = false;
+      led.off();
       Serial.println("Светодиод ВЫКЛЮЧЕН");
       break;
     case 3:
       Serial.print("Состояние светодиода: ");
-      Serial.println(ledState ? "ВКЛЮЧЕН" : "ВЫКЛЮЧЕН");
+      Serial.println(led.state ? "ВКЛЮЧЕН" : "ВЫКЛЮЧЕН");
       break;
     case 4:
       saveSettings();
       Serial.println("Настройки сохранены");
       break;
     case 5:
-      ledState = false;
+      led.state = false;
       saveSettings();
       applyLedState();
       Serial.println("Настройки сброшены");
@@ -108,19 +97,19 @@ void Menu::handleMenuChoice(int choice) {
 
 
 void Menu::saveSettings() {
-  preferences.putBool("led_state", ledState);
+  preferences.putBool("led_state", led.state);
 }
 
 
 void Menu::loadSettings() {
-  ledState = preferences.getBool("led_state", false);
+  led.state = preferences.getBool("led_state", false);
 }
 
 
 void Menu::applyLedState() {
-  if (ledState) {
-    digitalWrite(ledPin, LOW);  // Включить
+  if (led.state) {
+    led.on();
   } else {
-    digitalWrite(ledPin, HIGH); // Выключить
+    led.off();
   }
 }

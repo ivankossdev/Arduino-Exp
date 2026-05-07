@@ -5,7 +5,7 @@
 
 class LedManager {
 public:
-  LedManager(int pin);
+  void begin(int pin);
   void on();
   void off();
   void blink();

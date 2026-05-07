@@ -1,6 +1,7 @@
 #include "LedManager.h"
 
-LedManager::LedManager(int pin){
+
+void LedManager::begin(int pin){
   _pin = pin;
   state = false; 
   pinMode(_pin, OUTPUT);
@@ -9,13 +10,13 @@ LedManager::LedManager(int pin){
 
 void LedManager::on(){
   state = true; 
-  digitalWrite(_pin, HIGH); 
+  digitalWrite(_pin, LOW); 
 }
 
  
 void LedManager::off(){
   state = false; 
-  digitalWrite(_pin, LOW);
+  digitalWrite(_pin, HIGH);
 }
 
 

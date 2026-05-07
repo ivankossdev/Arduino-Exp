@@ -3,11 +3,11 @@
 
 #include <Arduino.h>
 #include <Preferences.h>
+#include "LedManager.h"
 
 class Menu {
 private:
   int menuChoice;
-  bool ledState;
   int ledPin;
   void printMenu();
   void handleMenuChoice(int choice);
@@ -16,12 +16,14 @@ private:
   void loadSettings();
   void applyLedState();
   Preferences preferences;
+  LedManager led; 
+  
 
 public:
   Menu(int pin);
   void begin();
   void update();
-  void blink();
+  // void blink();
 };
 
 #endif
