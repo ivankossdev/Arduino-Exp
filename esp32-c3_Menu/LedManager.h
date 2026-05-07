@@ -9,8 +9,10 @@ public:
   void on();
   void off();
   void blink();
-  bool state; 
+  bool getState() const { return _state; }
+  void setState(bool set); 
 private:
+  bool _state; 
   int _pin; 
 };
 

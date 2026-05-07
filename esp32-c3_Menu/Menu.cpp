@@ -10,7 +10,7 @@ void Menu::begin() {
   led.blink(); 
   preferences.begin("menu", false);  // Инициализация Preferences с пространством имён "menu"
   loadSettings();                    // Загрузка настроек из памяти
-  applyLedState();                   // Применение настроик
+  applyLedState();                   // Применение настроек
 
   Serial.begin(115200);
 
@@ -74,14 +74,14 @@ void Menu::handleMenuChoice(int choice) {
       break;
     case 3:
       Serial.print("Состояние светодиода: ");
-      Serial.println(led.state ? "ВКЛЮЧЕН" : "ВЫКЛЮЧЕН");
+      Serial.println(led.getState() ? "ВКЛЮЧЕН" : "ВЫКЛЮЧЕН");
       break;
     case 4:
       saveSettings();
       Serial.println("Настройки сохранены");
       break;
     case 5:
-      led.state = false;
+      led.setState(false);
       saveSettings();
       applyLedState();
       Serial.println("Настройки сброшены");
@@ -97,17 +97,17 @@ void Menu::handleMenuChoice(int choice) {
 
 
 void Menu::saveSettings() {
-  preferences.putBool("led_state", led.state);
+  preferences.putBool("led_state", led.getState());
 }
 
 
 void Menu::loadSettings() {
-  led.state = preferences.getBool("led_state", false);
+  led.setState(preferences.getBool("led_state", false)); 
 }
 
 
 void Menu::applyLedState() {
-  if (led.state) {
+  if (led.getState()) {
     led.on();
   } else {
     led.off();

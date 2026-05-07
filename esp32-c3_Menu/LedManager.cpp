@@ -3,19 +3,19 @@
 
 void LedManager::begin(int pin){
   _pin = pin;
-  state = false; 
+  _state = false; 
   pinMode(_pin, OUTPUT);
 }
 
 
 void LedManager::on(){
-  state = true; 
+  setState(true);
   digitalWrite(_pin, LOW); 
 }
 
  
 void LedManager::off(){
-  state = false; 
+  setState(true);
   digitalWrite(_pin, HIGH);
 }
 
@@ -25,4 +25,8 @@ void LedManager::blink(){
   delay(100);
   off();
   delay(100);
+}
+
+void LedManager::setState(bool set){
+  _state = set; 
 }
