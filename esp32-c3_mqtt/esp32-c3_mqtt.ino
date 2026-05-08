@@ -73,14 +73,14 @@ void callback(char* topic, byte* payload, unsigned int length) {
       lampState = true;
       digitalWrite(LAMP_PIN, LOW);
       Serial.println("Лампа ВКЛЮЧЕНА");
-      client.publish(state_topic, "ON");
+      client.publish(state_topic, "ON", true);
       Serial.println("Опубликован статус: ON");
     } 
     else if (message == "OFF") {
       lampState = false;
       digitalWrite(LAMP_PIN, HIGH);
       Serial.println("Лампа ВЫКЛЮЧЕНА");
-      client.publish(state_topic, "OFF");
+      client.publish(state_topic, "OFF", true);
       Serial.println("Опубликован статус: OFF");
     }
     else {
@@ -104,7 +104,7 @@ void reconnect() {
         Serial.println("Ошибка подписки на топик!");
       }
       // Опубликуем текущее состояние лампы (к этому моменту lampState = false)
-      client.publish(state_topic, lampState ? "ON" : "OFF");
+      client.publish(state_topic, lampState ? "ON" : "OFF", true);
       Serial.print("Опубликован начальный статус: ");
       Serial.println(lampState ? "ON" : "OFF");
     } else {
