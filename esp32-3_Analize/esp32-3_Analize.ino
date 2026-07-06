@@ -23,6 +23,10 @@ static adc_continuous_handle_t adc_handle = NULL;
 static const int BUFFER_SIZE = 2048;
 volatile bool adc_data_ready = false;
 
+float prevBands[8] = {0};
+float peakBands[8] = {0};
+int peakHold[8] = {0};
+
 static bool IRAM_ATTR adc_callback(adc_continuous_handle_t handle, const adc_continuous_evt_data_t *edata, void *user_data) {
     adc_data_ready = true;
     return true;
@@ -135,7 +139,6 @@ void loop() {
     delay(1);
 }
 
-// Ваша функция displayBands() остаётся без изменений
 void displayBands() {
   // Обнуляем самые низкие бины (остатки DC и гула)
   for (int i = 1; i <= 3; i++) {
@@ -147,30 +150,48 @@ void displayBands() {
   for (int i = 1; i < SAMPLES / 2; i++) {
     if (vReal[i] > maxVal) maxVal = vReal[i];
   }
-  if (maxVal < 1) maxVal = 1; // защита от деления на ноль
+  if (maxVal < 1) maxVal = 1;
 
   // Массив максимумов для 8 полос
   float bandMax[8] = {0};
 
   // Группировка бинов в 8 полос (логарифмическая шкала)
   for (int i = 1; i < SAMPLES / 2; i++) {
-      int band;
-      if (i <= 4) band = 0;        // теперь бины 1-4 (39-156 Гц)
-      else if (i <= 8) band = 1;
-      else if (i <= 12) band = 2;
-      else if (i <= 18) band = 3;
-      else if (i <= 30) band = 4;
-      else if (i <= 50) band = 5;
-      else if (i <= 80) band = 6;
-      else band = 7;
-      if (vReal[i] > bandMax[band]) bandMax[band] = vReal[i];
+    int band;
+    if (i <= 4) band = 0;
+    else if (i <= 8) band = 1;
+    else if (i <= 12) band = 2;
+    else if (i <= 18) band = 3;
+    else if (i <= 30) band = 4;
+    else if (i <= 50) band = 5;
+    else if (i <= 80) band = 6;
+    else band = 7;
+    if (vReal[i] > bandMax[band]) bandMax[band] = vReal[i];
   }
 
+  // --- Сглаживание (экспоненциальное) ---
+  const float smoothFactor = 0.3; // 0.1–0.5
+  for (int b = 0; b < 8; b++) {
+    prevBands[b] = prevBands[b] * (1 - smoothFactor) + bandMax[b] * smoothFactor;
+    bandMax[b] = prevBands[b];
+  }
 
-  // Очистка дисплея и отрисовка
+  // --- Пик-холдер (запоминание максимума) ---
+  for (int b = 0; b < 8; b++) {
+    if (bandMax[b] > peakBands[b]) {
+      peakBands[b] = bandMax[b];
+      peakHold[b] = 5; // держим пик 5 кадров
+    } else if (peakHold[b] > 0) {
+      peakHold[b]--;
+    } else {
+      peakBands[b] *= 0.98; // скорость затухания
+    }
+  }
+
+  // --- Отрисовка ---
   display.clearDisplay();
 
-  const int barWidth = 16;    // 128 / 8 = 16
+  const int barWidth = 16;
   const int maxHeight = 50;
 
   for (int b = 0; b < 8; b++) {
@@ -182,8 +203,18 @@ void displayBands() {
     int x = b * barWidth;
     int y = SCREEN_HEIGHT - h;
 
+    // Столбец
     display.fillRect(x, y, barWidth - 2, h, WHITE);
     display.drawRect(x, y, barWidth - 2, h, BLACK);
+
+    // Пиковая линия (маленькая горизонтальная чёрточка на уровне пика)
+    float peakNorm = peakBands[b] / maxVal;
+    int peakH = (int)(peakNorm * maxHeight);
+    if (peakH > maxHeight) peakH = maxHeight;
+    if (peakH > 0) {
+      int peakY = SCREEN_HEIGHT - peakH;
+      display.drawFastHLine(x, peakY, barWidth - 2, WHITE);
+    }
   }
   display.display();
 }
