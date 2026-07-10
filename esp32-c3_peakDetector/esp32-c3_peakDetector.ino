@@ -17,7 +17,7 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 const float DB_MIN = -60.0;      // нижний предел шкалы (дБ)
 const float DB_MAX = 0.0;        // верхний предел (0 дБ = полная шкала)
 const float PEAK_DECAY_RATE = 10.0; // скорость спада пика (дБ/с)
-const unsigned long PEAK_HOLD_MS = 1000; // время удержания пика (мс)
+const unsigned long PEAK_HOLD_MS = 500; // время удержания пика (мс)
 
 // === Глобальные переменные ===
 float currentDB = DB_MIN;
@@ -31,7 +31,7 @@ int sampleBuffer[SAMPLES];
 int sampleIndex = 0;
 
 // === Фильтрация и шумоподавление ===
-const float SMOOTHING_FACTOR = 0.15;   // коэффициент сглаживания (0..1) – чем меньше, тем сильнее фильтр
+const float SMOOTHING_FACTOR = 0.25;   // коэффициент сглаживания (0..1) – чем меньше, тем сильнее фильтр
 const float NOISE_FLOOR_DB = -55.0;    // порог шума – ниже этого значения считаем "тишину"
 float filteredDB = DB_MIN;             // сглаженное значение уровня
 
@@ -121,7 +121,7 @@ void drawMeter(float levelDB, float peakDB) {
   // 7. Если пик сброшен до минимума – покажем индикатор
   if (peakDB <= DB_MIN + 0.5) {
     display.setCursor(80, 10);
-    display.print("(no signal)");
+    // display.print("(no signal)");
   }
 
   display.display();
@@ -200,53 +200,14 @@ void loop() {
   drawMeter(displayDB, peakDB);
 
   // Отладка
-  Serial.print("Raw avg: ");
-  Serial.print(raw);
-  Serial.print("  dB filtered: ");
-  Serial.print(filteredDB, 1);
-  Serial.print("  display: ");
-  Serial.print(displayDB, 1);
-  Serial.print("  Peak: ");
-  Serial.println(peakDB, 1);
+  // Serial.print("Raw avg: ");
+  // Serial.print(raw);
+  // Serial.print("  dB filtered: ");
+  // Serial.print(filteredDB, 1);
+  // Serial.print("  display: ");
+  // Serial.print(displayDB, 1);
+  // Serial.print("  Peak: ");
+  // Serial.println(peakDB, 1);
 
   delay(10); // частота ~100 Гц
 }
-
-// === loop ===
-// void loop() {
-//   // 1. Заполняем буфер выборками (определяем пик за период)
-//   int raw = analogRead(ANALOG_PIN);
-//   sampleBuffer[sampleIndex] = raw;
-//   sampleIndex = (sampleIndex + 1) % SAMPLES;
-
-//   // Находим максимальное значение в буфере (пик огибающей)
-//   int maxRaw = 0;
-//   for (int i = 0; i < SAMPLES; i++) {
-//     if (sampleBuffer[i] > maxRaw) maxRaw = sampleBuffer[i];
-//   }
-
-//   // 2. Пересчёт в напряжение и дБ
-//   float voltage = (maxRaw / ADC_MAX) * VREF;
-//   float newDB = voltageToDB(voltage);
-
-//   // 3. Обновляем текущий уровень (со сглаживанием – можно использовать фильтр)
-//   // Для простоты берём newDB как есть, но можно добавить скользящее среднее
-//   currentDB = newDB;
-
-//   // 4. Обновляем пик
-//   updatePeak(currentDB);
-
-//   // 5. Отображение
-//   drawMeter(currentDB, peakDB);
-
-//   // 6. Отладка в Serial
-//   Serial.print("Raw: ");
-//   Serial.print(maxRaw);
-//   Serial.print("  dB: ");
-//   Serial.print(currentDB, 1);
-//   Serial.print("  Peak: ");
-//   Serial.println(peakDB, 1);
-
-//   // Частота обновления ~ 100 Гц (10 мс) для хорошей реакции на звук
-//   delay(10);
-// }
