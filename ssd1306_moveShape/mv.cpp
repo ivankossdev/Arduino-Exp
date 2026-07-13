@@ -3,6 +3,8 @@
 int16_t targetX = -1;
 int16_t targetY = -1;
 
+unsigned long lastStopTime = 0;
+bool isStopped = false;
 
 void mshInit() {
   MShape.init();
@@ -84,12 +86,11 @@ void clear() {
 
 void stepTowardsTarget() {
   if (targetX == -1 || targetY == -1) {
-    return;  // нет цели — ничего не делаем
+    return; // если нет цели или мы на паузе (цель -1), не двигаем
   }
 
   bool moved = false;
 
-  // Двигаем X
   if (MShape.xPos < targetX) {
     MShape.xPos += STEP_SIZE;
     moved = true;
@@ -98,7 +99,6 @@ void stepTowardsTarget() {
     moved = true;
   }
 
-  // Двигаем Y
   if (MShape.yPos < targetY) {
     MShape.yPos += STEP_SIZE;
     moved = true;
@@ -107,18 +107,58 @@ void stepTowardsTarget() {
     moved = true;
   }
 
-  // Корректируем границы (на всякий случай)
-  if (MShape.xPos > MAX_XPOS) MShape.xPos = MAX_XPOS;
-  if (MShape.xPos < MIN_XPOS) MShape.xPos = MIN_XPOS;
-  if (MShape.yPos > MAX_YPOS) MShape.yPos = MAX_YPOS;
-  if (MShape.yPos < MIN_YPOS) MShape.yPos = MIN_YPOS;
+  // Границы
+  MShape.xPos = constrain(MShape.xPos, MIN_XPOS, MAX_XPOS);
+  MShape.yPos = constrain(MShape.yPos, MIN_YPOS, MAX_YPOS);
 
   if (!moved) {
-    // Дошли до цели
+    // Доехали до точки
     targetX = -1;
     targetY = -1;
     return;
   }
 
-  MShape.drawFrame();
+  MShape.drawFrame();  // если ты вынес отрисовку сюда
 }
+
+
+// void stepTowardsTarget() {
+//   if (targetX == -1 || targetY == -1) {
+//     return;  // нет цели — ничего не делаем
+//   }
+
+//   bool moved = false;
+
+//   // Двигаем X
+//   if (MShape.xPos < targetX) {
+//     MShape.xPos += STEP_SIZE;
+//     moved = true;
+//   } else if (MShape.xPos > targetX) {
+//     MShape.xPos -= STEP_SIZE;
+//     moved = true;
+//   }
+
+//   // Двигаем Y
+//   if (MShape.yPos < targetY) {
+//     MShape.yPos += STEP_SIZE;
+//     moved = true;
+//   } else if (MShape.yPos > targetY) {
+//     MShape.yPos -= STEP_SIZE;
+//     moved = true;
+//   }
+
+//   // Корректируем границы (на всякий случай)
+//   if (MShape.xPos > MAX_XPOS) MShape.xPos = MAX_XPOS;
+//   if (MShape.xPos < MIN_XPOS) MShape.xPos = MIN_XPOS;
+//   if (MShape.yPos > MAX_YPOS) MShape.yPos = MAX_YPOS;
+//   if (MShape.yPos < MIN_YPOS) MShape.yPos = MIN_YPOS;
+
+//   if (!moved) {
+//     // Дошли до цели
+//     targetX = -1;
+//     targetY = -1;
+//     return;
+//   }
+
+//   MShape.drawFrame();
+// }

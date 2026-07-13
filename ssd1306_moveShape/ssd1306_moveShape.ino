@@ -13,17 +13,28 @@ void loop() {
 void Logic_1() {
   static size_t currentPointIndex = 0;
 
-  // Если нет активной цели — ставим следующую из маршрута
-  if (targetX == -1 && targetY == -1) {
-    // Берем точку из массива
+  // Если движения нет и мы не на паузе — ставим новую цель
+  if (targetX == -1 && targetY == -1 && !isStopped) {
     targetX = route[currentPointIndex].x;
     targetY = route[currentPointIndex].y;
-
-    // Готовим индекс для следующей цели (закольцовываем маршрут)
     currentPointIndex = (currentPointIndex + 1) % ROUTE_LENGTH;
   }
 
+  // Двигаемся к цели
   stepTowardsTarget();
+
+  // Если доехали (stepTowardsTarget сбросил target в -1) и пауза ещё не началась
+  if (targetX == -1 && targetY == -1 && !isStopped) {
+    isStopped = true;
+    lastStopTime = millis();
+  }
+
+  // Проверяем, прошла ли пауза
+  if (isStopped && (millis() - lastStopTime >= STOP_DURATION)) {
+    isStopped = false;
+    // Следующая точка поставится на следующем проходе, когда targetX/Y снова -1
+  }
 }
+
 
 
