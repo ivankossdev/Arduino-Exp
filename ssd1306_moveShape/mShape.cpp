@@ -15,7 +15,7 @@ void MShape::init() {
   this->yPos = 16;
 
   clearDisplay();
-  display();
+  updateDisplay();
 }
 
 void MShape::dispCord() {
@@ -23,8 +23,10 @@ void MShape::dispCord() {
   setTextSize(1);
   setTextColor(SSD1306_WHITE);
   setCursor(0, 0);
-  printf("Position X%d Y%d", xPos, yPos);
-  display();
+  
+  char buf[32];
+  sprintf(buf, "Position X%d Y%d", xPos, yPos);
+  print(buf);
 }
 
 void MShape::movement(int16_t x, int16_t y) {
@@ -32,58 +34,12 @@ void MShape::movement(int16_t x, int16_t y) {
 
   clearSh(off);
   fillRect(x, y, 10, 10, WHITE);
-  display();
 }
 
 void MShape::clearSh(Display dsp) {
-
-  // Движение вниз и вправо
-  if (this->xOldPos < xPos && this->yOldPos < yPos) {
-    fillRect(xPos - 1, yPos - 1, 10, 10, BLACK);
-  }
-
-  // Движение вниз и влево
-  if (this->xOldPos > xPos && this->yOldPos < yPos) {
-    fillRect(xPos + 1, yPos - 1, 10, 10, BLACK);
-  }
-  
-  // Движение вверх и вправо
-  if (this->xOldPos< xPos && this->yOldPos > yPos) {
-    fillRect(xPos - 1, yPos + 1, 10, 10, BLACK);
-  }
-
-  // Движение вверх и влево
-  if (this->xOldPos > xPos && this->yOldPos > yPos) {
-    fillRect(xPos + 1, yPos + 1, 10, 10, BLACK);
-  }
-
-  // Движение вправо
-  if (this->xOldPos < xPos && this->yOldPos == yPos) {
-    fillRect(xPos - 1, yPos, 10, 10, BLACK);
-  }
-
-  // Дижение влево
-  if (this->xOldPos > xPos && this->yOldPos == yPos) {
-    fillRect(xPos + 1, yPos, 10, 10, BLACK);
-  }
-
-  // Движение вниз
-  if (this->yOldPos < yPos) {
-    fillRect(xPos, yPos - 1, 10, 10, BLACK);
-  }
-
-  // Движение вверх
-  if (this->yOldPos > yPos) {
-    fillRect(xPos, yPos + 1, 10, 10, BLACK);
-  }
-
-  // Serial.printf("xOldPos %d, yOldPos %d, xPos %d, yPos %d \n", xOldPos, yOldPos, xPos, yPos);
-  this->xOldPos = xPos;
-  this->yOldPos = yPos;
-
-  if (dsp == on) {
-    display();
-  }
+  fillRect(xOldPos, yOldPos, 10, 10, BLACK);
+  xOldPos = xPos;
+  yOldPos = yPos;
 }
 
 void MShape::setDefaultXPos() {
@@ -97,12 +53,3 @@ void MShape::setDefaultYPos() {
 void MShape::clear(){
   fillRect(xPos, yPos, 10, 10, BLACK);
 }
-
-
-
-
-
-
-
-
-

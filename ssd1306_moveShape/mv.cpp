@@ -5,86 +5,75 @@ void mshInit() {
 }
 
 void mvCord(int16_t x, int16_t y) {
-  MShape.xPos = x; MShape.yPos = y;
+  // 1. Устанавливаем координаты
+  MShape.xPos = x;
+  MShape.yPos = y;
 
-  if (MShape.xPos >= MAX_XPOS) { MShape.xPos = MAX_XPOS; }
-  else if (MShape.xPos < MIN_XPOS) { MShape.xPos = MIN_XPOS; }
-  else if (MShape.yPos >= MAX_YPOS) { MShape.yPos = MAX_YPOS; }
-  else if (MShape.yPos < MIN_YPOS) { MShape.yPos = MIN_YPOS; }
+  // 2. Корректируем границы
+  if (MShape.xPos > MAX_XPOS) MShape.xPos = MAX_XPOS;
+  if (MShape.xPos < MIN_XPOS) MShape.xPos = MIN_XPOS;
+  if (MShape.yPos > MAX_YPOS) MShape.yPos = MAX_YPOS;
+  if (MShape.yPos < MIN_YPOS) MShape.yPos = MIN_YPOS;
+
+  // 3. Изменяем буфер (стираем старый квадрат, рисуем новый)
+  MShape.movement(MShape.xPos, MShape.yPos); // внутри уже есть clearSh и fillRect
   
+  // 4. Выводим координаты (тоже в буфер)
   MShape.dispCord();
-  MShape.movement(MShape.xPos, MShape.yPos);
+
+  // 5. Один раз отправляем буфер на экран
+  MShape.updateDisplay();
 }
 
 void mvRight() {
   while (MShape.xPos < MAX_XPOS) {
-    MShape.dispCord();
-    MShape.movement(MShape.xPos, MShape.yPos);
-    ++MShape.xPos;
+    mvCord(MShape.xPos + 1, MShape.yPos);
   }
 }
 
 void mvDown() {
   while (MShape.yPos < MAX_YPOS) {
-    MShape.dispCord();
-    MShape.movement(MShape.xPos, MShape.yPos);
-    ++MShape.yPos;
+    mvCord(MShape.xPos, MShape.yPos + 1);
   }
 }
 
 void mvLeft() {
   while (MShape.xPos > MIN_XPOS) {
-    MShape.dispCord();
-    MShape.movement(MShape.xPos, MShape.yPos);
-    --MShape.xPos;
+    mvCord(MShape.xPos - 1, MShape.yPos);
   }
 }
 
 void mvUp() {
   while (MShape.yPos > MIN_YPOS) {
-    MShape.dispCord();
-    MShape.movement(MShape.xPos, MShape.yPos);
-    --MShape.yPos;
+    mvCord(MShape.xPos, MShape.yPos - 1);
   }
 }
 
 void downAndRight() {
-  while (MShape.yPos < MAX_YPOS) {
-    MShape.dispCord();
-    MShape.movement(MShape.xPos, MShape.yPos);
-    ++MShape.yPos;
-    ++MShape.xPos;
+  while (MShape.yPos < MAX_YPOS && MShape.xPos < MAX_XPOS) {
+    mvCord(MShape.xPos + 1, MShape.yPos + 1);
   }
 }
 
-void upAndRigth() {
-  while (MShape.yPos > MIN_YPOS) {
-    MShape.dispCord();
-    MShape.movement(MShape.xPos, MShape.yPos);
-    --MShape.yPos;
-    ++MShape.xPos;
+void upAndRight() { // исправлено имя
+  while (MShape.yPos > MIN_YPOS && MShape.xPos < MAX_XPOS) {
+    mvCord(MShape.xPos + 1, MShape.yPos - 1);
   }
 }
 
 void downAndLeft() {
-  while (MShape.yPos < MAX_YPOS) {
-    MShape.dispCord();
-    MShape.movement(MShape.xPos, MShape.yPos);
-    ++MShape.yPos;
-    --MShape.xPos;
+  while (MShape.yPos < MAX_YPOS && MShape.xPos > MIN_XPOS) {
+    mvCord(MShape.xPos - 1, MShape.yPos + 1);
   }
 }
 
 void upAndLeft() {
-  while (MShape.yPos > MIN_YPOS) {
-    MShape.dispCord();
-    MShape.movement(MShape.xPos, MShape.yPos);
-    --MShape.yPos;
-    --MShape.xPos;
+  while (MShape.yPos > MIN_YPOS && MShape.xPos > MIN_XPOS) {
+    mvCord(MShape.xPos - 1, MShape.yPos - 1);
   }
 }
 
 void clear(){
-  MShape.clearSh(on);
-  MShape.clear();
+  MShape.clear();         // закрашиваем текущий квадрат чёрным
+  MShape.updateDisplay(); // обновляем экран
 }

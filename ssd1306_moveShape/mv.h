@@ -22,7 +22,7 @@ void mvDown();
 void mvLeft();
 void mvUp();
 void downAndRight();
-void upAndRigth();
+void upAndRight();
 void downAndLeft();
 void upAndLeft();
 void clear();

@@ -12,7 +12,7 @@ void loop() {
 
 void Logic_1() {
   downAndRight();
-  upAndRigth();
+  upAndRight();
 
   downAndRight();
   mvUp();
