@@ -25,7 +25,8 @@ void MShape::dispCord() {
   setCursor(0, 0);
   
   char buf[32];
-  sprintf(buf, "Position X%d Y%d", xPos, yPos);
+  // sprintf(buf, "Position X%d Y%d", xPos, yPos);
+  snprintf(buf, sizeof(buf), "Position X%d Y%d", xPos, yPos);
   print(buf);
 }
 
