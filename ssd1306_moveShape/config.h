@@ -31,4 +31,20 @@ constexpr int16_t TARGET_BOTTOM_RIGHT_X = MAX_XPOS;
 constexpr int16_t TARGET_TOP_Y    = MIN_YPOS;
 constexpr int16_t TARGET_BOTTOM_Y = MAX_YPOS;
 
+struct Point {
+  int16_t x;
+  int16_t y;
+};
+
+// Маршрут: квадрат будет ехать по этим точкам по порядку
+const Point route[] = {
+  { TARGET_TOP_LEFT_X,   TARGET_TOP_Y },      // 0: левый верх
+  { TARGET_TOP_RIGHT_X,  TARGET_TOP_Y },      // 1: правый верх
+  { TARGET_BOTTOM_RIGHT_X, TARGET_BOTTOM_Y }, // 2: правый низ
+  { TARGET_BOTTOM_LEFT_X,  TARGET_BOTTOM_Y }  // 3: левый низ
+};
+
+constexpr size_t ROUTE_LENGTH = sizeof(route) / sizeof(route[0]);
+
+
 #endif

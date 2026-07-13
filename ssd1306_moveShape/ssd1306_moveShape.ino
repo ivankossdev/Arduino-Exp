@@ -1,68 +1,29 @@
 #include "mv.h"
 
 void Logic_1();
-void Logic_2();
 
 void setup() {
   mshInit();
 }
 
 void loop() {
-  Logic_2();
+  Logic_1();
 }
 
 void Logic_1() {
-  downAndRight();
-  upAndRight();
+  static size_t currentPointIndex = 0;
 
-  downAndRight();
-  mvUp();
-
-  downAndLeft();
-  upAndLeft();
-
-  downAndLeft();
-  mvUp();
-}
-
-void Logic_2() {
-  // Если движения нет — ставим новую цель
+  // Если нет активной цели — ставим следующую из маршрута
   if (targetX == -1 && targetY == -1) {
-    static uint8_t patternIndex = 0;
+    // Берем точку из массива
+    targetX = route[currentPointIndex].x;
+    targetY = route[currentPointIndex].y;
 
-    switch (patternIndex) {
-      case 0:
-        // В правый верхний угол (почти downAndRight)
-        targetX = TARGET_TOP_RIGHT_X;
-        targetY = TARGET_TOP_Y;
-        break;
-
-      case 1:
-        // В правый нижний угол (upAndRight по старой терминологии)
-        targetX = TARGET_BOTTOM_RIGHT_X;
-        targetY = TARGET_BOTTOM_Y;
-        break;
-
-      case 2:
-        // В левый нижний угол
-        targetX = TARGET_BOTTOM_LEFT_X;
-        targetY = TARGET_BOTTOM_Y;
-        break;
-
-      case 3:
-        // В левый верхний угол
-        targetX = TARGET_TOP_LEFT_X;
-        targetY = TARGET_TOP_Y;
-        break;
-
-      default:
-        patternIndex = 0;
-        // Зацикливаем паттерн
-        return;
-    }
-    patternIndex++;
+    // Готовим индекс для следующей цели (закольцовываем маршрут)
+    currentPointIndex = (currentPointIndex + 1) % ROUTE_LENGTH;
   }
 
-  // Каждый loop() делаем один шаг к текущей цели
   stepTowardsTarget();
 }
+
+
