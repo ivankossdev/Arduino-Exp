@@ -4,6 +4,8 @@
 #include "mShape.h"
 #include "config.h"
 
+
+
 static MShape MShape(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 void mshInit();
 void mvCord(int16_t x, int16_t y);
@@ -15,6 +17,7 @@ void downAndRight();
 void upAndRight();
 void downAndLeft();
 void upAndLeft();
+void stepTowardsTarget();
 void clear();
 
 #endif 

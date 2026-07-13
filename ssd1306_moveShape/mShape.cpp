@@ -54,3 +54,17 @@ void MShape::setDefaultYPos() {
 void MShape::clear(){
   fillRect(xPos, yPos, 10, 10, BLACK);
 }
+
+void MShape::drawFrame() {
+  clearDisplay();
+  fillRect(xPos, yPos, 10, 10, WHITE);
+
+  setTextSize(1);
+  setTextColor(SSD1306_WHITE);
+  setCursor(0, 0);
+  char buf[32];
+  snprintf(buf, sizeof(buf), "X%d Y%d", xPos, yPos);
+  print(buf);
+
+  display();
+}

@@ -17,4 +17,18 @@ constexpr int16_t MIN_XPOS = 0;
 constexpr int16_t MAX_YPOS = 54;
 constexpr int16_t MIN_YPOS = 16;    // отступ сверху для строки координат
 
+// Новая цель движения (если targetX == -1 — движения нет)
+extern int16_t targetX;
+extern int16_t targetY;
+constexpr int16_t STEP_SIZE = 3; // сколько пикселей за один loop()
+
+// Целевые позиции для паттерна (чтобы не держать в голове 117/54 и т.п.)
+constexpr int16_t TARGET_TOP_LEFT_X  = MIN_XPOS;
+constexpr int16_t TARGET_TOP_RIGHT_X = MAX_XPOS;
+constexpr int16_t TARGET_BOTTOM_LEFT_X  = MIN_XPOS;
+constexpr int16_t TARGET_BOTTOM_RIGHT_X = MAX_XPOS;
+
+constexpr int16_t TARGET_TOP_Y    = MIN_YPOS;
+constexpr int16_t TARGET_BOTTOM_Y = MAX_YPOS;
+
 #endif
