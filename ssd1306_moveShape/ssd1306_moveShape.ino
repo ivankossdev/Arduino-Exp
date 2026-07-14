@@ -1,25 +1,29 @@
 #include "mv.h"
 
 void Logic_1() {
-  static size_t currentPointIndex = 0;
+  mShape.xPos += mShape.speedX;
+  mShape.yPos += mShape.speedY;
 
-  if (targetX == -1 && targetY == -1 && !isStopped) {
-    targetX = route[currentPointIndex].x;
-    targetY = route[currentPointIndex].y;
-    currentPointIndex = (currentPointIndex + 1) % ROUTE_LENGTH;
+  // Отскок по X + выталкивание на границу
+  if (mShape.xPos <= MIN_XPOS) {
+    mShape.xPos = MIN_XPOS;
+    mShape.speedX = -mShape.speedX;
+  } else if (mShape.xPos + SIZE_SHAPE >= SCREEN_WIDTH) {
+    mShape.xPos = MAX_XPOS;          // SCREEN_WIDTH - SIZE_SHAPE
+    mShape.speedX = -mShape.speedX;
   }
 
-  stepTowardsTarget();
-
-  if (targetX == -1 && targetY == -1 && !isStopped) {
-    isStopped = true;
-    lastStopTime = millis();
-  }
-
-  if (isStopped && (millis() - lastStopTime >= STOP_DURATION)) {
-    isStopped = false;
+  // Отскок по Y + выталкивание на границу (с учётом отступа под текст)
+  if (mShape.yPos <= MIN_YPOS) {
+    mShape.yPos = MIN_YPOS;
+    mShape.speedY = -mShape.speedY;
+  } else if (mShape.yPos + SIZE_SHAPE >= SCREEN_HEIGHT) {
+    mShape.yPos = MAX_YPOS;          // SCREEN_HEIGHT - SIZE_SHAPE
+    mShape.speedY = -mShape.speedY;
   }
 }
+
+
 
 void setup() {
   mshInit();
@@ -27,6 +31,5 @@ void setup() {
 
 void loop() {
   Logic_1(); // только двигаем координаты и считаем паузы
-  
-  mShape.drawFrame(isStopped); 
+  mShape.drawFrame(); 
 }

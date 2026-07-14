@@ -8,8 +8,9 @@
 
 
 enum Display {
-  on, off
-}; 
+  on,
+  off
+};
 
 class MShape : private Adafruit_SSD1306 {
 public:
@@ -23,8 +24,12 @@ public:
   void clear();
   int16_t xPos;
   int16_t yPos;
-  void updateDisplay() { display(); }
-  void drawFrame(bool stopped);
+  void updateDisplay() {
+    display();
+  }
+  void drawFrame();
+  int16_t speedX;  // скорость по X (пикселей за кадр)
+  int16_t speedY;  // скорость по Y
 
 private:
   int16_t xOldPos;
