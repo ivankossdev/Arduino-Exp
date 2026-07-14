@@ -5,8 +5,7 @@
 #include "config.h"
 
 
-
-static MShape MShape(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+extern MShape mShape;
 void mshInit();
 void mvCord(int16_t x, int16_t y);
 void mvRight();

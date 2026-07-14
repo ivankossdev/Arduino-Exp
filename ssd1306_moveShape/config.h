@@ -48,6 +48,9 @@ constexpr size_t ROUTE_LENGTH = sizeof(route) / sizeof(route[0]);
 
 extern unsigned long lastStopTime;
 extern bool isStopped;
-constexpr unsigned long STOP_DURATION = 1000;  // лучше constexpr, чем const
+constexpr unsigned long STOP_DURATION = 50;  // лучше constexpr, чем const
+
+// Переменная для пульсации
+extern bool isPulseGrowing;
 
 #endif

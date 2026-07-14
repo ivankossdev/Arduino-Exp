@@ -24,7 +24,7 @@ public:
   int16_t xPos;
   int16_t yPos;
   void updateDisplay() { display(); }
-  void drawFrame();
+  void drawFrame(bool stopped);
 
 private:
   int16_t xOldPos;

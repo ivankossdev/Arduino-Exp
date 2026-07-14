@@ -19,16 +19,15 @@ void MShape::init() {
 }
 
 void MShape::dispCord() {
-  fillRect(0, 0, 126, 16, BLACK);
   setTextSize(1);
   setTextColor(SSD1306_WHITE);
   setCursor(0, 0);
   
   char buf[32];
-  // sprintf(buf, "Position X%d Y%d", xPos, yPos);
-  snprintf(buf, sizeof(buf), "Position X%d Y%d", xPos, yPos);
+  snprintf(buf, sizeof(buf), "Pos: X%d Y%d", xPos, yPos);
   print(buf);
 }
+
 
 void MShape::movement(int16_t x, int16_t y) {
   xPos = x; yPos = y; 
@@ -55,16 +54,37 @@ void MShape::clear(){
   fillRect(xPos, yPos, 10, 10, BLACK);
 }
 
-void MShape::drawFrame() {
-  clearDisplay();
-  fillRect(xPos, yPos, 10, 10, WHITE);
+void MShape::drawFrame(bool stopped) {
+  const int eraseSize = 12;
 
-  setTextSize(1);
-  setTextColor(SSD1306_WHITE);
-  setCursor(0, 0);
-  char buf[32];
-  snprintf(buf, sizeof(buf), "X%d Y%d", xPos, yPos);
-  print(buf);
+  // 1. Стираем старый квадрат
+  fillRect(xOldPos, yOldPos, eraseSize, eraseSize, BLACK);
+  xOldPos = xPos;
+  yOldPos = yPos;
 
+  // 2. Логика пульсации
+  int currentSize = 10;
+  static bool pulseGrowing = true;
+
+  if (stopped) {
+    currentSize = pulseGrowing ? 12 : 8;
+    pulseGrowing = !pulseGrowing;
+  }
+
+  // 3. Рисуем новый квадрат
+  fillRect(xPos, yPos, currentSize, currentSize, WHITE);
+
+  // 4. Стираем строку с координатами ПЕРЕД тем, как рисовать новые
+  // Это делает отрисовку предсказуемой: сначала чистый холст, потом текст
+  fillRect(0, 0, 128, 16, BLACK);   // 128 — полная ширина экрана
+
+  // 5. Показываем координаты
+  dispCord();
+
+  // 6. Отправляем буфер на экран
   display();
 }
+
+
+
+
