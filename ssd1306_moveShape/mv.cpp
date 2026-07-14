@@ -14,36 +14,8 @@ void mshInit() {
   mShape.init();
 }
 
-// void mvCord(int16_t x, int16_t y) {
-//   // 1. Устанавливаем координаты
-//   mShape.xPos = x;
-//   mShape.yPos = y;
-
-//   // 2. Корректируем границы
-//   if (mShape.xPos > MAX_XPOS) mShape.xPos = MAX_XPOS;
-//   if (mShape.xPos < MIN_XPOS) mShape.xPos = MIN_XPOS;
-//   if (mShape.yPos > MAX_YPOS) mShape.yPos = MAX_YPOS;
-//   if (mShape.yPos < MIN_YPOS) mShape.yPos = MIN_YPOS;
-
-//   // 3. Изменяем буфер (стираем старый квадрат, рисуем новый)
-//   mShape.movement(mShape.xPos, mShape.yPos);  // внутри уже есть clearSh и fillRect
-
-//   // 4. Выводим координаты (тоже в буфер)
-//   mShape.dispCord();
-
-//   // 5. Один раз отправляем буфер на экран
-//   mShape.updateDisplay();
-// }
-
-// void mvRight() {
-//   while (mShape.xPos < MAX_XPOS) {
-//     mvCord(mShape.xPos + 1, mShape.yPos);
-//   }
-// }
 
 void mvCord(int16_t x, int16_t y) {
-  // Эту функцию мы теперь НЕ используем в цикле анимации.
-  // Она нужна только для ручного управления кнопками (mvRight, mvLeft и т.д.)
   
   mShape.xPos = x;
   mShape.yPos = y;
@@ -59,11 +31,13 @@ void mvCord(int16_t x, int16_t y) {
   mShape.updateDisplay();
 }
 
+
 void mvDown() {
   while (mShape.yPos < MAX_YPOS) {
     mvCord(mShape.xPos, mShape.yPos + 1);
   }
 }
+
 
 void mvLeft() {
   while (mShape.xPos > MIN_XPOS) {
@@ -71,11 +45,13 @@ void mvLeft() {
   }
 }
 
+
 void mvUp() {
   while (mShape.yPos > MIN_YPOS) {
     mvCord(mShape.xPos, mShape.yPos - 1);
   }
 }
+
 
 void downAndRight() {
   while (mShape.yPos < MAX_YPOS && mShape.xPos < MAX_XPOS) {
@@ -83,11 +59,13 @@ void downAndRight() {
   }
 }
 
+
 void upAndRight() {  // исправлено имя
   while (mShape.yPos > MIN_YPOS && mShape.xPos < MAX_XPOS) {
     mvCord(mShape.xPos + 1, mShape.yPos - 1);
   }
 }
+
 
 void downAndLeft() {
   while (mShape.yPos < MAX_YPOS && mShape.xPos > MIN_XPOS) {
@@ -95,16 +73,19 @@ void downAndLeft() {
   }
 }
 
+
 void upAndLeft() {
   while (mShape.yPos > MIN_YPOS && mShape.xPos > MIN_XPOS) {
     mvCord(mShape.xPos - 1, mShape.yPos - 1);
   }
 }
 
+
 void clear() {
   mShape.clear();          // закрашиваем текущий квадрат чёрным
   mShape.updateDisplay();  // обновляем экран
 }
+
 
 void stepTowardsTarget() {
   if (targetX == -1 || targetY == -1) {
@@ -134,7 +115,6 @@ void stepTowardsTarget() {
       movedX = true;
     }
   }
-  // если xPos == targetX — movedX остаётся false
 
   // Y
   if (mShape.yPos < targetY) {

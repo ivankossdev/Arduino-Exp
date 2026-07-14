@@ -20,7 +20,7 @@ constexpr int16_t MIN_YPOS = 16;    // отступ сверху для стро
 // Новая цель движения (если targetX == -1 — движения нет)
 extern int16_t targetX;
 extern int16_t targetY;
-constexpr int16_t STEP_SIZE = 3; // сколько пикселей за один loop()
+constexpr int16_t STEP_SIZE = 2; // сколько пикселей за один loop()
 
 // Целевые позиции для паттерна (чтобы не держать в голове 117/54 и т.п.)
 constexpr int16_t TARGET_TOP_LEFT_X  = MIN_XPOS;
@@ -48,7 +48,7 @@ constexpr size_t ROUTE_LENGTH = sizeof(route) / sizeof(route[0]);
 
 extern unsigned long lastStopTime;
 extern bool isStopped;
-constexpr unsigned long STOP_DURATION = 50;  // лучше constexpr, чем const
+constexpr unsigned long STOP_DURATION = 50;  
 
 // Переменная для пульсации
 extern bool isPulseGrowing;
