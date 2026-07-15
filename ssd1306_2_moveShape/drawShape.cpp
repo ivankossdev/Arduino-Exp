@@ -29,12 +29,12 @@ void DrawShape::movement(Shape& shape, int16_t x, int16_t y) {
   shape.yPos = y;
 
   clearSh(shape);
-  fillRect(x, y, 10, 10, WHITE);
+  fillRect(x, y, SIZE_SHAPE, SIZE_SHAPE, WHITE);
 }
 
 
 void DrawShape::clearSh(Shape& shape) {
-  fillRect(shape.xOldPos, shape.yOldPos, 10, 10, BLACK);
+  fillRect(shape.xOldPos, shape.yOldPos, SIZE_SHAPE, SIZE_SHAPE, BLACK);
   shape.xOldPos = shape.xPos;
   shape.yOldPos = shape.yPos;
 }
@@ -48,7 +48,4 @@ void DrawShape::drawFrame(Shape& shape) {
   shape.yOldPos = shape.yPos;
 
   fillRect(shape.xPos, shape.yPos, SIZE_SHAPE, SIZE_SHAPE, WHITE);
-
-  // dispCord();
-  display();
 }

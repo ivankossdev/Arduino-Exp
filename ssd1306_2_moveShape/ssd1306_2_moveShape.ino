@@ -81,6 +81,6 @@ void setup() {
 
 void loop() {
   Logic_1();
-  
+  drawShape.show();
 }
 

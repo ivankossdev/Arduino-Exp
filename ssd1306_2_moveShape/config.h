@@ -18,9 +18,6 @@ constexpr int16_t MIN_XPOS = 0;
 constexpr int16_t MAX_YPOS = SCREEN_HEIGHT - SIZE_SHAPE;
 constexpr int16_t MIN_YPOS = 16;    // отступ сверху для строки координат
 
-// Новая цель движения (если targetX == -1 — движения нет)
-extern int16_t targetX;
-extern int16_t targetY;
 constexpr int16_t STEP_SIZE = 2; // сколько пикселей за один loop()
 
 #endif
