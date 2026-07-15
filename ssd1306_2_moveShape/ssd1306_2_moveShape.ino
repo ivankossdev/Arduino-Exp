@@ -9,11 +9,16 @@ Shape mShape2(100, 40, 1, 1);
 void Logic_1() {
   updateShape(mShape1);
   updateShape(mShape2);
-  drawShape.drawFrame(mShape1);
-  drawShape.drawFrame(mShape2);
   checkCollisionBetween(mShape1, mShape2);
 }
 
+void drawFrame() {
+  drawShape.clearScreen();          // 1. Стираем ВСЁ сразу
+  drawShape.drawFrame(mShape1);     // 2. Рисуем фигуру 1
+  drawShape.drawFrame(mShape2);     // 3. Рисуем фигуру 2 (другим цветом, чтобы видеть обе)
+  drawShape.dispCord(mShape2);      // 4. Рисуем координаты (можно и для второй тоже)
+  drawShape.show();                 // 5. Один раз отправляем на экран
+}
 
 // Вспомогательная функция: двигаем, проверяем стены, выталкиваем
 void updateShape(Shape& s) {
@@ -81,6 +86,6 @@ void setup() {
 
 void loop() {
   Logic_1();
-  drawShape.show();
+  drawFrame();
 }
 

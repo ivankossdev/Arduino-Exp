@@ -24,28 +24,10 @@ void DrawShape::dispCord(Shape& shape) {
 }
 
 
-void DrawShape::movement(Shape& shape, int16_t x, int16_t y) {
-  shape.xPos = x;
-  shape.yPos = y;
-
-  clearSh(shape);
-  fillRect(x, y, SIZE_SHAPE, SIZE_SHAPE, WHITE);
-}
-
-
-void DrawShape::clearSh(Shape& shape) {
-  fillRect(shape.xOldPos, shape.yOldPos, SIZE_SHAPE, SIZE_SHAPE, BLACK);
-  shape.xOldPos = shape.xPos;
-  shape.yOldPos = shape.yPos;
-}
-
-
-void DrawShape::drawFrame(Shape& shape) {
-
-  fillRect(0, 0, 128, 16, BLACK);
-  fillRect(shape.xOldPos, shape.yOldPos, SIZE_SHAPE, SIZE_SHAPE, BLACK);
-  shape.xOldPos = shape.xPos;
-  shape.yOldPos = shape.yPos;
-
+void DrawShape::drawFrame(const Shape& shape) {
   fillRect(shape.xPos, shape.yPos, SIZE_SHAPE, SIZE_SHAPE, WHITE);
+}
+
+void DrawShape::clearScreen() {
+  fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, BLACK);
 }
