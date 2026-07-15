@@ -3,11 +3,6 @@
 int16_t targetX = -1;
 int16_t targetY = -1;
 
-unsigned long lastStopTime = 0;
-bool isStopped = false;
-
-bool isPulseGrowing = true;  // направление пульсации: растёт или уменьшается
-
 MShape mShape(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 void mshInit() {
@@ -78,12 +73,6 @@ void upAndLeft() {
   while (mShape.yPos > MIN_YPOS && mShape.xPos > MIN_XPOS) {
     mvCord(mShape.xPos - 1, mShape.yPos - 1);
   }
-}
-
-
-void clear() {
-  mShape.clear();          // закрашиваем текущий квадрат чёрным
-  mShape.updateDisplay();  // обновляем экран
 }
 
 

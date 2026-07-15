@@ -7,21 +7,13 @@
 #include "config.h"
 
 
-enum Display {
-  on,
-  off
-};
-
 class MShape : private Adafruit_SSD1306 {
 public:
   using Adafruit_SSD1306::Adafruit_SSD1306;
   void init();
   void dispCord();
   void movement(int16_t x, int16_t y);
-  void clearSh(Display dsp);
-  void setDefaultXPos();
-  void setDefaultYPos();
-  void clear();
+  void clearSh();
   int16_t xPos;
   int16_t yPos;
   void updateDisplay() {

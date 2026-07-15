@@ -17,6 +17,5 @@ void upAndRight();
 void downAndLeft();
 void upAndLeft();
 void stepTowardsTarget();
-void clear();
 
 #endif 

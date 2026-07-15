@@ -38,30 +38,15 @@ void MShape::movement(int16_t x, int16_t y) {
   xPos = x;
   yPos = y;
 
-  clearSh(off);
+  clearSh();
   fillRect(x, y, 10, 10, WHITE);
 }
 
 
-void MShape::clearSh(Display dsp) {
+void MShape::clearSh() {
   fillRect(xOldPos, yOldPos, 10, 10, BLACK);
   xOldPos = xPos;
   yOldPos = yPos;
-}
-
-
-void MShape::setDefaultXPos() {
-  xPos = 0;
-}
-
-
-void MShape::setDefaultYPos() {
-  yPos = 16;
-}
-
-
-void MShape::clear() {
-  fillRect(xPos, yPos, 10, 10, BLACK);
 }
 
 
