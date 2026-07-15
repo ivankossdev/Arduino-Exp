@@ -3,80 +3,8 @@
 int16_t targetX = -1;
 int16_t targetY = -1;
 
-DrawShape mShape(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
-void mshInit() {
-  mShape.init();
-}
-
-
-void mvCord(int16_t x, int16_t y) {
-  
-  mShape.xPos = x;
-  mShape.yPos = y;
-
-  if (mShape.xPos > MAX_XPOS) mShape.xPos = MAX_XPOS;
-  if (mShape.xPos < MIN_XPOS) mShape.xPos = MIN_XPOS;
-  if (mShape.yPos > MAX_YPOS) mShape.yPos = MAX_YPOS;
-  if (mShape.yPos < MIN_YPOS) mShape.yPos = MIN_YPOS;
-
-  // Для ручного движения можно рисовать сразу, но аккуратно
-  mShape.movement(mShape.xPos, mShape.yPos);
-  mShape.dispCord();
-  mShape.updateDisplay();
-}
-
-
-void mvDown() {
-  while (mShape.yPos < MAX_YPOS) {
-    mvCord(mShape.xPos, mShape.yPos + 1);
-  }
-}
-
-
-void mvLeft() {
-  while (mShape.xPos > MIN_XPOS) {
-    mvCord(mShape.xPos - 1, mShape.yPos);
-  }
-}
-
-
-void mvUp() {
-  while (mShape.yPos > MIN_YPOS) {
-    mvCord(mShape.xPos, mShape.yPos - 1);
-  }
-}
-
-
-void downAndRight() {
-  while (mShape.yPos < MAX_YPOS && mShape.xPos < MAX_XPOS) {
-    mvCord(mShape.xPos + 1, mShape.yPos + 1);
-  }
-}
-
-
-void upAndRight() {  // исправлено имя
-  while (mShape.yPos > MIN_YPOS && mShape.xPos < MAX_XPOS) {
-    mvCord(mShape.xPos + 1, mShape.yPos - 1);
-  }
-}
-
-
-void downAndLeft() {
-  while (mShape.yPos < MAX_YPOS && mShape.xPos > MIN_XPOS) {
-    mvCord(mShape.xPos - 1, mShape.yPos + 1);
-  }
-}
-
-
-void upAndLeft() {
-  while (mShape.yPos > MIN_YPOS && mShape.xPos > MIN_XPOS) {
-    mvCord(mShape.xPos - 1, mShape.yPos - 1);
-  }
-}
-
-
-void stepTowardsTarget() {
+void stepTowardsTarget(Shape& mShape) {
   if (targetX == -1 || targetY == -1) {
     return; 
   }
@@ -135,11 +63,3 @@ void stepTowardsTarget() {
     targetY = -1;
   }
 }
-
-
-
-
-
-
-
-
