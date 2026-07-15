@@ -3,7 +3,7 @@
 int16_t targetX = -1;
 int16_t targetY = -1;
 
-MShape mShape(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+DrawShape mShape(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 void mshInit() {
   mShape.init();

@@ -1,5 +1,5 @@
-#ifndef _MSHAPE_H
-#define _MSHAPE_H
+#ifndef _DRAWSHAPE_H
+#define _DRAWSHAPE_H
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
@@ -7,7 +7,7 @@
 #include "config.h"
 
 
-class MShape : private Adafruit_SSD1306 {
+class DrawShape : private Adafruit_SSD1306 {
 public:
   using Adafruit_SSD1306::Adafruit_SSD1306;
   void init();
@@ -22,7 +22,7 @@ public:
   void drawFrame();
   int16_t speedX;  // скорость по X (пикселей за кадр)
   int16_t speedY;  // скорость по Y
-  void drawSingleShape(const MShape& s, uint8_t color);
+  void drawSingleShape(const DrawShape& s, uint8_t color);
   void drawTwoShapes();
 
 private:

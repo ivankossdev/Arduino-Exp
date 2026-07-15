@@ -1,7 +1,7 @@
-#include "mShape.h"
+#include "drawShape.h"
 
 
-void MShape::init() {
+void DrawShape::init() {
   Serial.begin(115200);
 
   speedX = 1;
@@ -23,7 +23,7 @@ void MShape::init() {
 }
 
 
-void MShape::dispCord() {
+void DrawShape::dispCord() {
   setTextSize(1);
   setTextColor(SSD1306_WHITE);
   setCursor(0, 0);
@@ -34,7 +34,7 @@ void MShape::dispCord() {
 }
 
 
-void MShape::movement(int16_t x, int16_t y) {
+void DrawShape::movement(int16_t x, int16_t y) {
   xPos = x;
   yPos = y;
 
@@ -43,14 +43,14 @@ void MShape::movement(int16_t x, int16_t y) {
 }
 
 
-void MShape::clearSh() {
+void DrawShape::clearSh() {
   fillRect(xOldPos, yOldPos, 10, 10, BLACK);
   xOldPos = xPos;
   yOldPos = yPos;
 }
 
 
-void MShape::drawFrame() {
+void DrawShape::drawFrame() {
 
   fillRect(0, 0, 128, 16, BLACK);
   fillRect(xOldPos, yOldPos, SIZE_SHAPE, SIZE_SHAPE, BLACK);

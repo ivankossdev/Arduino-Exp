@@ -1,18 +1,18 @@
 #include "mv.h"
 
-MShape mShape1(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-MShape mShape2(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+DrawShape mShape1(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+DrawShape mShape2(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 void Logic_1() {
   updateShape(mShape1);
   updateShape(mShape2);
   mShape1.drawFrame();
-  mShape2.drawFrame();
-  checkCollisionBetween(mShape1, mShape2);
+  // mShape2.drawFrame();
+  // checkCollisionBetween(mShape1, mShape2);
 }
 
 // Вспомогательная функция: двигаем, проверяем стены, выталкиваем
-void updateShape(MShape& s) {
+void updateShape(DrawShape& s) {
   s.xPos += s.speedX;
   s.yPos += s.speedY;
 
@@ -35,7 +35,7 @@ void updateShape(MShape& s) {
   }
 }
 
-void checkCollisionBetween(MShape& a, MShape& b) {
+void checkCollisionBetween(DrawShape& a, DrawShape& b) {
   // Простая AABB-проверка: прямоугольники пересекаются?
   bool xOverlap = a.xPos < b.xPos + SIZE_SHAPE &&
                   b.xPos < a.xPos + SIZE_SHAPE;

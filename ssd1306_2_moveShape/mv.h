@@ -1,11 +1,11 @@
 #ifndef _MV_H
 #define _MV_H
 #include "Arduino.h"
-#include "mShape.h"
+#include "drawShape.h"
 #include "config.h"
 
 
-extern MShape mShape;
+extern DrawShape mShape;
 void mshInit();
 void mvCord(int16_t x, int16_t y);
 void mvRight();
