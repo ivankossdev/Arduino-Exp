@@ -20,4 +20,6 @@ constexpr int16_t MIN_YPOS = 16;    // отступ сверху для стро
 
 constexpr int16_t STEP_SIZE = 2; // сколько пикселей за один loop()
 
+constexpr int MAX_SHAPES = 10;
+
 #endif

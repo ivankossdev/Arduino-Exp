@@ -2,23 +2,43 @@
 
 
 DrawShape drawShape(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-Shape mShape1(10, 20, 2, 3); 
-Shape mShape2(100, 40, 1, 1); 
 
+Shape shapes[MAX_SHAPES] = {
+  Shape(10, 20, 2, 3), 
+  Shape(100, 40, 1, 1),
+  Shape(60, 30, 2, 1),
+  Shape(20, 20, 2, 2)
+}; 
+
+int shapeCount = 4; 
 
 void Logic_1() {
-  updateShape(mShape1);
-  updateShape(mShape2);
-  checkCollisionBetween(mShape1, mShape2);
+  // 1. Двигаем каждую фигуру
+  for (int i = 0; i < shapeCount; ++i) {
+    updateShape(shapes[i]);
+  }
+
+  // 2. Проверяем столкновения между всеми парами
+  for (int i = 0; i < shapeCount; ++i) {
+    for (int j = i + 1; j < shapeCount; ++j) {
+      checkCollisionBetween(shapes[i], shapes[j]);
+    }
+  }
 }
 
+
 void drawFrame() {
-  drawShape.clearScreen();          // 1. Стираем ВСЁ сразу
-  drawShape.drawFrame(mShape1);     // 2. Рисуем фигуру 1
-  drawShape.drawFrame(mShape2);     // 3. Рисуем фигуру 2 (другим цветом, чтобы видеть обе)
-  drawShape.dispCord(mShape2);      // 4. Рисуем координаты (можно и для второй тоже)
-  drawShape.show();                 // 5. Один раз отправляем на экран
+  drawShape.clearScreen();
+
+  for (int i = 0; i < shapeCount; ++i) {
+    // Можно сделать цвета по кругу, чтобы было видно все фигуры
+    drawShape.drawFrame(shapes[i]);
+  }
+
+  drawShape.dispCord(shapes[0]); // координаты первой фигуры (или любой другой)
+  drawShape.show();
 }
+
 
 // Вспомогательная функция: двигаем, проверяем стены, выталкиваем
 void updateShape(Shape& s) {
