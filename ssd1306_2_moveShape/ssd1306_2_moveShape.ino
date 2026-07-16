@@ -1,16 +1,17 @@
 #include "mv.h"
 
-
 DrawShape drawShape(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 Shape shapes[MAX_SHAPES] = {
   Shape(10, 20, 2, 3), 
   Shape(100, 40, 1, 1),
   Shape(60, 30, 2, 1),
-  Shape(20, 20, 2, 2)
+  Shape(20, 20, 2, 2),
+  Shape(10, 40, -2, -3),
+  Shape(0, 40, -3, -3)
 }; 
 
-int shapeCount = 4; 
+int shapeCount = 6; 
 
 void Logic_1() {
   // 1. Двигаем каждую фигуру
