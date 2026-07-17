@@ -64,6 +64,10 @@ void stepTowardsTarget(Shape& mShape) {
   mShape.xPos = constrain(mShape.xPos, MIN_XPOS, MAX_XPOS(mShape));
   mShape.yPos = constrain(mShape.yPos, MIN_YPOS, MAX_YPOS(mShape));
 
+    char buf[32];
+    snprintf(buf, sizeof(buf), "Pos: X%d Y%d\n", mShape.xPos, mShape.yPos);
+    Serial.print(buf);
+
   // Остановка только если по обеим осям мы уже не двигались
   if (!movedX && !movedY) {
     targetX = -1;
