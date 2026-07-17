@@ -7,8 +7,9 @@ public:
   int16_t yPos = 0;
   int16_t speedX = 1;
   int16_t speedY = 1;
+  int sizeShape = 6;
 
-  Shape(int16_t x, int16_t y, int16_t sx, int16_t sy) 
-    : xPos(x), yPos(y), speedX(sx), speedY(sy) {}
+  Shape(int16_t x, int16_t y, int16_t sx, int16_t sy, int sShape) 
+    : xPos(x), yPos(y), speedX(sx), speedY(sy), sizeShape(sShape) {}
   Shape() = default;
 };

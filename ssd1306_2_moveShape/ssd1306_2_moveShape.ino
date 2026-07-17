@@ -3,15 +3,12 @@
 DrawShape drawShape(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 Shape shapes[MAX_SHAPES] = {
-  Shape(10, 20, 2, 3), 
-  Shape(100, 40, 1, 1),
-  Shape(60, 30, 2, 1),
-  Shape(20, 20, 2, 2),
-  Shape(10, 40, -2, -3),
-  Shape(0, 40, -3, -3)
+  Shape(10, 20, 2, 3, 6), 
+  Shape(100, 40, 1, 1, 8),
+  Shape(60, 30, 2, 1, 10),
 }; 
 
-int shapeCount = 6; 
+int shapeCount = 3; 
 
 void Logic_1() {
   // 1. Двигаем каждую фигуру
@@ -50,8 +47,8 @@ void updateShape(Shape& s) {
   if (s.xPos <= MIN_XPOS) {
     s.xPos = MIN_XPOS;
     s.speedX = -s.speedX;
-  } else if (s.xPos + SIZE_SHAPE >= SCREEN_WIDTH) {
-    s.xPos = MAX_XPOS;
+  } else if (s.xPos + s.sizeShape >= SCREEN_WIDTH) {
+    s.xPos = MAX_XPOS(s);
     s.speedX = -s.speedX;
   }
 
@@ -59,8 +56,8 @@ void updateShape(Shape& s) {
   if (s.yPos <= MIN_YPOS) {
     s.yPos = MIN_YPOS;
     s.speedY = -s.speedY;
-  } else if (s.yPos + SIZE_SHAPE >= SCREEN_HEIGHT) {
-    s.yPos = MAX_YPOS;
+  } else if (s.yPos + s.sizeShape >= SCREEN_HEIGHT) {
+    s.yPos = MAX_YPOS(s);
     s.speedY = -s.speedY;
   }
 }
@@ -68,11 +65,11 @@ void updateShape(Shape& s) {
 
 void checkCollisionBetween(Shape& a, Shape& b) {
   // Простая AABB-проверка: прямоугольники пересекаются?
-  bool xOverlap = a.xPos < b.xPos + SIZE_SHAPE &&
-                  b.xPos < a.xPos + SIZE_SHAPE;
+  bool xOverlap = a.xPos < b.xPos + a.sizeShape &&
+                  b.xPos < a.xPos + b.sizeShape;
 
-  bool yOverlap = a.yPos < b.yPos + SIZE_SHAPE &&
-                  b.yPos < a.yPos + SIZE_SHAPE;
+  bool yOverlap = a.yPos < b.yPos + a.sizeShape &&
+                  b.yPos < a.yPos + b.sizeShape;
 
   if (xOverlap && yOverlap) {
     // Меняем скорости на противоположные у обоих
@@ -90,6 +87,7 @@ void checkCollisionBetween(Shape& a, Shape& b) {
       a.xPos += 1;
       b.xPos -= 1;
     }
+    
 
     if (a.yPos < b.yPos) {
       a.yPos -= 1;

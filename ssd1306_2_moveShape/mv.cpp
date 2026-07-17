@@ -3,6 +3,13 @@
 int16_t targetX = -1;
 int16_t targetY = -1;
 
+int16_t MAX_XPOS(Shape& mShape){
+  return SCREEN_WIDTH - mShape.sizeShape; 
+}
+
+int16_t MAX_YPOS(Shape& mShape){
+  return SCREEN_HEIGHT - mShape.sizeShape;
+}
 
 void stepTowardsTarget(Shape& mShape) {
   if (targetX == -1 || targetY == -1) {
@@ -54,8 +61,8 @@ void stepTowardsTarget(Shape& mShape) {
     }
   }
 
-  mShape.xPos = constrain(mShape.xPos, MIN_XPOS, MAX_XPOS);
-  mShape.yPos = constrain(mShape.yPos, MIN_YPOS, MAX_YPOS);
+  mShape.xPos = constrain(mShape.xPos, MIN_XPOS, MAX_XPOS(mShape));
+  mShape.yPos = constrain(mShape.yPos, MIN_YPOS, MAX_YPOS(mShape));
 
   // Остановка только если по обеим осям мы уже не двигались
   if (!movedX && !movedY) {

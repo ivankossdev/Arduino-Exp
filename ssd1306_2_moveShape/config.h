@@ -10,12 +10,8 @@ constexpr int SCREEN_HEIGHT = 64;
 // Параметры подключения OLED
 constexpr int OLED_RESET      = -1;
 constexpr uint8_t SCREEN_ADDRESS = 0x3C;
-
-constexpr int SIZE_SHAPE = 6;
-
-constexpr int16_t MAX_XPOS = SCREEN_WIDTH - SIZE_SHAPE;   
+  
 constexpr int16_t MIN_XPOS = 0;
-constexpr int16_t MAX_YPOS = SCREEN_HEIGHT - SIZE_SHAPE;
 constexpr int16_t MIN_YPOS = 16;    // отступ сверху для строки координат
 
 constexpr int16_t STEP_SIZE = 1; // сколько пикселей за один loop()

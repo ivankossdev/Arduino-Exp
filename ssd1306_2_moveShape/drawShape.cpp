@@ -25,7 +25,7 @@ void DrawShape::dispCord(Shape& shape) {
 
 
 void DrawShape::drawFrame(const Shape& shape) {
-  fillRect(shape.xPos, shape.yPos, SIZE_SHAPE, SIZE_SHAPE, WHITE);
+  fillRect(shape.xPos, shape.yPos, shape.sizeShape, shape.sizeShape, WHITE);
 }
 
 void DrawShape::clearScreen() {
