@@ -10,10 +10,11 @@ Shape shapes[MAX_SHAPES] = {
 };
 
 int shapeCount = 4;
-const int COLLISION_ITERATIONS = 10;
+// 5 итераций обычно достаточно, чтобы фигуры «расцепились» без лишней нагрузки
+const int COLLISION_ITERATIONS = 5;
 
 void Logic_1() {
-  // 1. Предвычисление и коррекция будущих позиций
+  // 1. Предвычисление и коррекция будущих позиций (главное, что убирает проваливания)
   predictAndResolveCollisions();
 
   // 2. Применяем исправленные позиции
@@ -22,19 +23,19 @@ void Logic_1() {
     shapes[i].yPos = shapes[i].nextY;
   }
 
-  // 3. Ограничение стенами (без случайных скоростей)
+  // 3. Ограничение стенами (только стены, без лишних инверсий)
   for (int i = 0; i < shapeCount; ++i) {
     constrainToWalls(shapes[i]);
   }
 }
 
-
 void constrainToWalls(Shape& s) {
   // Левая стена
   if (s.xPos <= MIN_XPOS) {
     s.xPos = MIN_XPOS;
+    // Инвертируем скорость только если летели в стену (защита от «залипания на границе»)
     if (s.speedX < 0) {
-      s.speedX = -s.speedX;  // отскок, только если летели в стену
+      s.speedX = -s.speedX;
     }
   }
   // Правая стена
@@ -59,7 +60,6 @@ void constrainToWalls(Shape& s) {
     }
   }
 }
-
 
 void resolveCollision(Shape& a, Shape& b) {
   bool xOverlap = a.xPos < b.xPos + b.sizeShape && b.xPos < a.xPos + a.sizeShape;
@@ -90,7 +90,6 @@ void resolveCollision(Shape& a, Shape& b) {
       a.xPos += shift;
       b.xPos -= shift;
     }
-    // Инвертируем только X-скорость
     a.speedX = -a.speedX;
     b.speedX = -b.speedX;
   } else {
@@ -114,13 +113,12 @@ void predictAndResolveCollisions() {
     shapes[i].nextY = shapes[i].yPos + shapes[i].speedY;
   }
 
-  // Проверяем столкновения в будущих позициях
+  // Итеративно корректируем будущие позиции, чтобы не было пересечений
   for (int iter = 0; iter < COLLISION_ITERATIONS; ++iter) {
     bool anyCollision = false;
 
     for (int i = 0; i < shapeCount; ++i) {
       for (int j = i + 1; j < shapeCount; ++j) {
-        // Проверка пересечения по будущим позициям
         bool xOverlap = shapes[i].nextX < shapes[j].nextX + shapes[j].sizeShape
                      && shapes[j].nextX < shapes[i].nextX + shapes[i].sizeShape;
         bool yOverlap = shapes[i].nextY < shapes[j].nextY + shapes[j].sizeShape
@@ -130,7 +128,6 @@ void predictAndResolveCollisions() {
 
         anyCollision = true;
 
-        // Выбираем ось с меньшим перекрытием для коррекции
         int overlapX = 0;
         if (shapes[i].nextX < shapes[j].nextX) {
           overlapX = (shapes[i].nextX + shapes[i].sizeShape) - shapes[j].nextX;
@@ -145,15 +142,13 @@ void predictAndResolveCollisions() {
           overlapY = (shapes[j].nextY + shapes[j].sizeShape) - shapes[i].nextY;
         }
 
+        // Коррекция по оси с меньшим перекрытием
         if (overlapX < overlapY) {
-          // Коррекция по X: ставим фигуры ровно на касание, инвертируем скорости
           if (shapes[i].nextX < shapes[j].nextX) {
-            // i слева, j справа
-            int contactX = shapes[j].nextX - shapes[i].sizeShape;  // где i должен остановиться
+            int contactX = shapes[j].nextX - shapes[i].sizeShape;
             shapes[i].nextX = contactX;
             shapes[j].nextX = shapes[i].nextX + shapes[i].sizeShape;
           } else {
-            // j слева, i справа
             int contactX = shapes[i].nextX - shapes[j].sizeShape;
             shapes[j].nextX = contactX;
             shapes[i].nextX = shapes[j].nextX + shapes[j].sizeShape;
@@ -161,7 +156,6 @@ void predictAndResolveCollisions() {
           shapes[i].speedX = -shapes[i].speedX;
           shapes[j].speedX = -shapes[j].speedX;
         } else {
-          // Коррекция по Y
           if (shapes[i].nextY < shapes[j].nextY) {
             int contactY = shapes[j].nextY - shapes[i].sizeShape;
             shapes[i].nextY = contactY;
@@ -177,10 +171,10 @@ void predictAndResolveCollisions() {
       }
     }
 
-    if (!anyCollision) break; // если на этой итерации столкновений нет — можно остановиться
+    // Если на этой итерации столкновений нет — можно остановиться раньше
+    if (!anyCollision) break;
   }
 }
-
 
 void drawFrame() {
   drawShape.clearScreen();
