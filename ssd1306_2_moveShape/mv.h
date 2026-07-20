@@ -6,7 +6,7 @@
 
 // Вспомогательные функции для стен
 void constrainToWalls(Shape& s);
-void resolveCollision(Shape& a, Shape& b);   // вместо checkCollisionBetween
+void resolveCollision(Shape& a, Shape& b);   
 
 // Основная логика
 void Logic_1();
@@ -16,10 +16,6 @@ extern DrawShape drawShape;
 extern Shape shapes[MAX_SHAPES];
 extern int shapeCount;
 
-// ... существующий код ...
-
-extern unsigned long lastMovementTime;
-extern const unsigned long STUCK_TIMEOUT;
-extern int16_t prevPos[MAX_SHAPES][2];
+void predictAndResolveCollisions();
 
 #endif
