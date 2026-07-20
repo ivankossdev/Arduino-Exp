@@ -3,15 +3,15 @@
 DrawShape drawShape(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 Shape shapes[MAX_SHAPES] = {
-  Shape(10, 20, 1, 1, 6, SHAPEMASS_LIGHT),
-  Shape(100, 40, 1, 1, 8, SHAPEMASS_MID),
-  Shape(60, 30, 1, 1, 10, SHAPEMASS_HEAVY),
+  Shape(10, 20, 2, 3, 6),
+  Shape(80, 40, 2, 3, 6),
+  Shape(100, 40, 2, 1, 10),
+  Shape(60, 30, -1, -1, 10),
 };
 
-int shapeCount = 3;
-const int COLLISION_ITERATIONS = 30;   // увеличено для надёжности
+int shapeCount = 4;
+const int COLLISION_ITERATIONS = 10;
 
-// ------------------- Логика -------------------
 void Logic_1() {
   // Движение
   for (int i = 0; i < shapeCount; ++i) {
@@ -21,20 +21,17 @@ void Logic_1() {
 
   // Многократное разрешение столкновений
   for (int iter = 0; iter < COLLISION_ITERATIONS; ++iter) {
-    // Столкновения между фигурами
     for (int i = 0; i < shapeCount; ++i) {
       for (int j = i + 1; j < shapeCount; ++j) {
         resolveCollision(shapes[i], shapes[j]);
       }
     }
-    // Стены после каждой итерации
     for (int i = 0; i < shapeCount; ++i) {
       constrainToWalls(shapes[i]);
     }
   }
 }
 
-// ------------------- Стены (исправлены нестрогие сравнения) -------------------
 void constrainToWalls(Shape& s) {
   if (s.xPos <= MIN_XPOS) {
     s.xPos = MIN_XPOS;
@@ -59,132 +56,91 @@ void constrainToWalls(Shape& s) {
   }
 }
 
-// ------------------- Столкновение двух фигур (улучшенное) -------------------
 void resolveCollision(Shape& a, Shape& b) {
-  // Проверка пересечения
-  bool xOverlap = a.xPos < b.xPos + b.sizeShape && b.xPos < a.xPos + a.sizeShape;
-  bool yOverlap = a.yPos < b.yPos + b.sizeShape && b.yPos < a.yPos + a.sizeShape;
-  if (!xOverlap || !yOverlap) return;
+    // Проверка пересечения
+    bool xOverlap = a.xPos < b.xPos + b.sizeShape && b.xPos < a.xPos + a.sizeShape;
+    bool yOverlap = a.yPos < b.yPos + b.sizeShape && b.yPos < a.yPos + a.sizeShape;
+    if (!xOverlap || !yOverlap) return;
 
-  // ---- Расчёт новых скоростей (упругое столкновение) ----
-  int16_t oldAX = a.speedX, oldBX = b.speedX;
-  int16_t oldAY = a.speedY, oldBY = b.speedY;
-
-  int32_t sumMass = (int32_t)a.mass + b.mass;
-  if (sumMass == 0) sumMass = 1;
-
-  int32_t newSpeedAX32 = ((int32_t)a.speedX * (a.mass - b.mass) + 2L * b.mass * b.speedX) / sumMass;
-  int32_t newSpeedBX32 = ((int32_t)b.speedX * (b.mass - a.mass) + 2L * a.mass * a.speedX) / sumMass;
-  int32_t newSpeedAY32 = ((int32_t)a.speedY * (a.mass - b.mass) + 2L * b.mass * b.speedY) / sumMass;
-  int32_t newSpeedBY32 = ((int32_t)b.speedY * (b.mass - a.mass) + 2L * a.mass * a.speedY) / sumMass;
-
-  a.speedX = (int16_t)newSpeedAX32;
-  b.speedX = (int16_t)newSpeedBX32;
-  a.speedY = (int16_t)newSpeedAY32;
-  b.speedY = (int16_t)newSpeedBY32;
-
-  // Защита от нулевой скорости
-  if (a.speedX == 0 && oldAX != 0) a.speedX = (oldAX > 0) ? 1 : -1;
-  if (b.speedX == 0 && oldBX != 0) b.speedX = (oldBX > 0) ? 1 : -1;
-  if (a.speedY == 0 && oldAY != 0) a.speedY = (oldAY > 0) ? 1 : -1;
-  if (b.speedY == 0 && oldBY != 0) b.speedY = (oldBY > 0) ? 1 : -1;
-
-  // ---- Выталкивание: выбираем ось с меньшим перекрытием ----
-  int overlapX = 0;
-  if (a.xPos < b.xPos) {
-    overlapX = (a.xPos + a.sizeShape) - b.xPos;
-  } else {
-    overlapX = (b.xPos + b.sizeShape) - a.xPos;
-  }
-  int overlapY = 0;
-  if (a.yPos < b.yPos) {
-    overlapY = (a.yPos + a.sizeShape) - b.yPos;
-  } else {
-    overlapY = (b.yPos + b.sizeShape) - a.yPos;
-  }
-
-  // Если перекрытие по X меньше (или равно) – раздвигаем по X, иначе по Y
-  if (overlapX <= overlapY) {
-    // Раздвигаем по X
+    // Глубина перекрытия по X
+    int overlapX = 0;
     if (a.xPos < b.xPos) {
-      // a слева от b
-      int maxShiftA = a.xPos - MIN_XPOS;                     // сколько можно сдвинуть a влево
-      int maxShiftB = (SCREEN_WIDTH - b.sizeShape) - b.xPos; // сколько можно сдвинуть b вправо
-      int totalOverlap = overlapX;
-      int shiftA = constrain(totalOverlap / 2, 0, maxShiftA);
-      int shiftB = totalOverlap - shiftA;
-      if (shiftB > maxShiftB) {
-        shiftB = maxShiftB;
-        shiftA = totalOverlap - shiftB;
-        if (shiftA > maxShiftA) shiftA = maxShiftA;
-      }
-      a.xPos -= shiftA;
-      b.xPos += shiftB;
+        overlapX = (a.xPos + a.sizeShape) - b.xPos;
     } else {
-      // b слева от a
-      int maxShiftA = (SCREEN_WIDTH - a.sizeShape) - a.xPos;
-      int maxShiftB = b.xPos - MIN_XPOS;
-      int totalOverlap = overlapX;
-      int shiftA = constrain(totalOverlap / 2, 0, maxShiftA);
-      int shiftB = totalOverlap - shiftA;
-      if (shiftB > maxShiftB) {
-        shiftB = maxShiftB;
-        shiftA = totalOverlap - shiftB;
-        if (shiftA > maxShiftA) shiftA = maxShiftA;
-      }
-      a.xPos += shiftA;
-      b.xPos -= shiftB;
+        overlapX = (b.xPos + b.sizeShape) - a.xPos;
     }
-  } else {
-    // Раздвигаем по Y
+    // Глубина перекрытия по Y
+    int overlapY = 0;
     if (a.yPos < b.yPos) {
-      int maxShiftA = a.yPos - MIN_YPOS;
-      int maxShiftB = (SCREEN_HEIGHT - b.sizeShape) - b.yPos;
-      int totalOverlap = overlapY;
-      int shiftA = constrain(totalOverlap / 2, 0, maxShiftA);
-      int shiftB = totalOverlap - shiftA;
-      if (shiftB > maxShiftB) {
-        shiftB = maxShiftB;
-        shiftA = totalOverlap - shiftB;
-        if (shiftA > maxShiftA) shiftA = maxShiftA;
-      }
-      a.yPos -= shiftA;
-      b.yPos += shiftB;
+        overlapY = (a.yPos + a.sizeShape) - b.yPos;
     } else {
-      int maxShiftA = (SCREEN_HEIGHT - a.sizeShape) - a.yPos;
-      int maxShiftB = b.yPos - MIN_YPOS;
-      int totalOverlap = overlapY;
-      int shiftA = constrain(totalOverlap / 2, 0, maxShiftA);
-      int shiftB = totalOverlap - shiftA;
-      if (shiftB > maxShiftB) {
-        shiftB = maxShiftB;
-        shiftA = totalOverlap - shiftB;
-        if (shiftA > maxShiftA) shiftA = maxShiftA;
-      }
-      a.yPos += shiftA;
-      b.yPos -= shiftB;
+        overlapY = (b.yPos + b.sizeShape) - a.yPos;
     }
-  }
 
-  // ... (весь код расчёта скоростей и выталкивания)
+    // Выбираем ось с бóльшим перекрытием
+    if (overlapX >= overlapY) {
+        // Отражаем скорости по X
+        a.speedX = -a.speedX;
+        b.speedX = -b.speedX;
 
-  // ---- Шум для разрушения заторов ----
-  // С вероятностью 50% сдвигаем каждую фигуру на -1, 0 или +1 пиксель
-  if (random(0, 2)) { 
-    a.xPos += random(-1, 2); 
-    b.xPos += random(-1, 2); 
-  }
-  if (random(0, 2)) { 
-    a.yPos += random(-1, 2); 
-    b.yPos += random(-1, 2); 
-  }
+        // Выталкивание по X
+        if (a.xPos < b.xPos) {
+            int maxShiftA = a.xPos - MIN_XPOS;
+            int maxShiftB = (SCREEN_WIDTH - b.sizeShape) - b.xPos;
+            int shiftA = constrain(overlapX / 2, 0, maxShiftA);
+            int shiftB = overlapX - shiftA;
+            if (shiftB > maxShiftB) { shiftB = maxShiftB; shiftA = overlapX - shiftB; }
+            if (shiftA > maxShiftA) shiftA = maxShiftA;
+            a.xPos -= shiftA;
+            b.xPos += shiftB;
+        } else {
+            int maxShiftA = (SCREEN_WIDTH - a.sizeShape) - a.xPos;
+            int maxShiftB = b.xPos - MIN_XPOS;
+            int shiftA = constrain(overlapX / 2, 0, maxShiftA);
+            int shiftB = overlapX - shiftA;
+            if (shiftB > maxShiftB) { shiftB = maxShiftB; shiftA = overlapX - shiftB; }
+            if (shiftA > maxShiftA) shiftA = maxShiftA;
+            a.xPos += shiftA;
+            b.xPos -= shiftB;
+        }
+    } else {
+        // Отражаем скорости по Y
+        a.speedY = -a.speedY;
+        b.speedY = -b.speedY;
 
-  // ---- Финальная коррекция стен ----
-  constrainToWalls(a);
-  constrainToWalls(b);
+        // Выталкивание по Y
+        if (a.yPos < b.yPos) {
+            int maxShiftA = a.yPos - MIN_YPOS;
+            int maxShiftB = (SCREEN_HEIGHT - b.sizeShape) - b.yPos;
+            int shiftA = constrain(overlapY / 2, 0, maxShiftA);
+            int shiftB = overlapY - shiftA;
+            if (shiftB > maxShiftB) { shiftB = maxShiftB; shiftA = overlapY - shiftB; }
+            if (shiftA > maxShiftA) shiftA = maxShiftA;
+            a.yPos -= shiftA;
+            b.yPos += shiftB;
+        } else {
+            int maxShiftA = (SCREEN_HEIGHT - a.sizeShape) - a.yPos;
+            int maxShiftB = b.yPos - MIN_YPOS;
+            int shiftA = constrain(overlapY / 2, 0, maxShiftA);
+            int shiftB = overlapY - shiftA;
+            if (shiftB > maxShiftB) { shiftB = maxShiftB; shiftA = overlapY - shiftB; }
+            if (shiftA > maxShiftA) shiftA = maxShiftA;
+            a.yPos += shiftA;
+            b.yPos -= shiftB;
+        }
+    }
+
+    // Защита от нулевой скорости
+    if (a.speedX == 0) a.speedX = random(0, 2) ? 1 : -1;
+    if (b.speedX == 0) b.speedX = random(0, 2) ? 1 : -1;
+    if (a.speedY == 0) a.speedY = random(0, 2) ? 1 : -1;
+    if (b.speedY == 0) b.speedY = random(0, 2) ? 1 : -1;
+
+    // Финальная коррекция стен
+    constrainToWalls(a);
+    constrainToWalls(b);
 }
 
-// ------------------- Отрисовка -------------------
 void drawFrame() {
   drawShape.clearScreen();
   for (int i = 0; i < shapeCount; ++i) {

@@ -14,8 +14,5 @@ constexpr int16_t MIN_YPOS = 16;    // отступ сверху для стро
 constexpr int16_t STEP_SIZE = 1;
 
 constexpr int MAX_SHAPES = 10;
-constexpr int16_t SHAPEMASS_LIGHT = 1;
-constexpr int16_t SHAPEMASS_MID = 3;
-constexpr int16_t SHAPEMASS_HEAVY = 8;
 
 #endif

@@ -14,11 +14,10 @@ public:
   int16_t baseSpeedY = 1;
 
   int sizeShape = 6;
-  int mass = 1;
 
-  Shape(int16_t x, int16_t y, int16_t sx, int16_t sy, int sShape, int m) 
+  Shape(int16_t x, int16_t y, int16_t sx, int16_t sy, int sShape) 
     : xPos(x), yPos(y), speedX(sx), speedY(sy), 
-      baseSpeedX(sx), baseSpeedY(sy), sizeShape(sShape), mass(m) {}
+      baseSpeedX(sx), baseSpeedY(sy), sizeShape(sShape) {}
 
   Shape() = default;
 };
