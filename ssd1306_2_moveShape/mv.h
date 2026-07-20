@@ -12,13 +12,14 @@ void resolveCollision(Shape& a, Shape& b);   // вместо checkCollisionBetwe
 void Logic_1();
 void drawFrame();
 
-// Функции для работы с позиционированием (если используются)
-int16_t MAX_XPOS(Shape& mShape);
-int16_t MAX_YPOS(Shape& mShape);
-void stepTowardsTarget(Shape& mShape);
-
 extern DrawShape drawShape;
 extern Shape shapes[MAX_SHAPES];
 extern int shapeCount;
+
+// ... существующий код ...
+
+extern unsigned long lastMovementTime;
+extern const unsigned long STUCK_TIMEOUT;
+extern int16_t prevPos[MAX_SHAPES][2];
 
 #endif
