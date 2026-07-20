@@ -9,12 +9,20 @@ Shape shapes[MAX_SHAPES] = {
   Shape(60, 30, -1, -1, 10),
 };
 
+// Пример: три внутренние стены
+Wall walls[MAX_WALLS] = {
+  Wall(60, 16, 4, 10),
+  Wall(60, SCREEN_HEIGHT - 10, 4, 10)         
+};
+
+int wallCount = 2;
+
 int shapeCount = 4;
 // 5 итераций обычно достаточно, чтобы фигуры «расцепились» без лишней нагрузки
 const int COLLISION_ITERATIONS = 5;
 
 void Logic_1() {
-  // 1. Предвычисление и коррекция будущих позиций (главное, что убирает проваливания)
+  // 1. Коллизии между фигурами (твоя стабильная логика)
   predictAndResolveCollisions();
 
   // 2. Применяем исправленные позиции
@@ -23,11 +31,19 @@ void Logic_1() {
     shapes[i].yPos = shapes[i].nextY;
   }
 
-  // 3. Ограничение стенами (только стены, без лишних инверсий)
+  // 3. Коллизии со стенами (новые внутренние препятствия)
+  for (int i = 0; i < shapeCount; ++i) {
+    for (int j = 0; j < wallCount; ++j) {
+      checkShapeWallCollision(shapes[i], walls[j]);
+    }
+  }
+
+  // 4. Границы экрана (как было)
   for (int i = 0; i < shapeCount; ++i) {
     constrainToWalls(shapes[i]);
   }
 }
+
 
 void constrainToWalls(Shape& s) {
   // Левая стена
@@ -178,9 +194,62 @@ void predictAndResolveCollisions() {
 
 void drawFrame() {
   drawShape.clearScreen();
+
+  // Сначала рисуем стены (чтобы фигуры были «поверх»)
+  for (int i = 0; i < wallCount; ++i) {
+    drawShape.drawRect(walls[i].x, walls[i].y, walls[i].w, walls[i].h, WHITE);
+  }
+
+  // Потом фигуры
   for (int i = 0; i < shapeCount; ++i) {
     drawShape.drawFrame(shapes[i]);
   }
+
   drawShape.dispCord(shapes[0]);
   drawShape.show();
 }
+
+
+
+void checkShapeWallCollision(Shape& s, const Wall& w) {
+  // Проверка пересечения прямоугольников
+  bool xOverlap = s.xPos < w.x + w.w && w.x < s.xPos + s.sizeShape;
+  bool yOverlap = s.yPos < w.y + w.h && w.y < s.yPos + s.sizeShape;
+
+  if (!xOverlap || !yOverlap) return;
+
+  // Глубина перекрытия
+  int overlapX = 0;
+  if (s.xPos < w.x) {
+    overlapX = (s.xPos + s.sizeShape) - w.x;
+  } else {
+    overlapX = (w.x + w.w) - s.xPos;
+  }
+
+  int overlapY = 0;
+  if (s.yPos < w.y) {
+    overlapY = (s.yPos + s.sizeShape) - w.y;
+  } else {
+    overlapY = (w.y + w.h) - s.yPos;
+  }
+
+  // Выталкиваем по оси с меньшим перекрытием
+  if (overlapX < overlapY) {
+    // Столкновение по X: корректируем X, инвертируем speedX
+    if (s.xPos < w.x) {
+      s.xPos = w.x - s.sizeShape; // фигура слева, ставим вплотную к стене
+    } else {
+      s.xPos = w.x + w.w;          // фигура справа, ставим вплотную
+    }
+    s.speedX = -s.speedX;
+  } else {
+    // Столкновение по Y: корректируем Y, инвертируем speedY
+    if (s.yPos < w.y) {
+      s.yPos = w.y - s.sizeShape;
+    } else {
+      s.yPos = w.y + w.h;
+    }
+    s.speedY = -s.speedY;
+  }
+}
+

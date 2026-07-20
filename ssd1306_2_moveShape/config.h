@@ -2,7 +2,7 @@
 #define _CONFIG_H
 
 #include <Arduino.h>
-
+#define MAX_WALLS 10
 // Настройки дисплея 
 constexpr int SCREEN_WIDTH  = 128;
 constexpr int SCREEN_HEIGHT = 64;

@@ -1,33 +1,36 @@
 #include "drawShape.h"
 
 
-void DrawShape::init() {
-  Serial.begin(115200);
-
-  if (!begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+DrawShape::DrawShape(int w, int h, TwoWire *wire, int rst) {
+  width = w;
+  height = h;
+  oled = new Adafruit_SSD1306(w, h, wire, rst);
+  if (!oled->begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+    Serial.begin(115200);
     Serial.println(F("SSD1306 allocation failed"));
-    for (;;)
-      ;
+    for (;;); // зависаем, если экран не инициализировался
   }
-  clearDisplay();
+  clearScreen();
 }
 
-
-void DrawShape::dispCord(Shape& shape) {
-  setTextSize(1);
-  setTextColor(SSD1306_WHITE);
-  setCursor(0, 0);
-
-  char buf[32];
-  snprintf(buf, sizeof(buf), "Pos: X%d Y%d", shape.xPos, shape.yPos);
-  print(buf);
-}
-
-
-void DrawShape::drawFrame(const Shape& shape) {
-  fillRect(shape.xPos, shape.yPos, shape.sizeShape, shape.sizeShape, WHITE);
-}
-
+// Остальные методы остаются
 void DrawShape::clearScreen() {
-  fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, BLACK);
+  oled->clearDisplay();
+}
+
+void DrawShape::show() {
+  oled->display();
+}
+
+void DrawShape::drawFrame(const Shape& s) {
+  oled->fillRect(s.xPos, s.yPos, s.sizeShape, s.sizeShape, WHITE);
+}
+
+void DrawShape::dispCord(const Shape& s) {
+  char buf[32];
+  snprintf(buf, sizeof(buf), "%d,%d", s.xPos, s.yPos);
+  oled->setTextSize(1);
+  oled->setCursor(0, 0);
+  oled->setTextColor(WHITE);
+  oled->println(buf);
 }
