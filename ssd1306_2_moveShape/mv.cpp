@@ -210,7 +210,6 @@ void drawFrame() {
 }
 
 
-
 void checkShapeWallCollision(Shape& s, const Wall& w) {
   // Проверка пересечения прямоугольников
   bool xOverlap = s.xPos < w.x + w.w && w.x < s.xPos + s.sizeShape;
