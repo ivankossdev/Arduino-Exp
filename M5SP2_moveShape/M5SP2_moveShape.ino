@@ -24,10 +24,6 @@ const int FRAME_DELAY_MS = 1000 / 30;  // 30 FPS — идеальный бала
 void setup() {
   auto cfg = M5.config();
   M5.begin(cfg);
-
-  M5.Lcd.fillScreen(BLACK);
-  M5.Lcd.setTextSize(2);
-  M5.Lcd.setTextColor(WHITE);
 }
 
 void loop() {
@@ -49,7 +45,4 @@ void loop() {
       shapes[i].yPos = random(MIN_YPOS, SCREEN_HEIGHT - shapes[i].sizeShape - 10);
     }
   }
-
-  // Можно добавить yield() для дружелюбности к системе (необязательно на M5)
-  // yield();
 }

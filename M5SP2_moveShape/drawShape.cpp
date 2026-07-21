@@ -16,7 +16,7 @@ void DrawShape::show() {
 }
 
 void DrawShape::drawFrame(const Shape& s) {
-  uint16_t color = random(0xFFFF);  // Случайный цвет
+  uint16_t color = s.isColliding ? TFT_RED : TFT_GREEN;
   M5.Lcd.fillRect(s.xPos, s.yPos, s.sizeShape, s.sizeShape, color);
 }
 
