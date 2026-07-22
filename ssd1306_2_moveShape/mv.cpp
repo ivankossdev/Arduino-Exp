@@ -1,5 +1,10 @@
 #include "mv.h"
 
+// Настройки фигур 
+#define CENTER_Y (SCREEN_HEIGHT / 2) + (MIN_YPOS / 2)
+#define CENTER_X SCREEN_WIDTH / 2
+#define SIZE_COLOMN 4
+
 DrawShape drawShape(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 Shape shapes[MAX_SHAPES] = {
@@ -11,11 +16,12 @@ Shape shapes[MAX_SHAPES] = {
 
 // Пример: три внутренние стены
 Wall walls[MAX_WALLS] = {
-  Wall(60, 16, 4, 10),
-  Wall(60, SCREEN_HEIGHT - 10, 4, 10)         
+  Wall(0, CENTER_Y, SIZE_COLOMN, SIZE_COLOMN),
+  Wall(CENTER_X, CENTER_Y, SIZE_COLOMN, SIZE_COLOMN),
+  Wall(SCREEN_WIDTH - SIZE_COLOMN, CENTER_Y, SIZE_COLOMN, SIZE_COLOMN)     
 };
 
-int wallCount = 2;
+int wallCount = 3;
 
 int shapeCount = 4;
 // 5 итераций обычно достаточно, чтобы фигуры «расцепились» без лишней нагрузки
