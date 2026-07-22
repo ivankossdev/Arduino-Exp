@@ -7,6 +7,7 @@ class Shape {
 public:
   int16_t xPos = 0;
   int16_t yPos = 0;
+  int16_t prevX, prevY;
   int16_t speedX = 1;
   int16_t speedY = 1;
   int16_t baseSpeedX = 1;

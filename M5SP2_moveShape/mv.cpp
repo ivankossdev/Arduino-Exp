@@ -1,13 +1,26 @@
 #include "mv.h"
 
 void Logic_1() {
+  // Сбрасываем флаги
+  for (int i = 0; i < shapeCount; ++i) {
+    shapes[i].isColliding = false;
+  }
+
   predictAndResolveCollisions();
 
+  // Сохраняем старые позиции ДО обновления
+  for (int i = 0; i < shapeCount; ++i) {
+    shapes[i].prevX = shapes[i].xPos;
+    shapes[i].prevY = shapes[i].yPos;
+  }
+
+  // Обновляем позиции
   for (int i = 0; i < shapeCount; ++i) {
     shapes[i].xPos = shapes[i].nextX;
     shapes[i].yPos = shapes[i].nextY;
   }
 
+  // Остальная логика...
   for (int i = 0; i < shapeCount; ++i) {
     for (int j = 0; j < wallCount; ++j) {
       checkShapeWallCollision(shapes[i], walls[j]);
@@ -18,6 +31,25 @@ void Logic_1() {
     constrainToWalls(shapes[i]);
   }
 }
+
+// void Logic_1() {
+//   predictAndResolveCollisions();
+
+//   for (int i = 0; i < shapeCount; ++i) {
+//     shapes[i].xPos = shapes[i].nextX;
+//     shapes[i].yPos = shapes[i].nextY;
+//   }
+
+//   for (int i = 0; i < shapeCount; ++i) {
+//     for (int j = 0; j < wallCount; ++j) {
+//       checkShapeWallCollision(shapes[i], walls[j]);
+//     }
+//   }
+
+//   for (int i = 0; i < shapeCount; ++i) {
+//     constrainToWalls(shapes[i]);
+//   }
+// }
 
 void constrainToWalls(Shape& s) {
   if (s.xPos <= MIN_XPOS) {
@@ -135,16 +167,32 @@ void predictAndResolveCollisions() {
 }
 
 void drawFrame() {
-  drawShape.clearScreen();
-
+  // Рисуем стены
   for (int i = 0; i < wallCount; ++i) {
     drawShape.drawRect(walls[i].x, walls[i].y, walls[i].w, walls[i].h, TFT_WHITE);
   }
 
+  // Для каждой фигуры — стираем весь путь и рисуем новую
   for (int i = 0; i < shapeCount; ++i) {
-    drawShape.drawFrame(shapes[i]);
+    Shape& s = shapes[i];
+
+    // Определяем bounding box движения
+    int16_t x1 = min(s.prevX, s.xPos);
+    int16_t y1 = min(s.prevY, s.yPos);
+    int16_t x2 = max(s.prevX + s.sizeShape, s.xPos + s.sizeShape);
+    int16_t y2 = max(s.prevY + s.sizeShape, s.yPos + s.sizeShape);
+
+    int16_t w = x2 - x1;
+    int16_t h = y2 - y1;
+
+    // Стираем ВСЁ, что могло остаться
+    M5.Lcd.fillRect(x1, y1, w, h, TFT_BLACK);
+
+    // Рисуем новую позицию
+    drawShape.drawFrame(s);
   }
 }
+
 
 void checkShapeWallCollision(Shape& s, const Wall& w) {
   bool xOverlap = s.xPos < w.x + w.w && w.x < s.xPos + s.sizeShape;
@@ -165,5 +213,3 @@ void checkShapeWallCollision(Shape& s, const Wall& w) {
     s.speedY = -s.speedY;
   }
 }
-
-
