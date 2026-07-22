@@ -3,25 +3,27 @@
 // Настройки фигур 
 #define CENTER_Y (SCREEN_HEIGHT / 2) + (MIN_YPOS / 2)
 #define CENTER_X SCREEN_WIDTH / 2
-#define SIZE_COLOMN 4
+#define SIZE_COLOMN 3
 
 DrawShape drawShape(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 Shape shapes[MAX_SHAPES] = {
   Shape(10, 20, 2, 3, 6),
   Shape(80, 40, 2, 3, 6),
-  Shape(100, 40, 2, 1, 10),
-  Shape(60, 30, -1, -1, 10),
+  Shape(100, 40, 2, 1, 8),
+  Shape(60, 30, -1, -1, 8),
 };
 
 // Пример: три внутренние стены
 Wall walls[MAX_WALLS] = {
-  Wall(0, CENTER_Y, SIZE_COLOMN, SIZE_COLOMN),
   Wall(CENTER_X, CENTER_Y, SIZE_COLOMN, SIZE_COLOMN),
-  Wall(SCREEN_WIDTH - SIZE_COLOMN, CENTER_Y, SIZE_COLOMN, SIZE_COLOMN)     
+  Wall(CENTER_X / 2, SCREEN_HEIGHT - SIZE_COLOMN, SIZE_COLOMN, SIZE_COLOMN),
+  Wall(CENTER_X + CENTER_X / 2, MIN_YPOS, SIZE_COLOMN, SIZE_COLOMN),
+  Wall(CENTER_X / 2, MIN_YPOS, SIZE_COLOMN, SIZE_COLOMN),
+  Wall(CENTER_X + CENTER_X / 2, SCREEN_HEIGHT - SIZE_COLOMN, SIZE_COLOMN, SIZE_COLOMN)     
 };
 
-int wallCount = 3;
+int wallCount = 5;
 
 int shapeCount = 4;
 // 5 итераций обычно достаточно, чтобы фигуры «расцепились» без лишней нагрузки
