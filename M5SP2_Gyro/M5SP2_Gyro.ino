@@ -1,60 +1,33 @@
 #include <M5Unified.h>
+#include "MovableBox.h"
+#include "Wall.h"
 
-const float GYRO_FACTOR = 0.05f;
 const int16_t SCREEN_W = 240;
 const int16_t SCREEN_H = 135;
 
-class MovableBox {
-public:
-  int16_t x, y;
-  int16_t w, h;
-  int16_t vx, vy;
-
-  MovableBox(int16_t _x, int16_t _y, int16_t _w, int16_t _h)
-    : x(_x), y(_y), w(_w), h(_h), vx(0), vy(0) {}
-
-  void update() {
-    x += vx;
-    y += vy;
-  }
-
-  void bounceEdges() {
-    if (x < 0) {
-      x = 0;
-      vx = -vx;
-      if (vx == 0) vx = 1;
-    }
-    if (x + w > SCREEN_W) {
-      x = SCREEN_W - w;
-      vx = -vx;
-      if (vx == 0) vx = -1;
-    }
-    if (y < 0) {
-      y = 0;
-      vy = -vy;
-      if (vy == 0) vy = 1;
-    }
-    if (y + h > SCREEN_H) {
-      y = SCREEN_H - h;
-      vy = -vy;
-      if (vy == 0) vy = -1;
-    }
-  }
-};
-
-MovableBox box(50, 50, 20, 20);
-
-unsigned long lastPhysicsMs = 0;
-const unsigned long physicsInterval = 33;  // ~30 fps для физики
-
-// Отдельный цвет фона, чтобы стирать им
 const uint16_t BG_COLOR = TFT_BLACK;
 const uint16_t BOX_OUTLINE = TFT_GREEN;
 const uint16_t BOX_FILL = TFT_CYAN;
+const uint16_t WALL_COLOR = TFT_RED;
+
+MovableBox box(50, 50, 20, 20);
+
+Wall walls[] = {
+  Wall(0, 40, 80, 10),
+  // Wall(10, 90, 10, 60),
+  // Wall(180, 20, 10, 80),
+  // Wall(80, 110, 120, 10)
+};
+const int WALL_COUNT = sizeof(walls) / sizeof(walls[0]);
+
+unsigned long lastPhysicsMs = 0;
+unsigned long lastDrawMs = 0;
+
+const unsigned long physicsInterval = 33; // ~30 FPS для физики
+const unsigned long drawInterval = 16;    // ~60 FPS для отрисовки
 
 void setup() {
   M5.begin();
-
   if (!M5.Imu.begin()) {
     M5.Lcd.setTextSize(1);
     M5.Lcd.setTextColor(TFT_RED);
@@ -64,43 +37,66 @@ void setup() {
     while (1);
   }
 
-  // Рисуем стартовую позицию один раз
-  M5.Lcd.drawRect(box.x, box.y, box.w, box.h, BOX_OUTLINE);
-  M5.Lcd.fillRect(box.x + 1, box.y + 1, box.w - 2, box.h - 2, BOX_FILL);
+  M5.Lcd.fillScreen(BG_COLOR);
 
+  for (int i = 0; i < WALL_COUNT; ++i) {
+    walls[i].draw(M5.Lcd, WALL_COLOR);
+  }
+
+  box.draw(M5.Lcd, BOX_OUTLINE, BOX_FILL);
+
+  Serial.begin(115200);
+  delay(500);
 }
 
 void loop() {
   unsigned long now = millis();
 
-  // Физика — строго по таймеру
+  // Физика (30 раз в секунду)
   if (now - lastPhysicsMs >= physicsInterval) {
     lastPhysicsMs = now;
 
-    float l_gx, l_gy, l_dummy_gz;
-    M5.Imu.getGyroData(&l_gx, &l_gy, &l_dummy_gz);
+    float gx, gy, gz;
+    M5.Imu.getGyroData(&gx, &gy, &gz);
 
-    box.vx = static_cast<int16_t>(l_gx * GYRO_FACTOR);
-    box.vy = static_cast<int16_t>(l_gy * GYRO_FACTOR);
+    const float GYRO_FACTOR = 0.10f;
+    const float DEADZONE = 1.5f;
+    const int16_t MAX_SPEED = 8;
+    const float FRICTION = 0.98f;
+    const float BOUNCE_FACTOR = 0.8f;
 
-    if (box.vx == 0 && abs(l_gx) > 0.5f) box.vx = (l_gx > 0) ? 1 : -1;
-    if (box.vy == 0 && abs(l_gy) > 0.5f) box.vy = (l_gy > 0) ? 1 : -1;
+    // Считаем ускорение из гироскопа
+    float ax = gx * GYRO_FACTOR;
+    float ay = gy * GYRO_FACTOR;
 
-    // Сохраняем старые координаты для стирания
-    int16_t oldX = box.x;
-    int16_t oldY = box.y;
+    if (fabs(ax) < DEADZONE) ax = 0;
+    if (fabs(ay) < DEADZONE) ay = 0;
+
+    // Интегрируем ускорение в скорость
+    box.vx += ax;
+    box.vy += ay;
+
+    // Трение (чтобы не летал вечно)
+    box.vx *= FRICTION;
+    box.vy *= FRICTION;
+
+    // Ограничение максимальной скорости
+    if (box.vx > MAX_SPEED) box.vx = MAX_SPEED;
+    if (box.vx < -MAX_SPEED) box.vx = -MAX_SPEED;
+    if (box.vy > MAX_SPEED) box.vy = MAX_SPEED;
+    if (box.vy < -MAX_SPEED) box.vy = -MAX_SPEED;
+
+    Serial.printf("Gyro: [ l_gx %.2f, l_gy %.2f ] [box.vx %.2f, box.vy %.2f]\n",
+                  gx, gy, box.vx, box.vy);
 
     box.update();
-    box.bounceEdges();
+    box.bounceEdges(SCREEN_W, SCREEN_H, walls, WALL_COUNT, BOUNCE_FACTOR);
+  }
 
-    // --- ПЛАВНАЯ ОТРИСОВКА ---
-
-    // 1. Стираем старое положение (рисуем фоном)
-    M5.Lcd.drawRect(oldX, oldY, box.w, box.h, BG_COLOR);
-    M5.Lcd.fillRect(oldX + 1, oldY + 1, box.w - 2, box.h - 2, BG_COLOR);
-
-    // 2. Рисуем новое положение
-    M5.Lcd.drawRect(box.x, box.y, box.w, box.h, BOX_OUTLINE);
-    M5.Lcd.fillRect(box.x + 1, box.y + 1, box.w - 2, box.h - 2, BOX_FILL);
+  // Отрисовка
+  if (now - lastDrawMs >= drawInterval) {
+    lastDrawMs = now;
+    box.clear(M5.Lcd, BG_COLOR);
+    box.draw(M5.Lcd, BOX_OUTLINE, BOX_FILL);
   }
 }
