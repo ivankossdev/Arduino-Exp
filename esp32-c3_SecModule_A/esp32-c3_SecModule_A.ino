@@ -2,6 +2,8 @@
 #include <Bounce2.h>
 #define SENSOR_PIN 9
 
+// MAC: 44:B1:76:05:0F:78 этого контроллера 
+// MAC: 90:E5:B1:6A:8C:1C модуль управления 
 Bounce pressButton = Bounce();
 
 void setup() {
