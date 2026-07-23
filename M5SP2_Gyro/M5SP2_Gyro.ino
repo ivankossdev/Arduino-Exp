@@ -68,14 +68,14 @@ void loop() {
     float gx, gy, gz;
     M5.Imu.getGyroData(&gx, &gy, &gz);
 
-    const float GYRO_FACTOR = 0.10f;
+    const float GYRO_FACTOR = 0.05f;
     const float DEADZONE = 1.5f;
-    const int16_t MAX_SPEED = 8;
-    const float FRICTION = 0.98f;
-    const float BOUNCE_FACTOR = 0.8f;
+    const int16_t MAX_SPEED = 5;
+    const float FRICTION = 0.99f;
+    const float BOUNCE_FACTOR = 0.3f;
 
     // Считаем ускорение из гироскопа
-    float ax = gx * GYRO_FACTOR;
+    float ax = -gx * GYRO_FACTOR; // изменил направление 
     float ay = gy * GYRO_FACTOR;
 
     if (fabs(ax) < DEADZONE) ax = 0;
