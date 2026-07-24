@@ -1,16 +1,19 @@
 #include <esp_now.h>
 #include <WiFi.h>
+#include <Bounce2.h>
 
-// Передатчик событий 
+// Передатчик событий
 // 0x90, 0xE5, 0xB1, 0x6A, 0x8C, 0x1C адрес приемного контроллера
 
-uint8_t broadcastAddress[] = {0x90, 0xE5, 0xB1, 0x6A, 0x8C, 0x1C};
+uint8_t broadcastAddress[] = { 0x90, 0xE5, 0xB1, 0x6A, 0x8C, 0x1C };
 
 typedef struct struct_message {
   uint8_t id;
   bool alarm;
 } struct_message;
 struct_message myData;
+
+Bounce pressButton = Bounce();
 
 #define SENSOR_PIN 9  // GPIO9(кнопка BOOT)
 
@@ -40,13 +43,28 @@ void setup() {
     return;
   }
   Serial.println("Модуль охраны готов");
+
+  // Обработчик нажатий кнопки
+  pressButton.attach(SENSOR_PIN);
+  pressButton.interval(25);
 }
 
-void loop() {
-  bool alarmState = !digitalRead(SENSOR_PIN);
-  myData.id = 1;
-  myData.alarm = alarmState;
+unsigned long previousPrint = 0;
+const int NONBLOCKDELAY = 1000;
+bool alarmState = false;
 
-  esp_now_send(broadcastAddress, (uint8_t*)&myData, sizeof(myData));
-  delay(1000);
+void loop() {
+  pressButton.update();
+  if (pressButton.fell()) {
+    if (!alarmState) {
+      alarmState = true;
+      myData.id = 1;
+      myData.alarm = alarmState;
+    } else {
+      alarmState = false;
+      myData.id = 1;
+      myData.alarm = alarmState;
+    }
+    esp_now_send(broadcastAddress, (uint8_t *)&myData, sizeof(myData));
+  }
 }

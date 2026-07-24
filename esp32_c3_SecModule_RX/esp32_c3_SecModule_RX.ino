@@ -18,13 +18,14 @@ void OnDataRecv(const esp_now_recv_info *info, const uint8_t *incomingData, int 
   if (len == sizeof(receivedData)) {
     memcpy(&receivedData, incomingData, sizeof(receivedData));
     
-    Serial.print("Датчик #");
-    Serial.print(receivedData.id);
-    Serial.print(" (MAC: ");
-    // Выведем MAC 
-    Serial.printf("%02X:%02X:%02X:%02X:%02X:%02X",info->src_addr[0], info->src_addr[1], info->src_addr[2], info->src_addr[3], info->src_addr[4], info->src_addr[5]);
-    Serial.print("): ");
-    Serial.println(receivedData.alarm ? "ТРЕВОГА!" : "Норма");
+    // Убрать блокирующий вызов. 
+    // Serial.print("Датчик #");
+    // Serial.print(receivedData.id);
+    // Serial.print(" (MAC: ");
+    // // Выведем MAC 
+    // Serial.printf("%02X:%02X:%02X:%02X:%02X:%02X",info->src_addr[0], info->src_addr[1], info->src_addr[2], info->src_addr[3], info->src_addr[4], info->src_addr[5]);
+    // Serial.print("): ");
+    // Serial.println(receivedData.alarm ? "ТРЕВОГА!" : "Норма");
 
     // Управляем реле (или светодиодом)
     digitalWrite(RELAY_PIN, receivedData.alarm ? LOW : HIGH);
