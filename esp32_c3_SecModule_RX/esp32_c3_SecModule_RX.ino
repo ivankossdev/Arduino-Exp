@@ -1,11 +1,10 @@
 #include <esp_now.h>
 #include <WiFi.h>
 
+// Передатчик событий 
+// 0x90, 0xE5, 0xB1, 0x6A, 0x8C, 0x1C адрес приемного контроллера
+
 uint8_t broadcastAddress[] = {0x90, 0xE5, 0xB1, 0x6A, 0x8C, 0x1C};
-
-// MAC: 44:B1:76:05:0F:78 этого контроллера  0x44, 0xB1, 0x76, 0x05, 0x0F, 0x78
-// MAC: 90:E5:B1:6A:8C:1C модуль управления 
-
 
 typedef struct struct_message {
   uint8_t id;
