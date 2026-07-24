@@ -3,7 +3,7 @@
 #define SENSOR_PIN 9 // Кнопка на ESP32 
 #define LAMP_PIN 8   // Встроенный светодиод на ESP32 
 
-// MAC: 44:B1:76:05:0F:78 этого контроллера 
+// MAC: 44:B1:76:05:0F:78 этого контроллера  0x44, 0xB1, 0x76, 0x05, 0x0F, 0x78
 // MAC: 90:E5:B1:6A:8C:1C модуль управления 
 Bounce pressButton = Bounce();
 
@@ -26,7 +26,7 @@ void setup() {
 }
 
 unsigned long previousPrint = 0;
-const int NONBLOCKDELAY = 5000;
+const int NONBLOCKDELAY = 30000;
 
 void loop() {
 
