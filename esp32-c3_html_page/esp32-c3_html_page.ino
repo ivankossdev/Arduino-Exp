@@ -1,14 +1,15 @@
-#include <WiFi.h>
-#include <WebServer.h>
-#include <LittleFS.h>
+#include "config.h"
+#include "fs_utils.h"
 
-const char *ssid = "TechOtdel";
-const char *password = "12345678";
+// Определения переменных (extern)
+const char* ssid = "TechOtdel";
+const char* password = "12345678";
 const int ledPin = 8;
-String ledState;
 WebServer server(80);
+String ledState;
 
-String processor(const String &var) {
+// Процессор плейсхолдеров
+String processor(const String& var) {
     if (var == "STATE") {
         ledState = digitalRead(ledPin) ? "ON" : "OFF";
         return ledState;
@@ -51,15 +52,16 @@ void setup() {
     Serial.print("IP-адрес: ");
     Serial.println(WiFi.localIP());
 
-    // Главная
+    // --- Настройка маршрутов (все в одном месте) ---
+
+    // Главная страница
     server.on("/", HTTP_GET, []() {
-        File file = LittleFS.open("/index.html", "r");
-        if (!file) {
+        String content = getFileContent("/index.html", processor);
+        if (content.isEmpty()) {
             server.send(404, "text/plain", "File not found");
             return;
         }
-        String content = file.readString();
-        file.close();
+        // Заменяем плейсхолдеры вручную (можно вынести в отдельную функцию)
         content.replace("%STATE%", ledState);
         content.replace("%TEMPERATURE%", "25.5");
         content.replace("%HUMIDITY%", "60.0");
@@ -68,24 +70,12 @@ void setup() {
 
     // CSS
     server.on("/style.css", HTTP_GET, []() {
-        File file = LittleFS.open("/style.css", "r");
-        if (!file) {
-            server.send(404, "text/plain", "File not found");
-            return;
-        }
-        server.send(200, "text/css", file.readString());
-        file.close();
+        sendFile(server, "/style.css", "text/css");
     });
 
     // JavaScript
     server.on("/script.js", HTTP_GET, []() {
-        File file = LittleFS.open("/script.js", "r");
-        if (!file) {
-            server.send(404, "text/plain", "File not found");
-            return;
-        }
-        server.send(200, "application/javascript", file.readString());
-        file.close();
+        sendFile(server, "/script.js", "application/javascript");
     });
 
     // AJAX data
