@@ -17,7 +17,7 @@ Bounce pressButton = Bounce();
 
 #define SENSOR_PIN 9  // GPIO9(кнопка BOOT)
 
-// 🔥 НОВЫЙ ПРОТОТИП callback-функции (для новых версий ESP32)
+// ПРОТОТИП callback-функции (для новых версий ESP32)
 void OnDataSent(const wifi_tx_info_t *tx_info, esp_now_send_status_t status) {
   Serial.print("Статус отправки: ");
   Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Успешно" : "Ошибка");
@@ -49,8 +49,8 @@ void setup() {
   pressButton.interval(25);
 }
 
-unsigned long previousPrint = 0;
-const int NONBLOCKDELAY = 1000;
+// unsigned long previousPrint = 0;
+// const int NONBLOCKDELAY = 1000;
 bool alarmState = false;
 
 void loop() {
