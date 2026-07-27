@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <title>ESP32-C3 Web Server</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>ESP32-C3 Web Server</h1>
+        <h2>Управление светодиодом</h2>
+        <div class="button-container">
+            <a href="/on" class="button button-on">ВКЛ</a>
+            <a href="/off" class="button button-off">ВЫКЛ</a>
+        </div>
+        <p>Состояние GPIO: <strong>%STATE%</strong></p>
+
+        <h2>Данные с датчика (пример)</h2>
+        <p>
+            <span class="sensor-label">Температура: </span>
+            <span id="temperature">%TEMPERATURE%</span> °C
+        </p>
+        <p>
+            <span class="sensor-label">Влажность: </span>
+            <span id="humidity">%HUMIDITY%</span> %
+        </p>
+    </div>
+</body>
+</html>

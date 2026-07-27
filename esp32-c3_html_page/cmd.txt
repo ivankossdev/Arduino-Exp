@@ -1,0 +1,7 @@
+1. Создание образа папки с HTML страницей для записи в память контроллера:
+    mklittlefs -c data -b 4096 -p 256 -s 0x160000 littlefs.bin
+
+
+2. Запись в память контроллера образа страницы
+    ~/.arduino15/packages/esp32/tools/esptool_py/5.3.1/esptool --chip esp32c3 --port /dev/ttyACM0 write_flash 0x290000 littlefs.bin
+
