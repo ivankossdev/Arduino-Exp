@@ -5,3 +5,6 @@
 2. Запись в память контроллера образа страницы
     ~/.arduino15/packages/esp32/tools/esptool_py/5.3.1/esptool --chip esp32c3 --port /dev/ttyACM0 write_flash 0x290000 littlefs.bin
 
+
+
+

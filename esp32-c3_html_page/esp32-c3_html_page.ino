@@ -1,40 +1,54 @@
 #include "config.h"
 #include "fs_utils.h"
 
-
-// Определения переменных (extern)
-const char* ssid = "TechOtdel";
-const char* password = "12345678";
+// Реализация переменных
+const char* ssid = "";
+const char* password = "";
 const int ledPin = 8;
+const int DEFAULT_TEMPERATURE = 21;
+const unsigned long NONBLOCK_DELAY_MS = 2000;
+const unsigned long WIFI_TIMEOUT_MS = 30000; // 30 секунд на подключение
+
 WebServer server(80);
 String ledState;
-const int DEFOULT_TEMPERATURE = 21; 
 
-// Процессор плейсхолдеров
+int temperature = DEFAULT_TEMPERATURE;
+unsigned long previousPrint = 0;
+
+// Состояние Wi‑Fi (чтобы не блокировать loop)
+enum WifiState {
+  WIFI_NOT_STARTED,
+  WIFI_CONNECTING,
+  WIFI_CONNECTED,
+  WIFI_FAILED
+};
+
+WifiState wifiState = WIFI_NOT_STARTED;
+unsigned long wifiStartTime = 0;
+bool wifiLoggedOnce = false;
+
+// функция обновления температуры
+int nextTemperature(int current) {
+  if (current >= 30) {
+    return DEFAULT_TEMPERATURE;
+  }
+  return current + 1;
+}
+
+// Процессор плейсхолдеров для HTML
 String processor(const String& var) {
   if (var == "STATE") {
     ledState = digitalRead(ledPin) ? "ON" : "OFF";
     return ledState;
   }
-  if (var == "TEMPERATURE") return "25.5";
+  if (var == "TEMPERATURE") return String(temperature);
   if (var == "HUMIDITY") return "60.0";
   return String();
 }
 
-// Показания датчиков для тестов
-
-int temperature = DEFOULT_TEMPERATURE;
-unsigned long previousPrint = 0;
-const int NONBLOCKDELAY = 2000;
-
-void setTemperature(int* temp) {
-  if (*temp >= 30) *temp = &DEFOULT_TEMPERATURE;
-  *temp += 1;
-}
-
 void setup() {
   Serial.begin(115200);
-  delay(1000);
+  // Никакого delay(1000) — сразу в работу
   Serial.println("\n\nЗапуск ESP32-C3...");
 
   pinMode(ledPin, OUTPUT);
@@ -42,66 +56,47 @@ void setup() {
 
   if (!LittleFS.begin(true)) {
     Serial.println("ОШИБКА: Не удалось смонтировать LittleFS");
-    return;
-  }
-  Serial.println("LittleFS смонтирована успешно.");
-
-  Serial.println("Список файлов в корне:");
-  File root = LittleFS.open("/");
-  File file = root.openNextFile();
-  while (file) {
-    Serial.print("  - ");
-    Serial.println(file.name());
-    file = root.openNextFile();
+  } else {
+    Serial.println("LittleFS смонтирована успешно.");
   }
 
+  WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
-  Serial.print("Подключение к Wi-Fi");
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println("\nПодключено к Wi-Fi!");
-  Serial.print("IP-адрес: ");
-  Serial.println(WiFi.localIP());
+  wifiState = WIFI_CONNECTING;
+  wifiStartTime = millis();
+  wifiLoggedOnce = false;
 
-  // --- Настройка маршрутов (все в одном месте) ---
-
-  // Главная страница
+  // Роуты сервера
   server.on("/", HTTP_GET, []() {
-    String content = getFileContent("/index.html", processor);
+    String content = getFileContent("/index.html");
     if (content.isEmpty()) {
       server.send(404, "text/plain", "File not found");
       return;
     }
-    // Заменяем плейсхолдеры вручную (можно вынести в отдельную функцию)
-    content.replace("%STATE%", ledState);
-    content.replace("%TEMPERATURE%", "25.5");
-    content.replace("%HUMIDITY%", "60.0");
+    content.replace("%STATE%", processor("STATE"));
+    content.replace("%TEMPERATURE%", processor("TEMPERATURE"));
+    content.replace("%HUMIDITY%", processor("HUMIDITY"));
     server.send(200, "text/html", content);
   });
 
-  // CSS
   server.on("/style.css", HTTP_GET, []() {
     sendFile(server, "/style.css", "text/css");
   });
 
-  // JavaScript
   server.on("/script.js", HTTP_GET, []() {
     sendFile(server, "/script.js", "application/javascript");
   });
 
-  // AJAX data
   server.on("/data", HTTP_GET, []() {
+    // Формируем JSON без лишних кавычек вокруг чисел — это правильный JSON
     String json = "{";
-    json += "\"temperature\":\"" + String(temperature) + "\",";
-    json += "\"humidity\":\"60.0\",";
+    json += "\"temperature\":" + String(temperature) + ",";
+    json += "\"humidity\":60.0,";
     json += "\"state\":\"" + String(digitalRead(ledPin) ? "OFF" : "ON") + "\"";
     json += "}";
     server.send(200, "application/json", json);
   });
 
-  // Команды LED
   server.on("/on", HTTP_GET, []() {
     digitalWrite(ledPin, LOW);
     server.send(200, "text/plain", "OK");
@@ -113,14 +108,45 @@ void setup() {
   });
 
   server.begin();
-  Serial.println("HTTP-сервер запущен.");
+  Serial.println("HTTP-сервер запущен (ожидание Wi‑Fi).");
 }
 
 void loop() {
+  // 1. Неблокирующая обработка Wi‑Fi
+  if (wifiState == WIFI_CONNECTING) {
+    if (!wifiLoggedOnce) {
+      Serial.print("Подключение к Wi-Fi");
+      wifiLoggedOnce = true;
+    }
+
+    unsigned long now = millis();
+    // Печатаем точку каждые 500 мс БЕЗ delay()
+    static unsigned long lastDotTime = 0;
+    if (now - lastDotTime >= 500) {
+      Serial.print(".");
+      lastDotTime = now;
+    }
+
+    if (WiFi.status() == WL_CONNECTED) {
+      wifiState = WIFI_CONNECTED;
+      Serial.println();
+      Serial.println("Подключено к Wi‑Fi!");
+      Serial.print("IP-адрес: ");
+      Serial.println(WiFi.localIP());
+    } else if (now - wifiStartTime >= WIFI_TIMEOUT_MS) {
+      wifiState = WIFI_FAILED;
+      Serial.println();
+      Serial.println("Не удалось подключиться к Wi‑Fi за таймаут.");
+    }
+  }
+
+  // 2. Обработка HTTP-клиентов (это уже неблокирующе)
   server.handleClient();
+
+  // 3. Неблокирующее обновление температуры
   unsigned long currentTime = millis();
-  if (currentTime - previousPrint >= NONBLOCKDELAY) {
-    setTemperature(&temperature); 
+  if (currentTime - previousPrint >= NONBLOCK_DELAY_MS) {
+    temperature = nextTemperature(temperature);
     previousPrint = currentTime;
   }
 }
