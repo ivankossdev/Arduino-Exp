@@ -4,10 +4,8 @@
 
 const char *ssid = "TechOtdel";
 const char *password = "12345678";
-
 const int ledPin = 8;
 String ledState;
-
 WebServer server(80);
 
 String processor(const String &var) {
@@ -53,15 +51,13 @@ void setup() {
     Serial.print("IP-адрес: ");
     Serial.println(WiFi.localIP());
 
-    // Обработчики для синхронного сервера
+    // Главная
     server.on("/", HTTP_GET, []() {
-        String html = "";
         File file = LittleFS.open("/index.html", "r");
         if (!file) {
             server.send(404, "text/plain", "File not found");
             return;
         }
-        // Простой способ: читаем файл и заменяем плейсхолдеры
         String content = file.readString();
         file.close();
         content.replace("%STATE%", ledState);
@@ -70,6 +66,7 @@ void setup() {
         server.send(200, "text/html", content);
     });
 
+    // CSS
     server.on("/style.css", HTTP_GET, []() {
         File file = LittleFS.open("/style.css", "r");
         if (!file) {
@@ -80,16 +77,36 @@ void setup() {
         file.close();
     });
 
+    // JavaScript
+    server.on("/script.js", HTTP_GET, []() {
+        File file = LittleFS.open("/script.js", "r");
+        if (!file) {
+            server.send(404, "text/plain", "File not found");
+            return;
+        }
+        server.send(200, "application/javascript", file.readString());
+        file.close();
+    });
+
+    // AJAX data
+    server.on("/data", HTTP_GET, []() {
+        String json = "{";
+        json += "\"temperature\":\"25.5\",";
+        json += "\"humidity\":\"60.0\",";
+        json += "\"state\":\"" + String(digitalRead(ledPin) ? "OFF" : "ON") + "\"";
+        json += "}";
+        server.send(200, "application/json", json);
+    });
+
+    // Команды LED
     server.on("/on", HTTP_GET, []() {
         digitalWrite(ledPin, LOW);
-        server.sendHeader("Location", "/");
-        server.send(303);
+        server.send(200, "text/plain", "OK");
     });
 
     server.on("/off", HTTP_GET, []() {
         digitalWrite(ledPin, HIGH);
-        server.sendHeader("Location", "/");
-        server.send(303);
+        server.send(200, "text/plain", "OK");
     });
 
     server.begin();
