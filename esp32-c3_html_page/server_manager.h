@@ -4,12 +4,15 @@
 #include <WebServer.h>
 #include <functional>
 #include "fs_utils.h"
+#include "temperature_manager.h"
 
 using PlaceholderProcessor = String (*)(const String&);
 
 class ServerManager {
 public:
-  explicit ServerManager(WebServer& srv) : _server(srv) {}
+  // Теперь передаём и сервер, и менеджер температуры
+  explicit ServerManager(WebServer& srv, TemperatureManager& tMgr)
+    : _server(srv), _tempMgr(tMgr) {}
 
   void setupRoutes(PlaceholderProcessor processor) {
     _server.on("/", HTTP_GET, [this, processor]() {
@@ -32,13 +35,14 @@ public:
       sendFile(_server, "/script.js", "application/javascript");
     });
 
-    _server.on("/data", HTTP_GET, [this]() {
-      extern int temperature;
+    // Читаем температуру напрямую из _tempMgr — никакой глобальной переменной!
+    _server.on("/data", HTTP_GET, [&]() {
       extern const int ledPin;
       String json = "{";
-      json += "\"temperature\":" + String(temperature) + ",";
+      json += "\"temperature\":" + String(_tempMgr.get()) + ",";
       json += "\"humidity\":60.0,";
-      json += "\"state\":\"" + String(digitalRead(ledPin) ? "OFF" : "ON") + "\"";
+      String ledStateStr = (digitalRead(ledPin) == HIGH) ? "OFF" : "ON";
+      json += "\"state\":\"" + ledStateStr + "\"";
       json += "}";
       _server.send(200, "application/json", json);
     });
@@ -67,6 +71,7 @@ public:
 
 private:
   WebServer& _server;
+  TemperatureManager& _tempMgr;  // <-- Храним ссылку на менеджер
 };
 
-#endif  // <-- Вот он Обязательно должен быть в конце
+#endif

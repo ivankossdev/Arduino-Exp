@@ -4,8 +4,8 @@
 #include "temperature_manager.h"
 #include "server_manager.h"
 
-const char* ssid = "";
-const char* password = "";
+const char* ssid = "TechOtdel";
+const char* password = "12345678";
 const int ledPin = 8;
 const int DEFAULT_TEMPERATURE = 21;
 const unsigned long NONBLOCK_DELAY_MS = 2000;
@@ -14,18 +14,22 @@ const unsigned long WIFI_TIMEOUT_MS = 30000;
 WebServer server(80);
 String ledState;
 
-int temperature = DEFAULT_TEMPERATURE;
+// УБРАЛИ: int temperature = DEFAULT_TEMPERATURE;
+
 unsigned long previousTempTime = 0;
 
 WifiManager wifiMgr(ssid, password);
 TemperatureManager tempMgr(DEFAULT_TEMPERATURE, 30, DEFAULT_TEMPERATURE);
-ServerManager serverMgr(server);
+
+// Передаём tempMgr внутрь ServerManager
+ServerManager serverMgr(server, tempMgr);
 
 String processor(const String& var) {
   if (var == "STATE") {
     ledState = digitalRead(ledPin) ? "ON" : "OFF";
     return ledState;
   }
+  // Читаем напрямую из менеджера
   if (var == "TEMPERATURE") return String(tempMgr.get());
   if (var == "HUMIDITY") return "60.0";
   return String();
@@ -56,7 +60,6 @@ void loop() {
   unsigned long now = millis();
   if (now - previousTempTime >= NONBLOCK_DELAY_MS) {
     tempMgr.update();
-    temperature = tempMgr.get();
     previousTempTime = now;
   }
 }
