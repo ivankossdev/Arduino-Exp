@@ -1,0 +1,19 @@
+{
+  "wifi": {
+    "ssid": "TechOtdel",
+    "password": "12345678"
+  },
+  "led_pin": 8,
+  "default_temperature": 21,
+  "temperature_max": 30,
+  "temperature_min": 18,
+  "mqtt": {
+    "enabled": true,
+    "broker": "192.168.0.239",
+    "port": 1883,
+    "user": "esp32_user",
+    "password": "1234",
+    "cmd_topic": "home/lamp/command",
+    "state_topic": "home/lamp/status"
+  }
+}

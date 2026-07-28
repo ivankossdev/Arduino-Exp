@@ -3,8 +3,16 @@
 
 
 2. Запись в память контроллера образа страницы
+    Linux
     ~/.arduino15/packages/esp32/tools/esptool_py/5.3.1/esptool --chip esp32c3 --port /dev/ttyACM0 write_flash 0x290000 littlefs.bin
+    
+    MacOS
+    ~/Library/Arduino15/packages/esp32/tools/esptool_py/5.3.1/esptool --chip esp32c3 --port /dev/cu.usbmodem101 write_flash 0x290000 littlefs.bin
 
+Поиск утилиты:
+    sudo find / -name esptool -type f 2>/dev/null
 
+Поиск порта:
+    ls /dev/cu.*
 
 

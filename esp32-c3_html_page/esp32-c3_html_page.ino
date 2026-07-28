@@ -3,6 +3,7 @@
 #include "wifi_manager.h"
 #include "temperature_manager.h"
 #include "server_manager.h"
+#include "config_manager.h"
 
 const char* ssid = "TechOtdel";
 const char* password = "12345678";
@@ -14,9 +15,9 @@ const unsigned long WIFI_TIMEOUT_MS = 30000;
 WebServer server(80);
 String ledState;
 
-// УБРАЛИ: int temperature = DEFAULT_TEMPERATURE;
-
 unsigned long previousTempTime = 0;
+
+ConfigManager configMgr;
 
 WifiManager wifiMgr(ssid, password);
 TemperatureManager tempMgr(DEFAULT_TEMPERATURE, 30, DEFAULT_TEMPERATURE);
@@ -46,6 +47,16 @@ void setup() {
     Serial.println("ОШИБКА: Не удалось смонтировать LittleFS");
   } else {
     Serial.println("LittleFS смонтирована успешно.");
+
+    // Вывод файлов 
+    Serial.println("Список файлов:");
+    File root = LittleFS.open("/");
+    File file = root.openNextFile();
+    while (file) {
+      Serial.print("  - ");
+      Serial.println(file.name());
+      file = root.openNextFile();
+    }
   }
 
   wifiMgr.begin();
