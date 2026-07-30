@@ -1,7 +1,7 @@
 #include "wifi_scanner.h"
 
 void WiFiScanner::scan() {
-  Serial.println(F("🔍 Начинаем сканирование Wi-Fi..."));
+  Serial.println(F("🔍 Scanning Wi-Fi..."));
 
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
@@ -10,43 +10,28 @@ void WiFiScanner::scan() {
   _networkCount = WiFi.scanNetworks(false, true);
 
   if (_networkCount == 0) {
-    Serial.println(F("❌ Нет доступных сетей."));
+    Serial.println(F("❌ No networks found."));
     WiFi.scanDelete();
     return;
   }
 
   if (_networkCount < 0) {
-    Serial.printf("❌ Ошибка сканирования Wi-Fi: код %d\n", _networkCount);
+    Serial.printf("❌ Scan error: %d\n", _networkCount);
     WiFi.scanDelete();
     return;
   }
 
-  // ------ Подготовка данных ------
   const int n = _networkCount;
-  String ssids[n];
+  
+  // ------ Собираем данные в массивы ------
+  String numStr[n];
+  String channelStr[n];
   String rssiStr[n];
   String encStr[n];
   String hiddenStr[n];
   String bssidStr[n];
-  String numStr[n];
+  String ssidStr[n];
 
-  // Заголовки (тоже участвуют в вычислении ширины)
-  const char* headers[] = { "№", "Канал", "RSSI", "Шифр", "Скрыта", "BSSID", "SSID" };
-  // Сохраним отдельно значения для канала и номер, чтобы позже вывести числа
-  int channels[n];
-
-  // Максимальные длины (инициализируем длинами заголовков)
-  int maxLen[7] = {
-    strlen(headers[0]),
-    strlen(headers[1]),
-    strlen(headers[2]),
-    strlen(headers[3]),
-    strlen(headers[4]),
-    strlen(headers[5]),
-    strlen(headers[6])
-  };
-
-  // Заполняем массивы и обновляем максимумы
   for (int i = 0; i < n; i++) {
     String ssid = WiFi.SSID(i);
     int32_t rssi = WiFi.RSSI(i);
@@ -55,87 +40,85 @@ void WiFiScanner::scan() {
     int32_t channel = WiFi.channel(i);
     bool hidden = (ssid.length() == 0);
 
-    // Номер
     numStr[i] = String(i);
-    if (numStr[i].length() > maxLen[0]) maxLen[0] = numStr[i].length();
-
-    // Канал (число)
-    channels[i] = channel;
-    String chStr = String(channel);
-    if (chStr.length() > maxLen[1]) maxLen[1] = chStr.length();
-
-    // RSSI
+    channelStr[i] = String(channel);
     rssiStr[i] = String(rssi);
-    if (rssiStr[i].length() > maxLen[2]) maxLen[2] = rssiStr[i].length();
+    encStr[i] = String(getEncryptionType(encType));
+    hiddenStr[i] = hidden ? "Yes" : "No";
 
-    // Шифрование
-    const char* enc = getEncryptionType(encType);
-    encStr[i] = String(enc);
-    if (encStr[i].length() > maxLen[3]) maxLen[3] = encStr[i].length();
-
-    // Скрыта
-    hiddenStr[i] = hidden ? "Да" : "Нет";
-    if (hiddenStr[i].length() > maxLen[4]) maxLen[4] = hiddenStr[i].length();
-
-    // BSSID
     char bssidBuff[18];
     snprintf(bssidBuff, sizeof(bssidBuff), "%02X:%02X:%02X:%02X:%02X:%02X",
              bssid[0], bssid[1], bssid[2], bssid[3], bssid[4], bssid[5]);
     bssidStr[i] = String(bssidBuff);
-    if (bssidStr[i].length() > maxLen[5]) maxLen[5] = bssidStr[i].length();
 
-    // SSID (если скрыта, то покажем "<скрытая сеть>")
-    if (hidden) {
-      ssids[i] = "<скрытая сеть>";
-    } else {
-      ssids[i] = ssid;
-    }
-    if (ssids[i].length() > maxLen[6]) maxLen[6] = ssids[i].length();
+    ssidStr[i] = hidden ? "<hidden>" : ssid;
   }
 
-  // Добавим небольшие отступы между колонками (по одному пробелу)
-  int padding = 1;
-  for (int i = 0; i < 7; i++) {
-    maxLen[i] += padding;
+  // ------ Заголовки (только ASCII) ------
+  const char* headers[] = {"#", "CH", "RSSI", "ENC", "HID", "BSSID", "SSID"};
+  const int colCount = 7;
+
+  // ------ Вычисляем ширину колонок (максимум из заголовка и всех данных) ------
+  int widths[colCount];
+  for (int i = 0; i < colCount; i++) {
+    widths[i] = strlen(headers[i]);        // начальная ширина = длина заголовка
+  }
+
+  for (int i = 0; i < n; i++) {
+    if (numStr[i].length() > widths[0]) widths[0] = numStr[i].length();
+    if (channelStr[i].length() > widths[1]) widths[1] = channelStr[i].length();
+    if (rssiStr[i].length() > widths[2]) widths[2] = rssiStr[i].length();
+    if (encStr[i].length() > widths[3]) widths[3] = encStr[i].length();
+    if (hiddenStr[i].length() > widths[4]) widths[4] = hiddenStr[i].length();
+    if (bssidStr[i].length() > widths[5]) widths[5] = bssidStr[i].length();
+    if (ssidStr[i].length() > widths[6]) widths[6] = ssidStr[i].length();
+  }
+
+  // Добавляем по одному пробелу для отступа между колонками (увеличиваем ширину)
+  for (int i = 0; i < colCount; i++) {
+    widths[i] += 1;
   }
 
   // ------ Вывод таблицы ------
-  Serial.printf("✅ Найдено %d сетей:\n\n", n);
+  Serial.printf("✅ Found %d networks:\n\n", n);
 
-  // Вывод заголовков
-  Serial.printf("%-*s| %-*s| %-*s| %-*s| %-*s| %-*s| %-*s\n",
-                maxLen[0], headers[0],
-                maxLen[1], headers[1],
-                maxLen[2], headers[2],
-                maxLen[3], headers[3],
-                maxLen[4], headers[4],
-                maxLen[5], headers[5],
-                maxLen[6], headers[6]);
-
-  // Разделительная линия (повторим символы '-' для каждой колонки)
-  for (int i = 0; i < 7; i++) {
-    for (int j = 0; j < maxLen[i]; j++) Serial.print('-');
-    if (i < 6) Serial.print('+');
+  // Заголовки
+  for (int i = 0; i < colCount; i++) {
+    Serial.printf("%-*s", widths[i], headers[i]);
+    if (i < colCount - 1) Serial.print(" | ");
   }
   Serial.println();
 
-  // Вывод строк с данными
+  // Разделительная линия (дефисы + "-+-" между колонками)
+  for (int i = 0; i < colCount; i++) {
+    for (int j = 0; j < widths[i]; j++) Serial.print("-");
+    if (i < colCount - 1) Serial.print("-+-");
+  }
+  Serial.println();
+
+  // Данные
   for (int i = 0; i < n; i++) {
-    Serial.printf("%-*s| %-*s| %-*s| %-*s| %-*s| %-*s| %-*s\n",
-                  maxLen[0], numStr[i].c_str(),
-                  maxLen[1], String(channels[i]).c_str(),
-                  maxLen[2], rssiStr[i].c_str(),
-                  maxLen[3], encStr[i].c_str(),
-                  maxLen[4], hiddenStr[i].c_str(),
-                  maxLen[5], bssidStr[i].c_str(),
-                  maxLen[6], ssids[i].c_str());
+    Serial.printf("%-*s", widths[0], numStr[i].c_str());
+    Serial.print(" | ");
+    Serial.printf("%-*s", widths[1], channelStr[i].c_str());
+    Serial.print(" | ");
+    Serial.printf("%-*s", widths[2], rssiStr[i].c_str());
+    Serial.print(" | ");
+    Serial.printf("%-*s", widths[3], encStr[i].c_str());
+    Serial.print(" | ");
+    Serial.printf("%-*s", widths[4], hiddenStr[i].c_str());
+    Serial.print(" | ");
+    Serial.printf("%-*s", widths[5], bssidStr[i].c_str());
+    Serial.print(" | ");
+    Serial.printf("%-*s", widths[6], ssidStr[i].c_str());
+    Serial.println();
   }
   Serial.println();
 
   WiFi.scanDelete();
 }
 
-// ----- Реализация getEncryptionType (как и раньше) -----
+// ----- Реализация getEncryptionType (без изменений) -----
 const char* WiFiScanner::getEncryptionType(uint8_t encType) {
   switch (encType) {
     case WIFI_AUTH_OPEN:               return "OPEN";
