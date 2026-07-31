@@ -1,6 +1,6 @@
-#include "wifi_scanner.h"
+#include "WiFiManager.h"
 
-int WiFiScanner::scan(NetworkInfo* results, int maxCount) {
+int WiFiManager::scan(NetworkInfo* results, int maxCount) {
   if (results == nullptr || maxCount <= 0) {
     return -1;
   }
@@ -22,16 +22,14 @@ int WiFiScanner::scan(NetworkInfo* results, int maxCount) {
   if (n < 0) {
     Serial.printf("❌ Ошибка сканирования: %d\n", n);
     WiFi.scanDelete();
-    return n;   // отрицательное значение
+    return n;
   }
 
-  // Ограничиваем количество записей, чтобы не выйти за пределы буфера
   int count = (n < maxCount) ? n : maxCount;
 
   for (int i = 0; i < count; i++) {
     NetworkInfo* info = &results[i];
 
-    // SSID
     String ssid = WiFi.SSID(i);
     if (ssid.length() == 0) {
       info->hidden = true;
@@ -43,7 +41,6 @@ int WiFiScanner::scan(NetworkInfo* results, int maxCount) {
       info->ssid[sizeof(info->ssid) - 1] = '\0';
     }
 
-    // BSSID (MAC-адрес)
     uint8_t* bssid = WiFi.BSSID(i);
     snprintf(info->bssid, sizeof(info->bssid), "%02X:%02X:%02X:%02X:%02X:%02X",
              bssid[0], bssid[1], bssid[2], bssid[3], bssid[4], bssid[5]);
@@ -53,13 +50,39 @@ int WiFiScanner::scan(NetworkInfo* results, int maxCount) {
     info->encryptionType = WiFi.encryptionType(i);
   }
 
-  WiFi.scanDelete();   // освобождаем память, выделенную под результаты
-
+  WiFi.scanDelete();
   Serial.printf("✅ Найдено %d сетей (показано %d)\n", n, count);
   return count;
 }
 
-const char* WiFiScanner::getEncryptionType(uint8_t encType) const {
+/* НОВЫЙ МЕТОД: подключение к сети */
+bool WiFiManager::connectToNetwork(const char* ssid, const char* password) {
+  if (ssid == nullptr || strlen(ssid) == 0) {
+    return false;
+  }
+
+  WiFi.mode(WIFI_STA);
+  WiFi.disconnect();
+  delay(100);
+
+  // Начинаем подключение
+  WiFi.begin(ssid, password);
+
+  // Ждём до 10 секунд
+  unsigned long start = millis();
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+    if (millis() - start > 10000) {
+      Serial.println("\n⏱️ Таймаут подключения.");
+      return false;
+    }
+  }
+  Serial.println();
+  return WiFi.status() == WL_CONNECTED;
+}
+
+const char* WiFiManager::getEncryptionType(uint8_t encType) const {
   switch (encType) {
     case WIFI_AUTH_OPEN:               return "OPEN";
     case WIFI_AUTH_WEP:                return "WEP";
