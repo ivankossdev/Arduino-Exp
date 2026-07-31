@@ -1,7 +1,7 @@
 #include "Menu.h"
 
 Menu::Menu()
-  : _menuChoice(0), _scanning(false), _hasScanResult(false), _terminalIsBusy(false) {}
+  : _menuChoice(0), _scanning(false), _hasScanResult(false) {}
 
 void Menu::begin() {
   const unsigned long SERIAL_TIMEOUT_MS = 2000;
@@ -137,11 +137,9 @@ void Menu::connectToNetwork() {
   }
 
   _scanning = true;
-
-  // Устанавливаем таймаут на чтение Serial (по умолчанию 1000 мс, увеличим до 10 секунд)
   Serial.setTimeout(10000);
 
-  // --- Запрос номера сети с проверкой на пустой ввод ---
+  // --- Выбор сети ---
   int index = -1;
   while (index < 0 || index >= MAX_NETWORKS || _networks[index].ssid[0] == '\0') {
     Serial.print("Введите номер сети (0..");
@@ -153,49 +151,61 @@ void Menu::connectToNetwork() {
       index = indexStr.toInt();
       if (index < 0 || index >= MAX_NETWORKS || _networks[index].ssid[0] == '\0') {
         Serial.println("❌ Неверный номер, попробуйте снова.");
-        index = -1;  // сбросить для повторного запроса
+        index = -1;
       }
     } else {
       Serial.println("Пустой ввод, попробуйте снова.");
     }
   }
 
+  String ssid = String(_networks[index].ssid);
   Serial.print("Выбрали сеть: ");
-  Serial.println(_networks[index].ssid);
+  Serial.println(ssid);
 
-  // --- Запрос пароля с проверкой на пустой ввод ---
-  String password = "";
-  while (password.length() == 0) {
-    Serial.print("Введите пароль для сети \"");
-    Serial.print(_networks[index].ssid);
-    Serial.print("\": ");
-    password = Serial.readStringUntil('\n');
-    password.trim();
-    if (password.length() == 0) {
-      Serial.println("Пароль не может быть пустым, попробуйте снова.");
+  // Проверяем, есть ли сохранённый пароль для этой сети
+  String password = _creds.getPassword(ssid);
+  if (password.length() > 0) {
+    Serial.println("Найден сохранённый пароль, подключаюсь автоматически.");
+  } else {
+    // Запрашиваем пароль, если нет сохранённого
+    while (password.length() == 0) {
+      Serial.print("Введите пароль для сети \"");
+      Serial.print(ssid);
+      Serial.print("\": ");
+      password = Serial.readStringUntil('\n');
+      password.trim();
+      if (password.length() == 0) {
+        Serial.println("Пароль не может быть пустым, попробуйте снова.");
+      }
     }
   }
 
   _scanning = false;
 
-  // --- Подключение ---
   Serial.println("⏳ Подключение...");
-  bool success = _scanner.connectToNetwork(_networks[index].ssid, password.c_str());
+  bool success = _scanner.connectToNetwork(ssid.c_str(), password.c_str());
 
   if (success) {
     Serial.println("✅ Подключено успешно!");
     Serial.print("IP-адрес: ");
     Serial.println(WiFi.localIP());
+    // Запоминаем последнюю удачную связку
+    _lastSSID = ssid;
+    _lastPassword = password;
   } else {
     Serial.println("❌ Ошибка подключения. Проверьте пароль или доступность сети.");
   }
 }
 
+
 void Menu::printMenu() {
   Serial.println("\n=== Интерактивное меню ESP32 ===");
   Serial.println("0. Показать меню снова");
   Serial.println("1. Показать доступные сети");
-  Serial.println("2. Подключиться к сети (после сканирования)");  // новая команда
+  Serial.println("2. Подключиться к сети (после сканирования)");
+  Serial.println("3. Сохранить текущую сеть");
+  Serial.println("4. Показать сохранённые сети");
+  Serial.println("5. Подключиться к сохранённой сети");
 }
 
 void Menu::handleMenuChoice(int choice) {
@@ -212,8 +222,84 @@ void Menu::handleMenuChoice(int choice) {
     case 2:
       connectToNetwork();
       break;
-    default:
-      Serial.println("Неверная опция! Выберите 0–2.");
+    case 3:
+      saveCurrentNetwork();
       break;
+    case 4:
+      showSavedNetworks();
+      break;
+    case 5:
+      connectToSavedNetwork();
+      break;
+    default:
+      Serial.println("Неверная опция! Выберите 0–5.");
+      break;
+  }
+}
+
+
+void Menu::saveCurrentNetwork() {
+  if (_lastSSID.length() == 0 || _lastPassword.length() == 0) {
+    Serial.println("⚠️ Нет активного подключения или пароль не сохранён. Сначала подключитесь к сети.");
+    return;
+  }
+  if (_creds.save(_lastSSID, _lastPassword)) {
+    Serial.printf("✅ Сеть \"%s\" сохранена.\n", _lastSSID.c_str());
+  } else {
+    Serial.println("❌ Ошибка сохранения.");
+  }
+}
+
+
+void Menu::showSavedNetworks() {
+  _creds.printAll();
+}
+
+
+void Menu::connectToSavedNetwork() {
+  int count = _creds.count();
+  if (count == 0) {
+    Serial.println("Нет сохранённых сетей.");
+    return;
+  }
+
+  // Выводим список сохранённых сетей с номерами
+  _creds.printAll();
+
+  Serial.print("Введите номер сети для подключения (0..");
+  Serial.print(count - 1);
+  Serial.print("): ");
+  String input = Serial.readStringUntil('\n');
+  input.trim();
+  int index = input.toInt();
+
+  if (index < 0 || index >= count) {
+    Serial.println("❌ Неверный номер.");
+    return;
+  }
+
+  String ssid = _creds.getSSID(index);
+  String password = _creds.getPasswordByIndex(index);
+
+  if (ssid.length() == 0 || password.length() == 0) {
+    Serial.println("Ошибка получения данных.");
+    return;
+  }
+
+  Serial.printf("Подключаюсь к \"%s\"...\n", ssid.c_str());
+  _scanning = true; // блокируем ввод на время подключения
+
+  bool success = _scanner.connectToNetwork(ssid.c_str(), password.c_str());
+
+  _scanning = false;
+
+  if (success) {
+    Serial.println("✅ Подключено успешно!");
+    Serial.print("IP-адрес: ");
+    Serial.println(WiFi.localIP());
+    _lastSSID = ssid;
+    _lastPassword = password;
+  } else {
+    Serial.println("❌ Ошибка подключения. Возможно, сеть недоступна или пароль изменился.");
   }
 }

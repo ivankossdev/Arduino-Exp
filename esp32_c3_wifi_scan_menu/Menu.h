@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include "WiFiManager.h"
+#include "WiFiCredentials.h"   
 
 class Menu {
 private:
@@ -10,17 +11,21 @@ private:
   int _menuChoice;
   bool _scanning;
   bool _hasScanResult;                // флаг наличия результатов сканирования
-  bool _terminalIsBusy;               // Теримнал занят, ожидаем ввода информации от пользователя
+  WiFiCredentials _creds; 
   WiFiManager _scanner;
+  String _lastSSID; 
+  String _lastPassword; 
   NetworkInfo _networks[MAX_NETWORKS];
-  char buffer[30]; 
 
   void printMenu();
   void handleMenuChoice(int choice);
   void SerialBufferClear();
   void wifiScan();
   void displayNetworks(const NetworkInfo* networks, int count);
-  void connectToNetwork();            // новый метод для подключения
+  void connectToNetwork();
+  void saveCurrentNetwork();   
+  void showSavedNetworks();  
+  void connectToSavedNetwork();
 
 public:
   Menu();
