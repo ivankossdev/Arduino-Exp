@@ -26,8 +26,6 @@ private:
   void saveCurrentNetwork();   
   void showSavedNetworks();  
   void connectToSavedNetwork();
-
-  // НОВЫЙ МЕТОД: возвращает строку статуса подключения
   String getStatus() const;
 
 public:

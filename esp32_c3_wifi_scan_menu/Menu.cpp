@@ -200,7 +200,6 @@ void Menu::connectToNetwork() {
   }
 }
 
-// НОВЫЙ МЕТОД: возвращает строку статуса
 String Menu::getStatus() const {
   if (WiFi.status() == WL_CONNECTED) {
     String ssid = WiFi.SSID();
