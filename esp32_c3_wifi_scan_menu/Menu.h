@@ -26,11 +26,12 @@ private:
   void saveCurrentNetwork();   
   void showSavedNetworks();  
   void connectToSavedNetwork();
-
-  // НОВОЕ: удаление сохранённой сети по индексу
   void deleteSavedNetwork();
 
   String getStatus() const;
+
+  // НОВОЕ: автоматическое подключение при старте
+  void autoConnect();
 
 public:
   Menu();

@@ -3,6 +3,45 @@
 Menu::Menu()
   : _menuChoice(0), _scanning(false), _hasScanResult(false) {}
 
+// ============================================================
+// НОВОЕ: автоматическое подключение к первой сохранённой сети
+// ============================================================
+void Menu::autoConnect() {
+  int count = _creds.count();
+  if (count == 0) {
+    Serial.println("ℹ️ Нет сохранённых сетей для автоподключения.");
+    return;
+  }
+
+  // Берём первую сеть (индекс 0)
+  String ssid = _creds.getSSID(0);
+  String password = _creds.getPasswordByIndex(0);
+
+  if (ssid.length() == 0 || password.length() == 0) {
+    Serial.println("⚠️ Ошибка получения данных первой сети.");
+    return;
+  }
+
+  Serial.printf("🔄 Автоподключение к \"%s\"...\n", ssid.c_str());
+
+  _scanning = true; // блокируем ввод во время подключения
+
+  bool success = _scanner.connectToNetwork(ssid.c_str(), password.c_str());
+
+  _scanning = false;
+
+  if (success) {
+    Serial.println("✅ Автоподключение успешно!");
+    Serial.print("IP-адрес: ");
+    Serial.println(WiFi.localIP());
+    _lastSSID = ssid;
+    _lastPassword = password;
+  } else {
+    Serial.println("❌ Автоподключение не удалось. Используйте меню для подключения вручную.");
+  }
+}
+// ============================================================
+
 void Menu::begin() {
   const unsigned long SERIAL_TIMEOUT_MS = 2000;
   unsigned long startTime = millis();
@@ -12,7 +51,11 @@ void Menu::begin() {
   }
 
   SerialBufferClear();
-  printMenu();
+
+  // НОВОЕ: пытаемся автоматически подключиться
+  autoConnect();
+
+  printMenu(); // теперь после автоподключения статус уже актуальный
 }
 
 void Menu::update() {
@@ -137,7 +180,6 @@ void Menu::connectToNetwork() {
   }
 
   _scanning = true;
-  // Сохраняем старый таймаут и устанавливаем большой для ввода
   unsigned long oldTimeout = Serial.getTimeout();
   Serial.setTimeout(10000);
 
@@ -182,9 +224,7 @@ void Menu::connectToNetwork() {
     }
   }
 
-  // Восстанавливаем таймаут
   Serial.setTimeout(oldTimeout);
-
   _scanning = false;
 
   Serial.println("⏳ Подключение...");
@@ -211,9 +251,6 @@ String Menu::getStatus() const {
   }
 }
 
-// ============================================================
-// НОВОЕ: метод удаления сохранённой сети по индексу
-// ============================================================
 void Menu::deleteSavedNetwork() {
   int count = _creds.count();
   if (count == 0) {
@@ -221,13 +258,11 @@ void Menu::deleteSavedNetwork() {
     return;
   }
 
-  // Выводим список сохранённых сетей (SSID без паролей)
   _creds.printAll();
 
-  // Очищаем буфер и устанавливаем таймаут для ввода номера
   SerialBufferClear();
   unsigned long oldTimeout = Serial.getTimeout();
-  Serial.setTimeout(5000);  // 5 секунд на ввод
+  Serial.setTimeout(5000);
 
   int index = -1;
   while (index < 0 || index >= count) {
@@ -247,31 +282,26 @@ void Menu::deleteSavedNetwork() {
     }
   }
 
-  // Восстанавливаем таймаут
   Serial.setTimeout(oldTimeout);
 
-  // Получаем SSID по индексу
   String ssid = _creds.getSSID(index);
   if (ssid.length() == 0) {
     Serial.println("Ошибка получения SSID.");
     return;
   }
 
-  // Запрашиваем подтверждение
   Serial.print("Вы уверены, что хотите удалить сеть \"");
   Serial.print(ssid);
   Serial.print("\"? (y/n): ");
 
-  // Читаем ответ с подтверждением (с таймаутом 5 секунд)
   Serial.setTimeout(5000);
   String confirm = Serial.readStringUntil('\n');
   confirm.trim();
-  Serial.setTimeout(oldTimeout);  // восстанавливаем
+  Serial.setTimeout(oldTimeout);
 
   if (confirm.equalsIgnoreCase("y") || confirm.equalsIgnoreCase("yes")) {
     if (_creds.remove(ssid)) {
       Serial.printf("✅ Сеть \"%s\" удалена.\n", ssid.c_str());
-      // Если удалили текущую подключённую сеть, сбрасываем _lastSSID и _lastPassword
       if (_lastSSID == ssid) {
         _lastSSID = "";
         _lastPassword = "";
@@ -283,7 +313,6 @@ void Menu::deleteSavedNetwork() {
     Serial.println("❌ Удаление отменено.");
   }
 }
-// ============================================================
 
 void Menu::printMenu() {
   Serial.println("\n=== Интерактивное меню ESP32 ===");
@@ -294,7 +323,6 @@ void Menu::printMenu() {
   Serial.println("3. Сохранить текущую сеть");
   Serial.println("4. Показать сохранённые сети");
   Serial.println("5. Подключиться к сохранённой сети");
-  // НОВОЕ: пункт 6
   Serial.println("6. Удалить сохранённую сеть");
 }
 
@@ -321,7 +349,6 @@ void Menu::handleMenuChoice(int choice) {
     case 5:
       connectToSavedNetwork();
       break;
-    // НОВОЕ: обработка команды 6
     case 6:
       deleteSavedNetwork();
       break;
