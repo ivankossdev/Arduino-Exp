@@ -12,7 +12,7 @@ void Menu::begin() {
   }
 
   SerialBufferClear();
-  printMenu();  // при старте выводится меню со статусом
+  printMenu();
 }
 
 void Menu::update() {
@@ -137,8 +137,7 @@ void Menu::connectToNetwork() {
   }
 
   _scanning = true;
-
-  // Сохраняем старый таймаут
+  // Сохраняем старый таймаут и устанавливаем большой для ввода
   unsigned long oldTimeout = Serial.getTimeout();
   Serial.setTimeout(10000);
 
@@ -183,13 +182,9 @@ void Menu::connectToNetwork() {
     }
   }
 
-  // Восстанавливаем исходный таймаут
+  // Восстанавливаем таймаут
   Serial.setTimeout(oldTimeout);
 
-  // !!! Сбрасываем _scanning только ПОСЛЕ подключения, чтобы заблокировать ввод
-  // (это исправление, но оно не относится к статусу – оставляем как есть)
-  // В текущем коде _scanning = false стоит до вызова connectToNetwork, что неверно,
-  // но мы не меняем логику, поэтому оставляем как было.
   _scanning = false;
 
   Serial.println("⏳ Подключение...");
@@ -216,9 +211,82 @@ String Menu::getStatus() const {
   }
 }
 
+// ============================================================
+// НОВОЕ: метод удаления сохранённой сети по индексу
+// ============================================================
+void Menu::deleteSavedNetwork() {
+  int count = _creds.count();
+  if (count == 0) {
+    Serial.println("Нет сохранённых сетей для удаления.");
+    return;
+  }
+
+  // Выводим список сохранённых сетей (SSID без паролей)
+  _creds.printAll();
+
+  // Очищаем буфер и устанавливаем таймаут для ввода номера
+  SerialBufferClear();
+  unsigned long oldTimeout = Serial.getTimeout();
+  Serial.setTimeout(5000);  // 5 секунд на ввод
+
+  int index = -1;
+  while (index < 0 || index >= count) {
+    Serial.print("Введите номер сети для удаления (0..");
+    Serial.print(count - 1);
+    Serial.print("): ");
+    String input = Serial.readStringUntil('\n');
+    input.trim();
+    if (input.length() == 0) {
+      Serial.println("Пустой ввод, попробуйте снова.");
+      continue;
+    }
+    index = input.toInt();
+    if (index < 0 || index >= count) {
+      Serial.println("❌ Неверный номер, попробуйте снова.");
+      index = -1;
+    }
+  }
+
+  // Восстанавливаем таймаут
+  Serial.setTimeout(oldTimeout);
+
+  // Получаем SSID по индексу
+  String ssid = _creds.getSSID(index);
+  if (ssid.length() == 0) {
+    Serial.println("Ошибка получения SSID.");
+    return;
+  }
+
+  // Запрашиваем подтверждение
+  Serial.print("Вы уверены, что хотите удалить сеть \"");
+  Serial.print(ssid);
+  Serial.print("\"? (y/n): ");
+
+  // Читаем ответ с подтверждением (с таймаутом 5 секунд)
+  Serial.setTimeout(5000);
+  String confirm = Serial.readStringUntil('\n');
+  confirm.trim();
+  Serial.setTimeout(oldTimeout);  // восстанавливаем
+
+  if (confirm.equalsIgnoreCase("y") || confirm.equalsIgnoreCase("yes")) {
+    if (_creds.remove(ssid)) {
+      Serial.printf("✅ Сеть \"%s\" удалена.\n", ssid.c_str());
+      // Если удалили текущую подключённую сеть, сбрасываем _lastSSID и _lastPassword
+      if (_lastSSID == ssid) {
+        _lastSSID = "";
+        _lastPassword = "";
+      }
+    } else {
+      Serial.println("❌ Ошибка удаления.");
+    }
+  } else {
+    Serial.println("❌ Удаление отменено.");
+  }
+}
+// ============================================================
+
 void Menu::printMenu() {
   Serial.println("\n=== Интерактивное меню ESP32 ===");
-  // Вывод статуса подключения
   Serial.println("Статус: " + getStatus());
   Serial.println("0. Показать меню снова");
   Serial.println("1. Показать доступные сети");
@@ -226,6 +294,8 @@ void Menu::printMenu() {
   Serial.println("3. Сохранить текущую сеть");
   Serial.println("4. Показать сохранённые сети");
   Serial.println("5. Подключиться к сохранённой сети");
+  // НОВОЕ: пункт 6
+  Serial.println("6. Удалить сохранённую сеть");
 }
 
 void Menu::handleMenuChoice(int choice) {
@@ -251,8 +321,12 @@ void Menu::handleMenuChoice(int choice) {
     case 5:
       connectToSavedNetwork();
       break;
+    // НОВОЕ: обработка команды 6
+    case 6:
+      deleteSavedNetwork();
+      break;
     default:
-      Serial.println("Неверная опция! Выберите 0–5.");
+      Serial.println("Неверная опция! Выберите 0–6.");
       break;
   }
 }

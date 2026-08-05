@@ -26,6 +26,10 @@ private:
   void saveCurrentNetwork();   
   void showSavedNetworks();  
   void connectToSavedNetwork();
+
+  // НОВОЕ: удаление сохранённой сети по индексу
+  void deleteSavedNetwork();
+
   String getStatus() const;
 
 public:
