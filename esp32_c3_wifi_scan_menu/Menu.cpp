@@ -12,7 +12,7 @@ void Menu::begin() {
   }
 
   SerialBufferClear();
-  printMenu();
+  printMenu();  // при старте выводится меню со статусом
 }
 
 void Menu::update() {
@@ -44,7 +44,7 @@ void Menu::wifiScan() {
   int count = _scanner.scan(_networks, MAX_NETWORKS);
 
   if (count > 0) {
-    _hasScanResult = true;  // запоминаем, что сканирование прошло успешно
+    _hasScanResult = true;
     displayNetworks(_networks, count);
   } else if (count == 0) {
     _hasScanResult = false;
@@ -180,6 +180,10 @@ void Menu::connectToNetwork() {
     }
   }
 
+  // !!! Сбрасываем _scanning только ПОСЛЕ подключения, чтобы заблокировать ввод
+  // (это исправление, но оно не относится к статусу – оставляем как есть)
+  // В текущем коде _scanning = false стоит до вызова connectToNetwork, что неверно,
+  // но мы не меняем логику, поэтому оставляем как было.
   _scanning = false;
 
   Serial.println("⏳ Подключение...");
@@ -189,7 +193,6 @@ void Menu::connectToNetwork() {
     Serial.println("✅ Подключено успешно!");
     Serial.print("IP-адрес: ");
     Serial.println(WiFi.localIP());
-    // Запоминаем последнюю удачную связку
     _lastSSID = ssid;
     _lastPassword = password;
   } else {
@@ -197,9 +200,21 @@ void Menu::connectToNetwork() {
   }
 }
 
+// НОВЫЙ МЕТОД: возвращает строку статуса
+String Menu::getStatus() const {
+  if (WiFi.status() == WL_CONNECTED) {
+    String ssid = WiFi.SSID();
+    IPAddress ip = WiFi.localIP();
+    return "Подключено к \"" + ssid + "\", IP: " + ip.toString();
+  } else {
+    return "Не подключено к Wi-Fi.";
+  }
+}
 
 void Menu::printMenu() {
   Serial.println("\n=== Интерактивное меню ESP32 ===");
+  // Вывод статуса подключения
+  Serial.println("Статус: " + getStatus());
   Serial.println("0. Показать меню снова");
   Serial.println("1. Показать доступные сети");
   Serial.println("2. Подключиться к сети (после сканирования)");
@@ -237,7 +252,6 @@ void Menu::handleMenuChoice(int choice) {
   }
 }
 
-
 void Menu::saveCurrentNetwork() {
   if (_lastSSID.length() == 0 || _lastPassword.length() == 0) {
     Serial.println("⚠️ Нет активного подключения или пароль не сохранён. Сначала подключитесь к сети.");
@@ -250,11 +264,9 @@ void Menu::saveCurrentNetwork() {
   }
 }
 
-
 void Menu::showSavedNetworks() {
   _creds.printAll();
 }
-
 
 void Menu::connectToSavedNetwork() {
   int count = _creds.count();
@@ -263,7 +275,6 @@ void Menu::connectToSavedNetwork() {
     return;
   }
 
-  // Выводим список сохранённых сетей с номерами
   _creds.printAll();
 
   Serial.print("Введите номер сети для подключения (0..");
@@ -287,7 +298,7 @@ void Menu::connectToSavedNetwork() {
   }
 
   Serial.printf("Подключаюсь к \"%s\"...\n", ssid.c_str());
-  _scanning = true; // блокируем ввод на время подключения
+  _scanning = true;
 
   bool success = _scanner.connectToNetwork(ssid.c_str(), password.c_str());
 

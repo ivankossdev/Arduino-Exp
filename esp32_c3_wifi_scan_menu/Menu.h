@@ -10,7 +10,7 @@ private:
   static const int MAX_NETWORKS = 50;
   int _menuChoice;
   bool _scanning;
-  bool _hasScanResult;                // флаг наличия результатов сканирования
+  bool _hasScanResult;
   WiFiCredentials _creds; 
   WiFiManager _scanner;
   String _lastSSID; 
@@ -26,6 +26,9 @@ private:
   void saveCurrentNetwork();   
   void showSavedNetworks();  
   void connectToSavedNetwork();
+
+  // НОВЫЙ МЕТОД: возвращает строку статуса подключения
+  String getStatus() const;
 
 public:
   Menu();
