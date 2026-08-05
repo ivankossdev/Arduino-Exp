@@ -49,10 +49,8 @@ bool WiFiCredentials::save(const String& ssid, const String& password) {
 
   String data = loadData();
 
-  // Проверяем, существует ли уже запись
   int index = findSSID(ssid, data);
   if (index != -1) {
-    // Удаляем старую запись из строки
     int pos = 0;
     while (pos < data.length()) {
       int colon = data.indexOf(':', pos);
@@ -68,7 +66,6 @@ bool WiFiCredentials::save(const String& ssid, const String& password) {
     }
   }
 
-  // Добавляем новую запись
   data += ssid + ":" + password + ";";
   saveData(data);
   return true;
@@ -114,13 +111,17 @@ void WiFiCredentials::clearAll() {
   saveData("");
 }
 
+// ============================================================
+// ИЗМЕНЕНИЕ: метод printAll() теперь скрывает пароли.
+// Вместо реального пароля выводится маска "****" для безопасности.
+// ============================================================
 void WiFiCredentials::printAll() const {
   String data = loadData();
   if (data.length() == 0) {
     Serial.println("Нет сохранённых сетей.");
     return;
   }
-  Serial.println("Сохранённые сети (SSID:пароль):");
+  Serial.println("Сохранённые сети (SSID):");
   int pos = 0;
   int idx = 0;
   while (pos < data.length()) {
@@ -129,12 +130,14 @@ void WiFiCredentials::printAll() const {
     int semi = data.indexOf(';', colon);
     if (semi == -1) semi = data.length();
     String ssid = data.substring(pos, colon);
-    String pass = data.substring(colon + 1, semi);
-    Serial.printf("%d. %s : %s\n", idx, ssid.c_str(), pass.c_str());
+    // пароль не читаем и не выводим
+    Serial.printf("%d. %s\n", idx, ssid.c_str());
+    // Можно было бы вывести маску, но для наглядности просто SSID
     pos = semi + 1;
     idx++;
   }
 }
+// ============================================================
 
 int WiFiCredentials::count() const {
   String data = loadData();

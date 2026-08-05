@@ -137,6 +137,9 @@ void Menu::connectToNetwork() {
   }
 
   _scanning = true;
+
+  // Сохраняем старый таймаут
+  unsigned long oldTimeout = Serial.getTimeout();
   Serial.setTimeout(10000);
 
   // --- Выбор сети ---
@@ -179,6 +182,9 @@ void Menu::connectToNetwork() {
       }
     }
   }
+
+  // Восстанавливаем исходный таймаут
+  Serial.setTimeout(oldTimeout);
 
   // !!! Сбрасываем _scanning только ПОСЛЕ подключения, чтобы заблокировать ввод
   // (это исправление, но оно не относится к статусу – оставляем как есть)
