@@ -3,15 +3,11 @@
 const char* WiFiCredentials::NAMESPACE = "wifi";
 const char* WiFiCredentials::KEY = "creds";
 
-WiFiCredentials::WiFiCredentials() {
-  // Ничего не делаем, все операции будут открывать Preferences локально
-}
+WiFiCredentials::WiFiCredentials() {}
+WiFiCredentials::~WiFiCredentials() {}
 
-WiFiCredentials::~WiFiCredentials() {
-  // Ничего не делаем
-}
-
-String WiFiCredentials::loadData() const {
+// ---------- Базовые операции ----------
+String WiFiCredentials::loadData() {   // больше не const
   Preferences prefs;
   prefs.begin(NAMESPACE, false);
   String data = prefs.getString(KEY, "");
@@ -26,171 +22,152 @@ void WiFiCredentials::saveData(const String& data) {
   prefs.end();
 }
 
-int WiFiCredentials::findSSID(const String& ssid, const String& data) const {
-  int pos = 0;
-  int idx = 0;
-  while (pos < data.length()) {
-    int colon = data.indexOf(':', pos);
-    if (colon == -1) break;
-    int semi = data.indexOf(';', colon);
-    if (semi == -1) semi = data.length();
-    String currentSSID = data.substring(pos, colon);
-    if (currentSSID == ssid) {
-      return idx;
-    }
-    pos = semi + 1;
-    idx++;
-  }
-  return -1;
-}
+// ---------- Вспомогательные методы ----------
+JsonDocument WiFiCredentials::parseData(const String& data) { // больше не const
+  JsonDocument doc;
 
-bool WiFiCredentials::save(const String& ssid, const String& password) {
-  if (ssid.length() == 0 || password.length() == 0) return false;
-
-  String data = loadData();
-
-  int index = findSSID(ssid, data);
-  if (index != -1) {
-    int pos = 0;
-    while (pos < data.length()) {
-      int colon = data.indexOf(':', pos);
-      if (colon == -1) break;
-      int semi = data.indexOf(';', colon);
-      if (semi == -1) semi = data.length();
-      String currentSSID = data.substring(pos, colon);
-      if (currentSSID == ssid) {
-        data.remove(pos, semi - pos + 1);
-        break;
-      }
-      pos = semi + 1;
-    }
-  }
-
-  data += ssid + ":" + password + ";";
-  saveData(data);
-  return true;
-}
-
-String WiFiCredentials::getPassword(const String& ssid) const {
-  String data = loadData();
-  int pos = 0;
-  while (pos < data.length()) {
-    int colon = data.indexOf(':', pos);
-    if (colon == -1) break;
-    int semi = data.indexOf(';', colon);
-    if (semi == -1) semi = data.length();
-    String currentSSID = data.substring(pos, colon);
-    if (currentSSID == ssid) {
-      return data.substring(colon + 1, semi);
-    }
-    pos = semi + 1;
-  }
-  return "";
-}
-
-bool WiFiCredentials::remove(const String& ssid) {
-  String data = loadData();
-  int pos = 0;
-  while (pos < data.length()) {
-    int colon = data.indexOf(':', pos);
-    if (colon == -1) break;
-    int semi = data.indexOf(';', colon);
-    if (semi == -1) semi = data.length();
-    String currentSSID = data.substring(pos, colon);
-    if (currentSSID == ssid) {
-      data.remove(pos, semi - pos + 1);
-      saveData(data);
-      return true;
-    }
-    pos = semi + 1;
-  }
-  return false;
-}
-
-void WiFiCredentials::clearAll() {
-  saveData("");
-}
-
-// ============================================================
-// ИЗМЕНЕНИЕ: метод printAll() теперь скрывает пароли.
-// Вместо реального пароля выводится маска "****" для безопасности.
-// ============================================================
-void WiFiCredentials::printAll() const {
-  String data = loadData();
   if (data.length() == 0) {
-    Serial.println("Нет сохранённых сетей.");
-    return;
+    return doc;
   }
-  Serial.println("Сохранённые сети (SSID):");
+
+  // Проверяем, является ли строка JSON
+  if (data[0] == '{') {
+    DeserializationError error = deserializeJson(doc, data);
+    if (error) {
+      Serial.println("Ошибка парсинга JSON, данные будут сброшены.");
+      doc.clear();
+    }
+    return doc;
+  }
+
+  // --- Миграция старого формата ---
+  Serial.println("Обнаружен старый формат хранения, выполняю миграцию...");
+  String migrated = migrateFromOldFormat(data);
+  if (migrated.length() > 0) {
+    DeserializationError error = deserializeJson(doc, migrated);
+    if (!error) {
+      saveData(migrated);  // теперь можно, т.к. метод не const
+      Serial.println("Миграция завершена успешно.");
+      return doc;
+    }
+  }
+  Serial.println("Ошибка миграции, данные сброшены.");
+  doc.clear();
+  return doc;
+}
+
+String WiFiCredentials::serializeData(const JsonDocument& doc) const {
+  String output;
+  serializeJson(doc, output);
+  return output;
+}
+
+// статический метод
+String WiFiCredentials::migrateFromOldFormat(const String& data) {
+  JsonDocument doc;
   int pos = 0;
-  int idx = 0;
   while (pos < data.length()) {
     int colon = data.indexOf(':', pos);
     if (colon == -1) break;
     int semi = data.indexOf(';', colon);
     if (semi == -1) semi = data.length();
     String ssid = data.substring(pos, colon);
-    // пароль не читаем и не выводим
-    Serial.printf("%d. %s\n", idx, ssid.c_str());
-    // Можно было бы вывести маску, но для наглядности просто SSID
+    String pass = data.substring(colon + 1, semi);
+    if (ssid.length() > 0 && pass.length() > 0) {
+      doc[ssid] = pass;
+    }
     pos = semi + 1;
+  }
+  String output;
+  serializeJson(doc, output);
+  return output;
+}
+
+// ---------- Публичные методы ----------
+bool WiFiCredentials::save(const String& ssid, const String& password) {
+  if (ssid.length() == 0 || password.length() == 0) return false;
+
+  String data = loadData();
+  JsonDocument doc = parseData(data);
+  doc[ssid] = password;
+  String newData = serializeData(doc);
+  saveData(newData);
+  return true;
+}
+
+String WiFiCredentials::getPassword(const String& ssid) {
+  String data = loadData();
+  JsonDocument doc = parseData(data);
+  if (doc.containsKey(ssid)) {
+    return doc[ssid].as<String>();
+  }
+  return "";
+}
+
+bool WiFiCredentials::remove(const String& ssid) {
+  String data = loadData();
+  JsonDocument doc = parseData(data);
+  if (!doc.containsKey(ssid)) return false;
+
+  doc.remove(ssid);
+  String newData = serializeData(doc);
+  saveData(newData);
+  return true;
+}
+
+void WiFiCredentials::clearAll() {
+  saveData("{}");
+}
+
+void WiFiCredentials::printAll() {
+  String data = loadData();
+  JsonDocument doc = parseData(data);
+  if (doc.size() == 0) {
+    Serial.println("Нет сохранённых сетей.");
+    return;
+  }
+  Serial.println("Сохранённые сети (SSID):");
+  int idx = 0;
+  for (JsonPair kv : doc.as<JsonObject>()) {
+    Serial.printf("%d. %s\n", idx, kv.key().c_str());
     idx++;
   }
 }
-// ============================================================
 
-int WiFiCredentials::count() const {
+int WiFiCredentials::count() {
   String data = loadData();
-  int cnt = 0;
-  int pos = 0;
-  while (pos < data.length()) {
-    int colon = data.indexOf(':', pos);
-    if (colon == -1) break;
-    int semi = data.indexOf(';', colon);
-    if (semi == -1) semi = data.length();
-    cnt++;
-    pos = semi + 1;
-  }
-  return cnt;
+  JsonDocument doc = parseData(data);
+  return doc.size();
 }
 
-String WiFiCredentials::getSSID(int index) const {
+String WiFiCredentials::getSSID(int index) {
   String data = loadData();
-  int pos = 0;
+  JsonDocument doc = parseData(data);
   int idx = 0;
-  while (pos < data.length()) {
-    int colon = data.indexOf(':', pos);
-    if (colon == -1) break;
-    int semi = data.indexOf(';', colon);
-    if (semi == -1) semi = data.length();
+  for (JsonPair kv : doc.as<JsonObject>()) {
     if (idx == index) {
-      return data.substring(pos, colon);
+      return kv.key().c_str();
     }
-    pos = semi + 1;
     idx++;
   }
   return "";
 }
 
-String WiFiCredentials::getPasswordByIndex(int index) const {
+String WiFiCredentials::getPasswordByIndex(int index) {
   String data = loadData();
-  int pos = 0;
+  JsonDocument doc = parseData(data);
   int idx = 0;
-  while (pos < data.length()) {
-    int colon = data.indexOf(':', pos);
-    if (colon == -1) break;
-    int semi = data.indexOf(';', colon);
-    if (semi == -1) semi = data.length();
+  for (JsonPair kv : doc.as<JsonObject>()) {
     if (idx == index) {
-      return data.substring(colon + 1, semi);
+      return kv.value().as<String>();
     }
-    pos = semi + 1;
     idx++;
   }
   return "";
 }
 
-bool WiFiCredentials::hasCredentials(const String& ssid) const {
+bool WiFiCredentials::hasCredentials(const String& ssid) {
   String data = loadData();
-  return findSSID(ssid, data) != -1;
+  JsonDocument doc = parseData(data);
+  return doc.containsKey(ssid);
 }
