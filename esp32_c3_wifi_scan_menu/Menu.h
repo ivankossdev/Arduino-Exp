@@ -11,6 +11,7 @@ private:
   int _menuChoice;
   bool _scanning;
   bool _hasScanResult;
+  int _networkCount;                              // НОВОЕ: количество найденных сетей
   WiFiCredentials _creds; 
   WiFiManager _scanner;
   String _lastSSID; 
@@ -30,7 +31,6 @@ private:
 
   String getStatus() const;
 
-  // НОВОЕ: автоматическое подключение при старте
   void autoConnect();
 
 public:

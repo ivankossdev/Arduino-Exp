@@ -3,7 +3,6 @@
 
 // ============================================================
 // Вспомогательная функция для проверки, что строка является числом
-// (допускает знак минус в начале для отрицательных чисел)
 // ============================================================
 static bool isNumber(const String& str) {
     if (str.length() == 0) return false;
@@ -17,10 +16,10 @@ static bool isNumber(const String& str) {
 }
 
 Menu::Menu()
-  : _menuChoice(0), _scanning(false), _hasScanResult(false) {}
+  : _menuChoice(0), _scanning(false), _hasScanResult(false), _networkCount(0) {}
 
 // ============================================================
-// НОВОЕ: автоматическое подключение к первой сохранённой сети
+// Автоматическое подключение к первой сохранённой сети
 // ============================================================
 void Menu::autoConnect() {
   int count = _creds.count();
@@ -29,7 +28,6 @@ void Menu::autoConnect() {
     return;
   }
 
-  // Берём первую сеть (индекс 0)
   String ssid = _creds.getSSID(0);
   String password = _creds.getPasswordByIndex(0);
 
@@ -40,7 +38,7 @@ void Menu::autoConnect() {
 
   Serial.printf("🔄 Автоподключение к \"%s\"...\n", ssid.c_str());
 
-  _scanning = true; // блокируем ввод во время подключения
+  _scanning = true;
 
   bool success = _scanner.connectToNetwork(ssid.c_str(), password.c_str());
 
@@ -56,7 +54,6 @@ void Menu::autoConnect() {
     Serial.println("❌ Автоподключение не удалось. Используйте меню для подключения вручную.");
   }
 }
-// ============================================================
 
 void Menu::begin() {
   const unsigned long SERIAL_TIMEOUT_MS = 2000;
@@ -66,13 +63,11 @@ void Menu::begin() {
     delay(10);
   }
 
-
-  // НОВОЕ: пытаемся автоматически подключиться
   autoConnect();
 
   SerialBufferClear();
   
-  printMenu(); // теперь после автоподключения статус уже актуальный
+  printMenu();
 }
 
 void Menu::update() {
@@ -102,6 +97,8 @@ void Menu::SerialBufferClear() {
 void Menu::wifiScan() {
   _scanning = true;
   int count = _scanner.scan(_networks, MAX_NETWORKS);
+
+  _networkCount = (count > 0) ? count : 0;
 
   if (count > 0) {
     _hasScanResult = true;
@@ -196,31 +193,32 @@ void Menu::connectToNetwork() {
     return;
   }
 
+  if (_networkCount == 0) {
+    Serial.println("⚠️ Нет доступных сетей для подключения.");
+    return;
+  }
+
   _scanning = true;
   unsigned long oldTimeout = Serial.getTimeout();
   Serial.setTimeout(10000);
 
-  // --- Выбор сети ---
   int index = -1;
-  while (index < 0 || index >= MAX_NETWORKS || _networks[index].ssid[0] == '\0') {
-    Serial.print("Введите номер сети (0..");
-    Serial.print(MAX_NETWORKS - 1);
-    Serial.print("): ");
+  while (index < 0 || index >= _networkCount) {
+    Serial.printf("Введите номер сети (0..%d): ", _networkCount - 1);
     String indexStr = Serial.readStringUntil('\n');
     indexStr.trim();
-    if (indexStr.length() > 0) {
-      // *** ИСПРАВЛЕНИЕ 1: проверка, что введено число ***
-      if (!isNumber(indexStr)) {
-        Serial.println("❌ Введите число!");
-        continue;
-      }
-      index = indexStr.toInt();
-      if (index < 0 || index >= MAX_NETWORKS || _networks[index].ssid[0] == '\0') {
-        Serial.println("❌ Неверный номер, попробуйте снова.");
-        index = -1;
-      }
-    } else {
+    if (indexStr.length() == 0) {
       Serial.println("Пустой ввод, попробуйте снова.");
+      continue;
+    }
+    if (!isNumber(indexStr)) {
+      Serial.println("❌ Введите число!");
+      continue;
+    }
+    index = indexStr.toInt();
+    if (index < 0 || index >= _networkCount) {
+      Serial.println("❌ Неверный номер, попробуйте снова.");
+      index = -1;
     }
   }
 
@@ -228,12 +226,10 @@ void Menu::connectToNetwork() {
   Serial.print("Выбрали сеть: ");
   Serial.println(ssid);
 
-  // Проверяем, есть ли сохранённый пароль для этой сети
   String password = _creds.getPassword(ssid);
   if (password.length() > 0) {
     Serial.println("Найден сохранённый пароль, подключаюсь автоматически.");
   } else {
-    // Запрашиваем пароль, если нет сохранённого
     while (password.length() == 0) {
       Serial.print("Введите пароль для сети \"");
       Serial.print(ssid);
@@ -247,7 +243,6 @@ void Menu::connectToNetwork() {
   }
 
   Serial.setTimeout(oldTimeout);
-  // _scanning = false;
 
   Serial.println("⏳ Подключение...");
   bool success = _scanner.connectToNetwork(ssid.c_str(), password.c_str());
@@ -286,7 +281,9 @@ void Menu::deleteSavedNetwork() {
 
   SerialBufferClear();
   unsigned long oldTimeout = Serial.getTimeout();
-  Serial.setTimeout(5000);
+
+  // *** ИСПРАВЛЕНИЕ: увеличен таймаут до 10 секунд ***
+  Serial.setTimeout(10000);
 
   int index = -1;
   while (index < 0 || index >= count) {
@@ -299,7 +296,6 @@ void Menu::deleteSavedNetwork() {
       Serial.println("Пустой ввод, попробуйте снова.");
       continue;
     }
-    // *** ИСПРАВЛЕНИЕ 2: проверка, что введено число ***
     if (!isNumber(input)) {
       Serial.println("❌ Введите число!");
       continue;
@@ -412,12 +408,23 @@ void Menu::connectToSavedNetwork() {
 
   _creds.printAll();
 
+  // *** ИСПРАВЛЕНИЕ: очистка буфера перед запросом ***
+  SerialBufferClear();
+
+  unsigned long oldTimeout = Serial.getTimeout();
+
+  // *** ИСПРАВЛЕНИЕ: установка таймаута 10 секунд ***
+  Serial.setTimeout(10000);
+
   Serial.print("Введите номер сети для подключения (0..");
   Serial.print(count - 1);
   Serial.print("): ");
   String input = Serial.readStringUntil('\n');
   input.trim();
-  // *** ИСПРАВЛЕНИЕ 3: проверка, что введено число и не пусто ***
+
+  // *** ИСПРАВЛЕНИЕ: восстановление старого таймаута ***
+  Serial.setTimeout(oldTimeout);
+
   if (input.length() == 0) {
     Serial.println("Пустой ввод, отмена.");
     return;
