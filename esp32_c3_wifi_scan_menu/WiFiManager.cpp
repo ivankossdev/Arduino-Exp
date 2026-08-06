@@ -62,8 +62,10 @@ bool WiFiManager::connectToNetwork(const char* ssid, const char* password) {
   }
 
   WiFi.mode(WIFI_STA);
-  WiFi.disconnect();
-  delay(100);
+
+  // *** ИСПРАВЛЕНИЕ: полный сброс Wi-Fi (очистка всех сохранённых настроек) ***
+  WiFi.disconnect(true);   // true – очистить настройки
+  delay(100);              // небольшая задержка для стабилизации
 
   // Начинаем подключение
   WiFi.begin(ssid, password);
