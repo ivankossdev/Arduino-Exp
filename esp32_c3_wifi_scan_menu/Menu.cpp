@@ -1,4 +1,20 @@
 #include "Menu.h"
+#include <cctype>   // для isdigit
+
+// ============================================================
+// Вспомогательная функция для проверки, что строка является числом
+// (допускает знак минус в начале для отрицательных чисел)
+// ============================================================
+static bool isNumber(const String& str) {
+    if (str.length() == 0) return false;
+    for (size_t i = 0; i < str.length(); i++) {
+        char c = str[i];
+        if (!isdigit(c) && !(i == 0 && c == '-')) {
+            return false;
+        }
+    }
+    return true;
+}
 
 Menu::Menu()
   : _menuChoice(0), _scanning(false), _hasScanResult(false) {}
@@ -193,6 +209,11 @@ void Menu::connectToNetwork() {
     String indexStr = Serial.readStringUntil('\n');
     indexStr.trim();
     if (indexStr.length() > 0) {
+      // *** ИСПРАВЛЕНИЕ 1: проверка, что введено число ***
+      if (!isNumber(indexStr)) {
+        Serial.println("❌ Введите число!");
+        continue;
+      }
       index = indexStr.toInt();
       if (index < 0 || index >= MAX_NETWORKS || _networks[index].ssid[0] == '\0') {
         Serial.println("❌ Неверный номер, попробуйте снова.");
@@ -276,6 +297,11 @@ void Menu::deleteSavedNetwork() {
     input.trim();
     if (input.length() == 0) {
       Serial.println("Пустой ввод, попробуйте снова.");
+      continue;
+    }
+    // *** ИСПРАВЛЕНИЕ 2: проверка, что введено число ***
+    if (!isNumber(input)) {
+      Serial.println("❌ Введите число!");
       continue;
     }
     index = input.toInt();
@@ -391,6 +417,15 @@ void Menu::connectToSavedNetwork() {
   Serial.print("): ");
   String input = Serial.readStringUntil('\n');
   input.trim();
+  // *** ИСПРАВЛЕНИЕ 3: проверка, что введено число и не пусто ***
+  if (input.length() == 0) {
+    Serial.println("Пустой ввод, отмена.");
+    return;
+  }
+  if (!isNumber(input)) {
+    Serial.println("❌ Введите число!");
+    return;
+  }
   int index = input.toInt();
 
   if (index < 0 || index >= count) {
