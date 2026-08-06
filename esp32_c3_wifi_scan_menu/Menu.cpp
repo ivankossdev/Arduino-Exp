@@ -50,11 +50,12 @@ void Menu::begin() {
     delay(10);
   }
 
-  SerialBufferClear();
 
   // НОВОЕ: пытаемся автоматически подключиться
   autoConnect();
 
+  SerialBufferClear();
+  
   printMenu(); // теперь после автоподключения статус уже актуальный
 }
 
@@ -225,10 +226,12 @@ void Menu::connectToNetwork() {
   }
 
   Serial.setTimeout(oldTimeout);
-  _scanning = false;
+  // _scanning = false;
 
   Serial.println("⏳ Подключение...");
   bool success = _scanner.connectToNetwork(ssid.c_str(), password.c_str());
+
+  _scanning = false;
 
   if (success) {
     Serial.println("✅ Подключено успешно!");
