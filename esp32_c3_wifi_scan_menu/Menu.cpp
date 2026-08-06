@@ -270,75 +270,6 @@ String Menu::getStatus() const {
   }
 }
 
-void Menu::deleteSavedNetwork() {
-  int count = _creds.count();
-  if (count == 0) {
-    Serial.println("Нет сохранённых сетей для удаления.");
-    return;
-  }
-
-  _creds.printAll();
-
-  SerialBufferClear();
-  unsigned long oldTimeout = Serial.getTimeout();
-
-  // *** ИСПРАВЛЕНИЕ: увеличен таймаут до 10 секунд ***
-  Serial.setTimeout(10000);
-
-  int index = -1;
-  while (index < 0 || index >= count) {
-    Serial.print("Введите номер сети для удаления (0..");
-    Serial.print(count - 1);
-    Serial.print("): ");
-    String input = Serial.readStringUntil('\n');
-    input.trim();
-    if (input.length() == 0) {
-      Serial.println("Пустой ввод, попробуйте снова.");
-      continue;
-    }
-    if (!isNumber(input)) {
-      Serial.println("❌ Введите число!");
-      continue;
-    }
-    index = input.toInt();
-    if (index < 0 || index >= count) {
-      Serial.println("❌ Неверный номер, попробуйте снова.");
-      index = -1;
-    }
-  }
-
-  Serial.setTimeout(oldTimeout);
-
-  String ssid = _creds.getSSID(index);
-  if (ssid.length() == 0) {
-    Serial.println("Ошибка получения SSID.");
-    return;
-  }
-
-  Serial.print("Вы уверены, что хотите удалить сеть \"");
-  Serial.print(ssid);
-  Serial.print("\"? (y/n): ");
-
-  Serial.setTimeout(5000);
-  String confirm = Serial.readStringUntil('\n');
-  confirm.trim();
-  Serial.setTimeout(oldTimeout);
-
-  if (confirm.equalsIgnoreCase("y") || confirm.equalsIgnoreCase("yes")) {
-    if (_creds.remove(ssid)) {
-      Serial.printf("✅ Сеть \"%s\" удалена.\n", ssid.c_str());
-      if (_lastSSID == ssid) {
-        _lastSSID = "";
-        _lastPassword = "";
-      }
-    } else {
-      Serial.println("❌ Ошибка удаления.");
-    }
-  } else {
-    Serial.println("❌ Удаление отменено.");
-  }
-}
-
 void Menu::printMenu() {
   Serial.println("\n=== Интерактивное меню ESP32 ===");
   Serial.println("Статус: " + getStatus());
@@ -383,11 +314,127 @@ void Menu::handleMenuChoice(int choice) {
   }
 }
 
-void Menu::saveCurrentNetwork() {
-  if (_lastSSID.length() == 0 || _lastPassword.length() == 0) {
-    Serial.println("⚠️ Нет активного подключения или пароль не сохранён. Сначала подключитесь к сети.");
+// ============================================================
+// Удаление сохранённой сети (исправлено: не обнуляем _lastSSID/_lastPassword)
+// ============================================================
+void Menu::deleteSavedNetwork() {
+  int count = _creds.count();
+  if (count == 0) {
+    Serial.println("Нет сохранённых сетей для удаления.");
     return;
   }
+
+  _creds.printAll();
+
+  SerialBufferClear();
+  unsigned long oldTimeout = Serial.getTimeout();
+  Serial.setTimeout(10000);
+
+  int index = -1;
+  while (index < 0 || index >= count) {
+    Serial.print("Введите номер сети для удаления (0..");
+    Serial.print(count - 1);
+    Serial.print("): ");
+    String input = Serial.readStringUntil('\n');
+    input.trim();
+    if (input.length() == 0) {
+      Serial.println("Пустой ввод, попробуйте снова.");
+      continue;
+    }
+    if (!isNumber(input)) {
+      Serial.println("❌ Введите число!");
+      continue;
+    }
+    index = input.toInt();
+    if (index < 0 || index >= count) {
+      Serial.println("❌ Неверный номер, попробуйте снова.");
+      index = -1;
+    }
+  }
+
+  Serial.setTimeout(oldTimeout);
+
+  String ssid = _creds.getSSID(index);
+  if (ssid.length() == 0) {
+    Serial.println("Ошибка получения SSID.");
+    return;
+  }
+
+  Serial.print("Вы уверены, что хотите удалить сеть \"");
+  Serial.print(ssid);
+  Serial.print("\"? (y/n): ");
+
+  Serial.setTimeout(5000);
+  String confirm = Serial.readStringUntil('\n');
+  confirm.trim();
+  Serial.setTimeout(oldTimeout);
+
+  if (confirm.equalsIgnoreCase("y") || confirm.equalsIgnoreCase("yes")) {
+    if (_creds.remove(ssid)) {
+      Serial.printf("✅ Сеть \"%s\" удалена.\n", ssid.c_str());
+      // *** ИСПРАВЛЕНИЕ: НЕ ОБНУЛЯЕМ _lastSSID и _lastPassword ***
+      // if (_lastSSID == ssid) {
+      //   _lastSSID = "";
+      //   _lastPassword = "";
+      // }
+      // Теперь, даже если удалили текущую сеть, переменные остаются,
+      // и пункт "Сохранить текущую сеть" продолжает работать.
+    } else {
+      Serial.println("❌ Ошибка удаления.");
+    }
+  } else {
+    Serial.println("❌ Удаление отменено.");
+  }
+}
+
+// ============================================================
+// Сохранение текущей сети (улучшено: проверка фактического подключения)
+// ============================================================
+void Menu::saveCurrentNetwork() {
+  // Проверяем фактическое подключение
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("⚠️ Нет подключения к Wi-Fi.");
+    return;
+  }
+
+  String currentSSID = WiFi.SSID();
+  if (currentSSID.length() == 0) {
+    Serial.println("⚠️ Не удалось получить имя текущей сети.");
+    return;
+  }
+
+  // Если _lastSSID не совпадает с текущим или пуст, обновляем из WiFi
+  if (_lastSSID != currentSSID) {
+    Serial.printf("Обновляем кеш: текущая сеть \"%s\"\n", currentSSID.c_str());
+    _lastSSID = currentSSID;
+    // Пароль мы не можем получить из WiFi, но если он был сохранён ранее,
+    // можно попытаться найти в хранилище. Если нет - запросим.
+    String savedPass = _creds.getPassword(currentSSID);
+    if (savedPass.length() > 0) {
+      _lastPassword = savedPass;
+      Serial.println("Найден сохранённый пароль, используем его.");
+    } else {
+      // Если пароль не сохранён, запросим у пользователя (иначе не сможем сохранить)
+      Serial.println("Пароль для этой сети не найден в хранилище.");
+      Serial.print("Введите пароль для сети \"");
+      Serial.print(currentSSID);
+      Serial.print("\": ");
+      String pass = Serial.readStringUntil('\n');
+      pass.trim();
+      if (pass.length() == 0) {
+        Serial.println("❌ Пароль не может быть пустым, сохранение отменено.");
+        return;
+      }
+      _lastPassword = pass;
+    }
+  }
+
+  // Теперь у нас есть _lastSSID и _lastPassword (либо обновлённые, либо старые)
+  if (_lastSSID.length() == 0 || _lastPassword.length() == 0) {
+    Serial.println("⚠️ Ошибка: нет данных для сохранения.");
+    return;
+  }
+
   if (_creds.save(_lastSSID, _lastPassword)) {
     Serial.printf("✅ Сеть \"%s\" сохранена.\n", _lastSSID.c_str());
   } else {
