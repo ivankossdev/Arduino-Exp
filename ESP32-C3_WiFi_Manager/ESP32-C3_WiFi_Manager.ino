@@ -1,12 +1,15 @@
 #include "Menu.h"
+#include "AppState.h"
 
-Menu menu; 
+AppState appState;
+Menu menu(appState);
 
 void setup() {
-  Serial.begin(115200);
-  menu.begin();
+    Serial.begin(115200);
+    appState.begin();
+    menu.begin();
 }
 
 void loop() {
-  menu.update();
+    menu.update();
 }

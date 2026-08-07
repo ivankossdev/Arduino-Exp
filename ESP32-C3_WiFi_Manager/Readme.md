@@ -1,35 +1,30 @@
+# Проект ESP32-C3_WiFi_Manager
+
+Контроллер умеет сканировать сеть WiFi воводить в таблицу и показывать меню. 
+
+Привмер меню
+
+```text
+=== Интерактивное меню ESP32 ===
+Статус: Подключено к "MyWiFi", IP: 192.168.0.229
+0. Показать меню снова
+1. Показать доступные сети
+2. Подключиться к сети (после сканирования)
+3. Сохранить текущую сеть
+4. Показать сохранённые сети
+5. Подключиться к сохранённой сети
+6. Удалить сохранённую сеть
+```
+
 ```text
 ESP32-C3_WiFi_Manager/
 ├── src/
-│   ├── main.cpp
-│   ├── Menu/
-│   │   ├── Menu.h
-│   │   └── Menu.cpp
-│   ├── WiFi/
-│   │   ├── WiFiManager.h
-│   │   ├── WiFiManager.cpp
-│   │   ├── WiFiCredentials.h
-│   │   └── WiFiCredentials.cpp
-│   ├── Web/
-│   │   ├── WebServer.h
-│   │   └── WebServer.cpp
-│   ├── MQTT/
-│   │   ├── MqttClient.h
-│   │   └── MqttClient.cpp
-│   ├── OTA/
-│   │   ├── OtaManager.h
-│   │   └── OtaManager.cpp
-│   ├── StateMachine/
-│   │   ├── AppState.h
-│   │   └── AppState.cpp
-│   └── Utils/
-│       ├── Logger.h
-│       ├── Config.h
-│       └── Helpers.h
-├── data/                 (для SPIFFS/LittleFS – веб-страницы)
-│   ├── index.html
-│   ├── style.css
-│   └── script.js
-├── platformio.ini        (или .ino, но лучше PlatformIO)
+├── main.cpp
+├── Menu.h
+├── Menu.cpp
+├── WiFiCredentials.h
+├── WiFiCredentials.cpp
+├── WiFiManager.h
+├── WiFiManager.cpp
 └── README.md
 ```

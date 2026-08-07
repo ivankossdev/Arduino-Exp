@@ -2,41 +2,25 @@
 #define MENU_H
 
 #include <Arduino.h>
-#include "WiFiManager.h"
-#include "WiFiCredentials.h"   
+#include "AppState.h"
 
 class Menu {
 private:
-  static const int MAX_NETWORKS = 50;
-  int _menuChoice;
-  bool _scanning;
-  bool _hasScanResult;
-  int _networkCount;                              // НОВОЕ: количество найденных сетей
-  WiFiCredentials _creds; 
-  WiFiManager _scanner;
-  String _lastSSID; 
-  String _lastPassword; 
-  NetworkInfo _networks[MAX_NETWORKS];
+    int _menuChoice;
+    AppState& _appState;
 
-  void printMenu();
-  void handleMenuChoice(int choice);
-  void SerialBufferClear();
-  void wifiScan();
-  void displayNetworks(const NetworkInfo* networks, int count);
-  void connectToNetwork();
-  void saveCurrentNetwork();   
-  void showSavedNetworks();  
-  void connectToSavedNetwork();
-  void deleteSavedNetwork();
-
-  String getStatus() const;
-
-  void autoConnect();
+    void printMenu();
+    void handleMenuChoice(int choice);
+    void SerialBufferClear();
+    void displayNetworksFromState();
+    void connectToNetwork();
+    void connectToSavedNetwork();
+    void deleteSavedNetwork();
 
 public:
-  Menu();
-  void begin();
-  void update();
+    Menu(AppState& appState);
+    void begin();
+    void update();
 };
 
 #endif
