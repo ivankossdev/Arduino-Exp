@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include "WiFiManager.h"
 #include "WiFiCredentials.h"
+#include "LedManager.h"
 
 enum class AppStateEnum {
     IDLE,
@@ -46,6 +47,10 @@ public:
     IPAddress getIP() const;
     const char* getEncryptionType(uint8_t encType) const; // делегирует WiFiManager, который имеет const-метод
 
+    // --- Светодиод ---  
+    bool beginLed(int pin, bool activeLow = true);
+    void updateLed();
+
 private:
     static const int MAX_NETWORKS = 50;
 
@@ -55,6 +60,7 @@ private:
     String _lastSSID;
     String _lastPassword;
     NetworkInfo _networks[MAX_NETWORKS];
+    LedManager _led; 
     int _networkCount;
     bool _hasScanResult;
 

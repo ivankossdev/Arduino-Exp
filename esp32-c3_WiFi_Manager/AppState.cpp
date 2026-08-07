@@ -193,3 +193,20 @@ IPAddress AppState::getIP() const {
 const char* AppState::getEncryptionType(uint8_t encType) const {
     return _wifiManager.getEncryptionType(encType);
 }
+
+// --- Светодиод --- 
+bool AppState::beginLed(int pin, bool activeLow) {
+    return _led.begin(pin, activeLow);
+}
+
+void AppState::updateLed() {
+    _led.update();
+}
+
+
+
+
+
+
+
+
