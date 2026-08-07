@@ -1,11 +1,9 @@
 #include "AppState.h"
 
+
 AppState::AppState()
     : _state(AppStateEnum::IDLE), _networkCount(0), _hasScanResult(false) {}
 
-// void AppState::setState(AppStateEnum newState) {
-//     _state = newState;
-// }
 
 void AppState::setState(AppStateEnum newState) {
     _state = newState;
@@ -226,6 +224,46 @@ bool AppState::beginLed(int pin, bool activeLow) {
 
 void AppState::updateLed() {
     _led.update();
+}
+
+bool AppState::beginMqtt(const String& server, int port,
+                         const String& user, const String& password,
+                         const String& cmdTopic, const String& stateTopic) {
+    bool result = _mqttManager.begin(server, port, user, password, cmdTopic, stateTopic);
+    if (result) {
+        // Устанавливаем колбэк для входящих сообщений
+        MqttManager::setCallback([this](const String& topic, const String& payload) {
+            this->handleMqttMessage(topic, payload);
+        });
+        Serial.println("MQTT Manager инициализирован");
+    } else {
+        Serial.println("Ошибка инициализации MQTT Manager");
+    }
+    return result;
+}
+
+void AppState::updateMqtt() {
+    _mqttManager.update();
+}
+
+void AppState::update() {
+    updateLed();
+    updateMqtt();
+}
+
+void AppState::handleMqttMessage(const String& topic, const String& payload) {
+    Serial.printf("MQTT получено: топик=%s, сообщение=%s\n", topic.c_str(), payload.c_str());
+    // Здесь можно реализовать логику управления, например, светодиодом
+    // Для теста просто публикуем статус
+    if (topic == "home/lamp/command") {  // в будущем можно сделать топики конфигурируемыми
+        if (payload == "ON") {
+            Serial.println("Lamp ON");
+            _mqttManager.publishState("ON");
+        } else if (payload == "OFF") {
+            Serial.println("Lamp OFF");
+            _mqttManager.publishState("OFF");
+        }
+    }
 }
 
 

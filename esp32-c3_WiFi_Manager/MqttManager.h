@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <PubSubClient.h>
 #include <WiFi.h>
+#include <functional>
 
 typedef std::function<void(const String& topic, const String& payload)> MqttCallback;
 
@@ -14,14 +15,14 @@ public:
 
     bool begin(const String& server, int port,
                const String& user, const String& password,
-               const String& cmdTopic, const String& stateTopic,
-               MqttCallback callback = nullptr);
+               const String& cmdTopic, const String& stateTopic);
+
+    static void setCallback(MqttCallback callback);
 
     void update();
 
     bool publishState(const String& message, bool retained = true);
-
-    bool isConnected();   // убрали const
+    bool isConnected();  
 
     void reconnect();
 
@@ -36,7 +37,7 @@ private:
     String _cmdTopic;
     String _stateTopic;
 
-    MqttCallback _callback;
+    static MqttCallback _callback;
 
     static void staticCallback(char* topic, byte* payload, unsigned int length);
     void internalCallback(const String& topic, const String& payload);

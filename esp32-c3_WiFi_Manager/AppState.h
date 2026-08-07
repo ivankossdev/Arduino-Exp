@@ -5,6 +5,7 @@
 #include "WiFiManager.h"
 #include "WiFiCredentials.h"
 #include "LedManager.h"
+#include "MqttManager.h"   // добавлено
 
 enum class AppStateEnum {
     IDLE,
@@ -22,7 +23,7 @@ public:
 
     // --- Сканирование ---
     bool startScan();
-    int getNetworkCount() const;          // этот метод не вызывает _credentials, можно оставить const
+    int getNetworkCount() const;
     NetworkInfo getNetwork(int index) const;
     bool hasScanResult() const;
 
@@ -33,11 +34,11 @@ public:
     bool deleteSavedNetwork(int index);
 
     // --- Сохранённые сети ---
-    int getSavedCount();                  // убрали const
-    String getSavedSSID(int index);       // убрали const
-    String getSavedPassword(const String& ssid); // убрали const
-    bool hasSavedPassword(const String& ssid);   // убрали const
-    void printSavedNetworks();            // убрали const
+    int getSavedCount();
+    String getSavedSSID(int index);
+    String getSavedPassword(const String& ssid);
+    bool hasSavedPassword(const String& ssid);
+    void printSavedNetworks();
 
     // --- Статус ---
     AppStateEnum getState() const;
@@ -45,11 +46,20 @@ public:
     bool isConnected() const;
     String getCurrentSSID() const;
     IPAddress getIP() const;
-    const char* getEncryptionType(uint8_t encType) const; // делегирует WiFiManager, который имеет const-метод
+    const char* getEncryptionType(uint8_t encType) const;
 
     // --- Светодиод ---  
     bool beginLed(int pin, bool activeLow = true);
     void updateLed();
+
+    // --- MQTT ---
+    bool beginMqtt(const String& server, int port,
+                   const String& user, const String& password,
+                   const String& cmdTopic, const String& stateTopic);
+    void updateMqtt();
+
+    // Общий update для всех подсистем
+    void update();
 
 private:
     static const int MAX_NETWORKS = 50;
@@ -60,13 +70,17 @@ private:
     String _lastSSID;
     String _lastPassword;
     NetworkInfo _networks[MAX_NETWORKS];
-    LedManager _led; 
+    LedManager _led;
+    MqttManager _mqttManager;   // член
     int _networkCount;
     bool _hasScanResult;
 
     void setState(AppStateEnum newState);
     bool connect(const String& ssid, const String& password);
     void autoConnect();
+
+    // Обработчик MQTT-сообщений (будет вызываться из статического колбэка)
+    void handleMqttMessage(const String& topic, const String& payload);
 };
 
 #endif
