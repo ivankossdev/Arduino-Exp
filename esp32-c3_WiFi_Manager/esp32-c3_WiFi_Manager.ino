@@ -6,8 +6,8 @@ Menu menu(appState);
 
 void setup() {
     Serial.begin(115200);
-    appState.begin();
     appState.beginLed(8, true); // activeLow = true (обычно для встроенного)
+    appState.begin();
     menu.begin();
 }
 

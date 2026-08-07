@@ -3,8 +3,33 @@
 AppState::AppState()
     : _state(AppStateEnum::IDLE), _networkCount(0), _hasScanResult(false) {}
 
+// void AppState::setState(AppStateEnum newState) {
+//     _state = newState;
+// }
+
 void AppState::setState(AppStateEnum newState) {
     _state = newState;
+    // Обновляем светодиод в зависимости от состояния
+    switch (_state) {
+        case AppStateEnum::IDLE:
+            _led.setMode(LED_OFF);
+            break;
+        case AppStateEnum::SCANNING:
+            _led.setMode(LED_BLINK_FAST);
+            break;
+        case AppStateEnum::CONNECTING:
+            _led.setMode(LED_BLINK_SLOW);
+            break;
+        case AppStateEnum::CONNECTED:
+            _led.setMode(LED_ON);
+            break;
+        case AppStateEnum::ERROR:
+            _led.setMode(LED_BLINK_ERROR);
+            break;
+        default:
+            _led.setMode(LED_OFF);
+            break;
+    }
 }
 
 void AppState::begin() {
@@ -15,7 +40,7 @@ void AppState::autoConnect() {
     int count = _credentials.count();
     if (count == 0) {
         Serial.println("ℹ️ Нет сохранённых сетей для автоподключения.");
-        setState(AppStateEnum::IDLE);
+        setState(AppStateEnum::ERROR);
         return;
     }
 
@@ -24,7 +49,7 @@ void AppState::autoConnect() {
 
     if (ssid.length() == 0 || password.length() == 0) {
         Serial.println("⚠️ Ошибка получения данных первой сети.");
-        setState(AppStateEnum::IDLE);
+        setState(AppStateEnum::ERROR);
         return;
     }
 
@@ -43,7 +68,7 @@ bool AppState::connect(const String& ssid, const String& password) {
         Serial.print("IP-адрес: ");
         Serial.println(WiFi.localIP());
     } else {
-        setState(AppStateEnum::IDLE);
+        setState(AppStateEnum::ERROR);
         Serial.println("❌ Ошибка подключения.");
     }
     return success;
