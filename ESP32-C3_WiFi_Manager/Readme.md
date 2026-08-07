@@ -18,7 +18,6 @@
 
 ```text
 ESP32-C3_WiFi_Manager/
-├── src/
 ├── main.cpp
 ├── Menu.h
 ├── Menu.cpp
