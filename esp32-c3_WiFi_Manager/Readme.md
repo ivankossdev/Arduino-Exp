@@ -1,4 +1,4 @@
-# ESP32 WiFi Manager Core
+# ESP32 WiFi Manager
 
 Набор классов для управления Wi‑Fi на ESP32 (Arduino IDE) с упором на расширяемость и переиспользование в других проектах.
 
