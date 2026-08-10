@@ -6,16 +6,8 @@
 #include "WiFiCredentials.h"
 #include "LedManager.h"
 #include "MqttManager.h"
-#include "MqttCredentials.h"   // добавлено
-
-enum class AppStateEnum {
-    IDLE,
-    SCANNING,
-    CONNECTING,
-    CONNECTED,
-    AP_MODE,
-    ERROR
-};
+#include "MqttCredentials.h"
+#include "StateManager.h"
 
 class AppState {
 public:
@@ -49,30 +41,33 @@ public:
     IPAddress getIP() const;
     const char* getEncryptionType(uint8_t encType) const;
 
-    // --- Светодиод ---  
+    // --- Светодиод ---
     bool beginLed(int pin, bool activeLow = true);
     void updateLed();
 
     // --- MQTT ---
-    bool beginMqtt(); // использует сохранённые настройки (если есть)
+    bool beginMqtt();
     bool beginMqtt(const String& server, int port,
                    const String& user, const String& password,
-                   const String& cmdTopic, const String& stateTopic); // совместимость
+                   const String& cmdTopic, const String& stateTopic);
     bool configureMqtt(const String& server, int port,
                        const String& user, const String& password,
                        const String& cmdTopic, const String& stateTopic);
     bool saveMqttCredentials();
     bool loadMqttCredentials();
-    MqttCredentials& getMqttCredentials() { return _mqttCredentials; } // для доступа в Menu
+    MqttCredentials& getMqttCredentials() { return _mqttCredentials; }
     void updateMqtt();
 
-    // Общий update для всех подсистем
+    // Общий update
     void update();
+
+    // Доступ к менеджеру состояния (для Menu)
+    StateManager& getStateManager() { return _stateManager; }
 
 private:
     static const int MAX_NETWORKS = 50;
 
-    AppStateEnum _state;
+    StateManager _stateManager;
     WiFiManager _wifiManager;
     WiFiCredentials _credentials;
     String _lastSSID;
@@ -80,15 +75,15 @@ private:
     NetworkInfo _networks[MAX_NETWORKS];
     LedManager _led;
     MqttManager _mqttManager;
-    MqttCredentials _mqttCredentials;   // член для хранения настроек MQTT
+    MqttCredentials _mqttCredentials;
     int _networkCount;
     bool _hasScanResult;
 
+    // Приватный метод для установки состояния и обновления светодиода
     void setState(AppStateEnum newState);
+
     bool connect(const String& ssid, const String& password);
     void autoConnect();
-
-    // Обработчик MQTT-сообщений
     void handleMqttMessage(const String& topic, const String& payload);
 };
 

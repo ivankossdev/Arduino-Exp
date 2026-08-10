@@ -1,11 +1,13 @@
 #include "AppState.h"
 
 AppState::AppState()
-    : _state(AppStateEnum::IDLE), _networkCount(0), _hasScanResult(false) {}
+    : _networkCount(0), _hasScanResult(false) {}
 
+// Вспомогательный метод для обновления светодиода при изменении состояния
 void AppState::setState(AppStateEnum newState) {
-    _state = newState;
-    switch (_state) {
+    _stateManager.setState(newState);
+    // Обновляем светодиод в зависимости от состояния
+    switch (_stateManager.getState()) {
         case AppStateEnum::IDLE:
             _led.setMode(LED_OFF);
             break;
@@ -31,7 +33,6 @@ void AppState::begin() {
     autoConnect();
 }
 
-// ИСПРАВЛЕННЫЙ МЕТОД АВТОПОДКЛЮЧЕНИЯ
 void AppState::autoConnect() {
     int count = _credentials.count();
     if (count == 0) {
@@ -40,6 +41,7 @@ void AppState::autoConnect() {
         return;
     }
 
+    // Перебираем все сохранённые сети
     for (int i = 0; i < count; i++) {
         String ssid = _credentials.getSSID(i);
         String password = _credentials.getPasswordByIndex(i);
@@ -80,7 +82,7 @@ bool AppState::connect(const String& ssid, const String& password) {
 }
 
 bool AppState::startScan() {
-    if (_state == AppStateEnum::SCANNING) return false;
+    if (_stateManager.getState() == AppStateEnum::SCANNING) return false;
     setState(AppStateEnum::SCANNING);
     int count = _wifiManager.scan(_networks, MAX_NETWORKS);
     if (count > 0) {
@@ -185,7 +187,7 @@ void AppState::printSavedNetworks() {
 }
 
 AppStateEnum AppState::getState() const {
-    return _state;
+    return _stateManager.getState();
 }
 
 String AppState::getStatusString() const {

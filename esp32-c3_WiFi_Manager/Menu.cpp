@@ -26,6 +26,7 @@ void Menu::begin() {
 
 void Menu::update() {
     AppStateEnum state = _appState.getState();
+    
     if (state == AppStateEnum::SCANNING || state == AppStateEnum::CONNECTING) {
         return; // блокируем ввод
     }
