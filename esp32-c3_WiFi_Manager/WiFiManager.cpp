@@ -55,22 +55,17 @@ int WiFiManager::scan(NetworkInfo* results, int maxCount) {
   return count;
 }
 
-/* НОВЫЙ МЕТОД: подключение к сети */
 bool WiFiManager::connectToNetwork(const char* ssid, const char* password) {
   if (ssid == nullptr || strlen(ssid) == 0) {
     return false;
   }
 
   WiFi.mode(WIFI_STA);
+  WiFi.disconnect(true);
+  delay(100);
 
-  // *** ИСПРАВЛЕНИЕ: полный сброс Wi-Fi (очистка всех сохранённых настроек) ***
-  WiFi.disconnect(true);   // true – очистить настройки
-  delay(100);              // небольшая задержка для стабилизации
-
-  // Начинаем подключение
   WiFi.begin(ssid, password);
 
-  // Ждём до 10 секунд
   unsigned long start = millis();
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);

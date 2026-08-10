@@ -10,26 +10,27 @@ private:
   static const char* NAMESPACE;
   static const char* KEY;
 
-  // Вспомогательные методы (теперь не const, т.к. могут вызывать saveData при миграции)
-  String loadData();
-  void saveData(const String& data);
-  JsonDocument parseData(const String& data);
-  String serializeData(const JsonDocument& doc) const;  // можно const
-  static String migrateFromOldFormat(const String& data); // статический
+  DynamicJsonDocument* _doc; // указатель для динамического выделения
+  bool _loaded;
+
+  void loadData();
+  void saveData();
+  void ensureLoaded();
+  String serializeData() const;
 
 public:
   WiFiCredentials();
   ~WiFiCredentials();
 
   bool save(const String& ssid, const String& password);
-  String getPassword(const String& ssid);          // убрали const
+  String getPassword(const String& ssid);
   bool remove(const String& ssid);
   void clearAll();
-  void printAll();                                 // убрали const
-  int count();                                     // убрали const
-  String getSSID(int index);                       // убрали const
-  String getPasswordByIndex(int index);            // убрали const
-  bool hasCredentials(const String& ssid);         // убрали const
+  void printAll();
+  int count();
+  String getSSID(int index);
+  String getPasswordByIndex(int index);
+  bool hasCredentials(const String& ssid);
 };
 
 #endif
