@@ -45,38 +45,59 @@ void MqttManager::update() {
     _mqttClient.loop();
 }
 
-bool MqttManager::isConnected() {   // убрали const
+bool MqttManager::isConnected() {
     return _mqttClient.connected();
 }
 
+// --- ИСПРАВЛЕННЫЙ МЕТОД ПЕРЕПОДКЛЮЧЕНИЯ ---
 void MqttManager::reconnect() {
     static int attempts = 0;
-    while (!_mqttClient.connected() && WiFi.status() == WL_CONNECTED) {
-        Serial.print("Попытка подключения к MQTT брокеру...");
-        String clientId = "ESP32_Client_" + String(random(0xffff), HEX);
-        if (_mqttClient.connect(clientId.c_str(), _user.c_str(), _password.c_str())) {
-            Serial.println(" УСПЕШНО!");
-            if (_mqttClient.subscribe(_cmdTopic.c_str())) {
-                Serial.printf("Подписались на топик: %s\n", _cmdTopic.c_str());
-            } else {
-                Serial.println("Ошибка подписки на топик!");
-            }
-            publishState("OFF", true);
-            attempts = 0;
+    static unsigned long lastAttemptTime = 0;
+    const int MAX_ATTEMPTS = 10;
+    const unsigned long BASE_DELAY = 1000;
+
+    if (attempts > 0 && millis() - lastAttemptTime < (BASE_DELAY << (attempts - 1))) {
+        return;
+    }
+
+    if (attempts >= MAX_ATTEMPTS) {
+        Serial.println("❌ MQTT: превышено максимальное число попыток переподключения.");
+        return;
+    }
+
+    if (WiFi.status() != WL_CONNECTED) {
+        attempts = 0;
+        return;
+    }
+
+    Serial.print("Попытка подключения к MQTT брокеру... (попытка ");
+    Serial.print(attempts + 1);
+    Serial.print(" из ");
+    Serial.print(MAX_ATTEMPTS);
+    Serial.println(")");
+
+    String clientId = "ESP32_Client_" + String(random(0xffff), HEX);
+    if (_mqttClient.connect(clientId.c_str(), _user.c_str(), _password.c_str())) {
+        Serial.println(" УСПЕШНО!");
+        if (_mqttClient.subscribe(_cmdTopic.c_str())) {
+            Serial.printf("Подписались на топик: %s\n", _cmdTopic.c_str());
         } else {
-            Serial.printf(" Провал, rc=%d, попытка через 5 сек\n", _mqttClient.state());
-            attempts++;
-            if (attempts > 5) {
-                Serial.println("Слишком много неудачных попыток переподключения. Проверьте настройки MQTT.");
-                attempts = 0;
-                delay(5000);
-                break;
-            }
-            delay(5000);
+            Serial.println("Ошибка подписки на топик!");
         }
+        publishState("OFF", true);
+        attempts = 0;
+        lastAttemptTime = 0;
+    } else {
+        Serial.printf(" Провал, rc=%d\n", _mqttClient.state());
+        attempts++;
+        lastAttemptTime = millis();
+        unsigned long delayMs = BASE_DELAY << (attempts - 1);
+        if (delayMs > 60000) delayMs = 60000;
+        Serial.printf("Следующая попытка через %lu секунд\n", delayMs / 1000);
     }
 }
 
+// --- ДОБАВЛЕННАЯ РЕАЛИЗАЦИЯ publishState ---
 bool MqttManager::publishState(const String& message, bool retained) {
     if (!_mqttClient.connected()) return false;
     return _mqttClient.publish(_stateTopic.c_str(), message.c_str(), retained);
