@@ -16,8 +16,11 @@ private:
     void connectToNetwork();
     void connectToSavedNetwork();
     void deleteSavedNetwork();
-    void displayMqttSettings();      // новый
-    void editMqttSettings();         // новый
+    void displayMqttSettings();
+    void editMqttSettings();
+
+    // Новый вспомогательный метод для ввода индекса
+    int promptIndex(int max, const char* message);
 
 public:
     Menu(AppState& appState);

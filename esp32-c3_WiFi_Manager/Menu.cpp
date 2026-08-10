@@ -1,7 +1,7 @@
 #include "Menu.h"
 #include <cctype>
 
-// Вспомогательная проверка числа
+// Вспомогательная проверка числа (статическая)
 static bool isNumber(const String& str) {
     if (str.length() == 0) return false;
     for (size_t i = 0; i < str.length(); i++) {
@@ -11,6 +11,7 @@ static bool isNumber(const String& str) {
     return true;
 }
 
+// Конструктор
 Menu::Menu(AppState& appState) : _menuChoice(0), _appState(appState) {}
 
 void Menu::begin() {
@@ -104,6 +105,32 @@ void Menu::handleMenuChoice(int choice) {
     }
 }
 
+// ---- Вспомогательный метод для ввода индекса ----
+int Menu::promptIndex(int max, const char* message) {
+    if (max <= 0) return -1;
+    int index = -1;
+    while (index < 0 || index >= max) {
+        Serial.printf("%s (0..%d): ", message, max - 1);
+        String input = Serial.readStringUntil('\n');
+        input.trim();
+        if (input.length() == 0) {
+            Serial.println("Пустой ввод, попробуйте снова.");
+            continue;
+        }
+        if (!isNumber(input)) {
+            Serial.println("❌ Введите число!");
+            continue;
+        }
+        index = input.toInt();
+        if (index < 0 || index >= max) {
+            Serial.println("❌ Неверный номер, попробуйте снова.");
+            index = -1;
+        }
+    }
+    return index;
+}
+
+// ---- Отображение таблицы сетей ----
 void Menu::displayNetworksFromState() {
     int count = _appState.getNetworkCount();
     if (count <= 0) {
@@ -176,6 +203,7 @@ void Menu::displayNetworksFromState() {
     Serial.println();
 }
 
+// ---- Подключение к сети после сканирования ----
 void Menu::connectToNetwork() {
     int count = _appState.getNetworkCount();
     if (count == 0) {
@@ -185,30 +213,9 @@ void Menu::connectToNetwork() {
 
     displayNetworksFromState();
 
-    unsigned long oldTimeout = Serial.getTimeout();
-    Serial.setTimeout(10000);
-
-    int index = -1;
-    while (index < 0 || index >= count) {
-        Serial.printf("Введите номер сети (0..%d): ", count - 1);
-        String input = Serial.readStringUntil('\n');
-        input.trim();
-        if (input.length() == 0) {
-            Serial.println("Пустой ввод, попробуйте снова.");
-            continue;
-        }
-        if (!isNumber(input)) {
-            Serial.println("❌ Введите число!");
-            continue;
-        }
-        index = input.toInt();
-        if (index < 0 || index >= count) {
-            Serial.println("❌ Неверный номер, попробуйте снова.");
-            index = -1;
-        }
-    }
-
-    Serial.setTimeout(oldTimeout);
+    // Используем новый вспомогательный метод
+    int index = promptIndex(count, "Введите номер сети");
+    if (index < 0) return;
 
     NetworkInfo info = _appState.getNetwork(index);
     String ssid = String(info.ssid);
@@ -235,6 +242,7 @@ void Menu::connectToNetwork() {
     _appState.connectToNetwork(ssid, password);
 }
 
+// ---- Подключение к сохранённой сети ----
 void Menu::connectToSavedNetwork() {
     int count = _appState.getSavedCount();
     if (count == 0) {
@@ -244,34 +252,14 @@ void Menu::connectToSavedNetwork() {
 
     _appState.printSavedNetworks();
 
-    SerialBufferClear();
-    unsigned long oldTimeout = Serial.getTimeout();
-    Serial.setTimeout(10000);
+    // Используем новый вспомогательный метод
+    int index = promptIndex(count, "Введите номер сети для подключения");
+    if (index < 0) return;
 
-    int index = -1;
-    while (index < 0 || index >= count) {
-        Serial.printf("Введите номер сети для подключения (0..%d): ", count - 1);
-        String input = Serial.readStringUntil('\n');
-        input.trim();
-        if (input.length() == 0) {
-            Serial.println("Пустой ввод, попробуйте снова.");
-            continue;
-        }
-        if (!isNumber(input)) {
-            Serial.println("❌ Введите число!");
-            continue;
-        }
-        index = input.toInt();
-        if (index < 0 || index >= count) {
-            Serial.println("❌ Неверный номер, попробуйте снова.");
-            index = -1;
-        }
-    }
-
-    Serial.setTimeout(oldTimeout);
     _appState.connectToSavedNetwork(index);
 }
 
+// ---- Удаление сохранённой сети ----
 void Menu::deleteSavedNetwork() {
     int count = _appState.getSavedCount();
     if (count == 0) {
@@ -281,31 +269,9 @@ void Menu::deleteSavedNetwork() {
 
     _appState.printSavedNetworks();
 
-    SerialBufferClear();
-    unsigned long oldTimeout = Serial.getTimeout();
-    Serial.setTimeout(10000);
-
-    int index = -1;
-    while (index < 0 || index >= count) {
-        Serial.printf("Введите номер сети для удаления (0..%d): ", count - 1);
-        String input = Serial.readStringUntil('\n');
-        input.trim();
-        if (input.length() == 0) {
-            Serial.println("Пустой ввод, попробуйте снова.");
-            continue;
-        }
-        if (!isNumber(input)) {
-            Serial.println("❌ Введите число!");
-            continue;
-        }
-        index = input.toInt();
-        if (index < 0 || index >= count) {
-            Serial.println("❌ Неверный номер, попробуйте снова.");
-            index = -1;
-        }
-    }
-
-    Serial.setTimeout(oldTimeout);
+    // Используем новый вспомогательный метод
+    int index = promptIndex(count, "Введите номер сети для удаления");
+    if (index < 0) return;
 
     // Подтверждение удаления
     String ssid = _appState.getSavedSSID(index);
@@ -313,6 +279,7 @@ void Menu::deleteSavedNetwork() {
     Serial.print(ssid);
     Serial.print("\"? (y/n): ");
 
+    unsigned long oldTimeout = Serial.getTimeout();
     Serial.setTimeout(5000);
     String confirm = Serial.readStringUntil('\n');
     confirm.trim();
@@ -329,10 +296,8 @@ void Menu::deleteSavedNetwork() {
     }
 }
 
-// === Новые методы для MQTT ===
-
+// ---- Настройки MQTT: просмотр ----
 void Menu::displayMqttSettings() {
-    // Загружаем последние сохранённые настройки (или текущие в памяти)
     _appState.loadMqttCredentials();
     MqttCredentials& creds = _appState.getMqttCredentials();
 
@@ -359,13 +324,14 @@ void Menu::displayMqttSettings() {
     }
 }
 
+// ---- Настройки MQTT: редактирование ----
 void Menu::editMqttSettings() {
     Serial.println("\n=== Изменение настроек MQTT ===");
     Serial.println("Введите новые значения или оставьте строку пустой, чтобы сохранить текущие.");
 
     MqttCredentials& creds = _appState.getMqttCredentials();
 
-    // Вспомогательная функция для ввода строки с сохранением старого значения
+    // Вспомогательные лямбды для ввода
     auto promptString = [&](const char* prompt, String& target) {
         Serial.printf("%s [%s]: ", prompt, target.c_str());
         String input = Serial.readStringUntil('\n');
@@ -375,7 +341,6 @@ void Menu::editMqttSettings() {
         }
     };
 
-    // Вспомогательная функция для ввода порта
     auto promptPort = [&](const char* prompt, int& target) {
         Serial.printf("%s [%d]: ", prompt, target);
         String input = Serial.readStringUntil('\n');
@@ -385,9 +350,8 @@ void Menu::editMqttSettings() {
         }
     };
 
-    // Устанавливаем таймаут для ввода
     unsigned long oldTimeout = Serial.getTimeout();
-    Serial.setTimeout(30000); // даём больше времени на ввод всех параметров
+    Serial.setTimeout(30000);
 
     String server = creds.getServer();
     int port = creds.getPort();
@@ -403,13 +367,10 @@ void Menu::editMqttSettings() {
     promptString("Командный топик", cmdTopic);
     promptString("Топик состояния", stateTopic);
 
-    // Восстанавливаем таймаут
     Serial.setTimeout(oldTimeout);
 
-    // Применяем изменения
     if (_appState.configureMqtt(server, port, user, password, cmdTopic, stateTopic)) {
         Serial.println("✅ Настройки MQTT сохранены.");
-        // Перезапускаем MQTT с новыми настройками
         if (_appState.beginMqtt()) {
             Serial.println("✅ MQTT перезапущен с новыми настройками.");
         } else {

@@ -5,7 +5,6 @@ AppState::AppState()
 
 void AppState::setState(AppStateEnum newState) {
     _state = newState;
-    // Обновляем светодиод в зависимости от состояния
     switch (_state) {
         case AppStateEnum::IDLE:
             _led.setMode(LED_OFF);
@@ -32,6 +31,7 @@ void AppState::begin() {
     autoConnect();
 }
 
+// ИСПРАВЛЕННЫЙ МЕТОД АВТОПОДКЛЮЧЕНИЯ
 void AppState::autoConnect() {
     int count = _credentials.count();
     if (count == 0) {
@@ -40,17 +40,26 @@ void AppState::autoConnect() {
         return;
     }
 
-    String ssid = _credentials.getSSID(0);
-    String password = _credentials.getPasswordByIndex(0);
+    for (int i = 0; i < count; i++) {
+        String ssid = _credentials.getSSID(i);
+        String password = _credentials.getPasswordByIndex(i);
 
-    if (ssid.length() == 0 || password.length() == 0) {
-        Serial.println("⚠️ Ошибка получения данных первой сети.");
-        setState(AppStateEnum::ERROR);
-        return;
+        if (ssid.length() == 0 || password.length() == 0) {
+            Serial.printf("⚠️ Ошибка получения данных сети #%d, пропускаем.\n", i);
+            continue;
+        }
+
+        Serial.printf("🔄 Попытка подключения к \"%s\"...\n", ssid.c_str());
+        if (connect(ssid, password)) {
+            return; // успех – выходим
+        }
+        Serial.printf("❌ Не удалось подключиться к \"%s\", пробуем следующую.\n", ssid.c_str());
+        setState(AppStateEnum::IDLE);
+        delay(500);
     }
 
-    Serial.printf("🔄 Автоподключение к \"%s\"...\n", ssid.c_str());
-    connect(ssid, password);
+    Serial.println("❌ Не удалось подключиться ни к одной сохранённой сети.");
+    setState(AppStateEnum::ERROR);
 }
 
 bool AppState::connect(const String& ssid, const String& password) {
@@ -132,8 +141,6 @@ bool AppState::saveCurrentNetwork() {
         if (savedPass.length() > 0) {
             _lastPassword = savedPass;
         } else {
-            // Теперь запрос пароля вынесен в Menu, здесь мы не должны запрашивать через Serial
-            // Вместо этого возвращаем false, чтобы Menu обработал ввод пароля отдельно
             Serial.println("⚠️ Пароль для этой сети не сохранён. Используйте меню для подключения.");
             return false;
         }
@@ -209,7 +216,7 @@ const char* AppState::getEncryptionType(uint8_t encType) const {
     return _wifiManager.getEncryptionType(encType);
 }
 
-// --- Светодиод --- 
+// --- Светодиод ---
 bool AppState::beginLed(int pin, bool activeLow) {
     return _led.begin(pin, activeLow);
 }
@@ -219,16 +226,12 @@ void AppState::updateLed() {
 }
 
 // --- MQTT ---
-
-// Метод без параметров: загружает сохранённые настройки и инициализирует MQTT
 bool AppState::beginMqtt() {
-    // Загружаем сохранённые настройки
     if (!loadMqttCredentials()) {
         Serial.println("⚠️ Нет сохранённых настроек MQTT.");
         return false;
     }
 
-    // Получаем данные из _mqttCredentials
     String server = _mqttCredentials.getServer();
     int port = _mqttCredentials.getPort();
     String user = _mqttCredentials.getUser();
@@ -241,7 +244,6 @@ bool AppState::beginMqtt() {
         return false;
     }
 
-    // Инициализируем MqttManager
     bool result = _mqttManager.begin(server, port, user, password, cmdTopic, stateTopic);
     if (result) {
         MqttManager::setCallback([this](const String& topic, const String& payload) {
@@ -254,20 +256,16 @@ bool AppState::beginMqtt() {
     return result;
 }
 
-// Метод с параметрами: сохраняет переданные настройки, затем вызывает beginMqtt()
 bool AppState::beginMqtt(const String& server, int port,
                          const String& user, const String& password,
                          const String& cmdTopic, const String& stateTopic) {
-    // Сохраняем переданные настройки
     if (!configureMqtt(server, port, user, password, cmdTopic, stateTopic)) {
         Serial.println("Ошибка сохранения настроек MQTT");
         return false;
     }
-    // Запускаем с сохранёнными
     return beginMqtt();
 }
 
-// Сохраняет переданные настройки в _mqttCredentials и в Preferences
 bool AppState::configureMqtt(const String& server, int port,
                              const String& user, const String& password,
                              const String& cmdTopic, const String& stateTopic) {
@@ -280,12 +278,10 @@ bool AppState::configureMqtt(const String& server, int port,
     return saveMqttCredentials();
 }
 
-// Сохраняет текущие настройки в Preferences
 bool AppState::saveMqttCredentials() {
     return _mqttCredentials.save();
 }
 
-// Загружает настройки из Preferences в _mqttCredentials
 bool AppState::loadMqttCredentials() {
     return _mqttCredentials.load();
 }
@@ -301,9 +297,7 @@ void AppState::update() {
 
 void AppState::handleMqttMessage(const String& topic, const String& payload) {
     Serial.printf("MQTT получено: топик=%s, сообщение=%s\n", topic.c_str(), payload.c_str());
-    // Здесь можно реализовать логику управления, например, светодиодом
-    // Для теста просто публикуем статус
-    if (topic == "home/lamp/command") {  // в будущем можно сделать топики конфигурируемыми
+    if (topic == "home/lamp/command") {
         if (payload == "ON") {
             Serial.println("Lamp ON");
             _mqttManager.publishState("ON");
