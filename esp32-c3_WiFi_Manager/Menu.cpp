@@ -60,6 +60,7 @@ void Menu::printMenu() {
     Serial.println("4. Показать сохранённые сети");
     Serial.println("5. Подключиться к сохранённой сети");
     Serial.println("6. Удалить сохранённую сеть");
+    Serial.println("7. Настройки MQTT");
 }
 
 void Menu::handleMenuChoice(int choice) {
@@ -94,8 +95,11 @@ void Menu::handleMenuChoice(int choice) {
         case 6:
             deleteSavedNetwork();
             break;
+        case 7:
+            displayMqttSettings();
+            break;
         default:
-            Serial.println("Неверная опция! Выберите 0–6.");
+            Serial.println("Неверная опция! Выберите 0–7.");
             break;
     }
 }
@@ -322,5 +326,96 @@ void Menu::deleteSavedNetwork() {
         }
     } else {
         Serial.println("❌ Удаление отменено.");
+    }
+}
+
+// === Новые методы для MQTT ===
+
+void Menu::displayMqttSettings() {
+    // Загружаем последние сохранённые настройки (или текущие в памяти)
+    _appState.loadMqttCredentials();
+    MqttCredentials& creds = _appState.getMqttCredentials();
+
+    Serial.println("\n=== Текущие настройки MQTT ===");
+    Serial.printf("Сервер: %s\n", creds.getServer().c_str());
+    Serial.printf("Порт: %d\n", creds.getPort());
+    Serial.printf("Пользователь: %s\n", creds.getUser().c_str());
+    Serial.printf("Пароль: %s\n", creds.getPassword().c_str());
+    Serial.printf("Командный топик: %s\n", creds.getCmdTopic().c_str());
+    Serial.printf("Топик состояния: %s\n", creds.getStateTopic().c_str());
+
+    Serial.println("\nВведите 1 для изменения настроек, 0 для возврата в меню.");
+    SerialBufferClear();
+    unsigned long oldTimeout = Serial.getTimeout();
+    Serial.setTimeout(10000);
+    String input = Serial.readStringUntil('\n');
+    input.trim();
+    Serial.setTimeout(oldTimeout);
+
+    if (input == "1") {
+        editMqttSettings();
+    } else {
+        Serial.println("Возврат в меню.");
+    }
+}
+
+void Menu::editMqttSettings() {
+    Serial.println("\n=== Изменение настроек MQTT ===");
+    Serial.println("Введите новые значения или оставьте строку пустой, чтобы сохранить текущие.");
+
+    MqttCredentials& creds = _appState.getMqttCredentials();
+
+    // Вспомогательная функция для ввода строки с сохранением старого значения
+    auto promptString = [&](const char* prompt, String& target) {
+        Serial.printf("%s [%s]: ", prompt, target.c_str());
+        String input = Serial.readStringUntil('\n');
+        input.trim();
+        if (input.length() > 0) {
+            target = input;
+        }
+    };
+
+    // Вспомогательная функция для ввода порта
+    auto promptPort = [&](const char* prompt, int& target) {
+        Serial.printf("%s [%d]: ", prompt, target);
+        String input = Serial.readStringUntil('\n');
+        input.trim();
+        if (input.length() > 0 && isNumber(input)) {
+            target = input.toInt();
+        }
+    };
+
+    // Устанавливаем таймаут для ввода
+    unsigned long oldTimeout = Serial.getTimeout();
+    Serial.setTimeout(30000); // даём больше времени на ввод всех параметров
+
+    String server = creds.getServer();
+    int port = creds.getPort();
+    String user = creds.getUser();
+    String password = creds.getPassword();
+    String cmdTopic = creds.getCmdTopic();
+    String stateTopic = creds.getStateTopic();
+
+    promptString("Сервер", server);
+    promptPort("Порт", port);
+    promptString("Пользователь", user);
+    promptString("Пароль", password);
+    promptString("Командный топик", cmdTopic);
+    promptString("Топик состояния", stateTopic);
+
+    // Восстанавливаем таймаут
+    Serial.setTimeout(oldTimeout);
+
+    // Применяем изменения
+    if (_appState.configureMqtt(server, port, user, password, cmdTopic, stateTopic)) {
+        Serial.println("✅ Настройки MQTT сохранены.");
+        // Перезапускаем MQTT с новыми настройками
+        if (_appState.beginMqtt()) {
+            Serial.println("✅ MQTT перезапущен с новыми настройками.");
+        } else {
+            Serial.println("⚠️ Ошибка запуска MQTT с новыми настройками.");
+        }
+    } else {
+        Serial.println("❌ Ошибка сохранения настроек MQTT.");
     }
 }

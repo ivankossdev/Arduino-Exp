@@ -16,6 +16,8 @@ private:
     void connectToNetwork();
     void connectToSavedNetwork();
     void deleteSavedNetwork();
+    void displayMqttSettings();      // новый
+    void editMqttSettings();         // новый
 
 public:
     Menu(AppState& appState);

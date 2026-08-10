@@ -5,7 +5,8 @@
 #include "WiFiManager.h"
 #include "WiFiCredentials.h"
 #include "LedManager.h"
-#include "MqttManager.h"   // добавлено
+#include "MqttManager.h"
+#include "MqttCredentials.h"   // добавлено
 
 enum class AppStateEnum {
     IDLE,
@@ -53,9 +54,16 @@ public:
     void updateLed();
 
     // --- MQTT ---
+    bool beginMqtt(); // использует сохранённые настройки (если есть)
     bool beginMqtt(const String& server, int port,
                    const String& user, const String& password,
-                   const String& cmdTopic, const String& stateTopic);
+                   const String& cmdTopic, const String& stateTopic); // совместимость
+    bool configureMqtt(const String& server, int port,
+                       const String& user, const String& password,
+                       const String& cmdTopic, const String& stateTopic);
+    bool saveMqttCredentials();
+    bool loadMqttCredentials();
+    MqttCredentials& getMqttCredentials() { return _mqttCredentials; } // для доступа в Menu
     void updateMqtt();
 
     // Общий update для всех подсистем
@@ -71,7 +79,8 @@ private:
     String _lastPassword;
     NetworkInfo _networks[MAX_NETWORKS];
     LedManager _led;
-    MqttManager _mqttManager;   // член
+    MqttManager _mqttManager;
+    MqttCredentials _mqttCredentials;   // член для хранения настроек MQTT
     int _networkCount;
     bool _hasScanResult;
 
@@ -79,7 +88,7 @@ private:
     bool connect(const String& ssid, const String& password);
     void autoConnect();
 
-    // Обработчик MQTT-сообщений (будет вызываться из статического колбэка)
+    // Обработчик MQTT-сообщений
     void handleMqttMessage(const String& topic, const String& payload);
 };
 

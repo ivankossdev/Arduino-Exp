@@ -1,9 +1,7 @@
 #include "AppState.h"
 
-
 AppState::AppState()
     : _state(AppStateEnum::IDLE), _networkCount(0), _hasScanResult(false) {}
-
 
 void AppState::setState(AppStateEnum newState) {
     _state = newState;
@@ -134,16 +132,10 @@ bool AppState::saveCurrentNetwork() {
         if (savedPass.length() > 0) {
             _lastPassword = savedPass;
         } else {
-            Serial.print("Введите пароль для сети \"");
-            Serial.print(currentSSID);
-            Serial.print("\": ");
-            String pass = Serial.readStringUntil('\n');
-            pass.trim();
-            if (pass.length() == 0) {
-                Serial.println("❌ Пароль не может быть пустым, сохранение отменено.");
-                return false;
-            }
-            _lastPassword = pass;
+            // Теперь запрос пароля вынесен в Menu, здесь мы не должны запрашивать через Serial
+            // Вместо этого возвращаем false, чтобы Menu обработал ввод пароля отдельно
+            Serial.println("⚠️ Пароль для этой сети не сохранён. Используйте меню для подключения.");
+            return false;
         }
     }
     if (_lastSSID.length() == 0 || _lastPassword.length() == 0) {
@@ -226,20 +218,76 @@ void AppState::updateLed() {
     _led.update();
 }
 
-bool AppState::beginMqtt(const String& server, int port,
-                         const String& user, const String& password,
-                         const String& cmdTopic, const String& stateTopic) {
+// --- MQTT ---
+
+// Метод без параметров: загружает сохранённые настройки и инициализирует MQTT
+bool AppState::beginMqtt() {
+    // Загружаем сохранённые настройки
+    if (!loadMqttCredentials()) {
+        Serial.println("⚠️ Нет сохранённых настроек MQTT.");
+        return false;
+    }
+
+    // Получаем данные из _mqttCredentials
+    String server = _mqttCredentials.getServer();
+    int port = _mqttCredentials.getPort();
+    String user = _mqttCredentials.getUser();
+    String password = _mqttCredentials.getPassword();
+    String cmdTopic = _mqttCredentials.getCmdTopic();
+    String stateTopic = _mqttCredentials.getStateTopic();
+
+    if (server.length() == 0) {
+        Serial.println("⚠️ Сервер MQTT не задан.");
+        return false;
+    }
+
+    // Инициализируем MqttManager
     bool result = _mqttManager.begin(server, port, user, password, cmdTopic, stateTopic);
     if (result) {
-        // Устанавливаем колбэк для входящих сообщений
         MqttManager::setCallback([this](const String& topic, const String& payload) {
             this->handleMqttMessage(topic, payload);
         });
-        Serial.println("MQTT Manager инициализирован");
+        Serial.println("MQTT Manager инициализирован с сохранёнными настройками");
     } else {
         Serial.println("Ошибка инициализации MQTT Manager");
     }
     return result;
+}
+
+// Метод с параметрами: сохраняет переданные настройки, затем вызывает beginMqtt()
+bool AppState::beginMqtt(const String& server, int port,
+                         const String& user, const String& password,
+                         const String& cmdTopic, const String& stateTopic) {
+    // Сохраняем переданные настройки
+    if (!configureMqtt(server, port, user, password, cmdTopic, stateTopic)) {
+        Serial.println("Ошибка сохранения настроек MQTT");
+        return false;
+    }
+    // Запускаем с сохранёнными
+    return beginMqtt();
+}
+
+// Сохраняет переданные настройки в _mqttCredentials и в Preferences
+bool AppState::configureMqtt(const String& server, int port,
+                             const String& user, const String& password,
+                             const String& cmdTopic, const String& stateTopic) {
+    _mqttCredentials.setServer(server);
+    _mqttCredentials.setPort(port);
+    _mqttCredentials.setUser(user);
+    _mqttCredentials.setPassword(password);
+    _mqttCredentials.setCmdTopic(cmdTopic);
+    _mqttCredentials.setStateTopic(stateTopic);
+    return saveMqttCredentials();
+}
+
+// Сохраняет текущие настройки в Preferences
+bool AppState::saveMqttCredentials() {
+    return _mqttCredentials.save();
+}
+
+// Загружает настройки из Preferences в _mqttCredentials
+bool AppState::loadMqttCredentials() {
+    return _mqttCredentials.load();
 }
 
 void AppState::updateMqtt() {
@@ -265,11 +313,3 @@ void AppState::handleMqttMessage(const String& topic, const String& payload) {
         }
     }
 }
-
-
-
-
-
-
-
-
