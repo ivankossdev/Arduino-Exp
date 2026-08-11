@@ -71,6 +71,13 @@ public:
     WiFiService& getWiFiService() { return _wifiService; }
     MqttService& getMqttService() { return _mqttService; }
 
+    // --- Управление светодиодом (для веб-интерфейса) ---
+    void setLed(bool on);
+    bool getLedState() const;
+
+    // --- Получение статуса в JSON (опционально) ---
+    String getStatusJson();
+
 private:
     StateManager _stateManager;
     LedManager _led;

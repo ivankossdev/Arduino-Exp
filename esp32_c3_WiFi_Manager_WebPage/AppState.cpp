@@ -64,3 +64,31 @@ void AppState::update() {
     updateLed();        // обновление состояния светодиода (если мигает)
     updateMqtt();       // обновление MQTT-клиента
 }
+
+
+void AppState::setLed(bool on) {
+    _led.setMode(on ? LED_ON : LED_OFF);
+}
+
+bool AppState::getLedState() const {
+    return _led.getState();
+}
+
+String AppState::getStatusJson() {
+    String json = "{";
+    json += "\"connected\":" + String(isConnected() ? "true" : "false");
+    if (isConnected()) {
+        json += ",\"ssid\":\"" + WiFi.SSID() + "\"";
+        json += ",\"ip\":\"" + WiFi.localIP().toString() + "\"";
+        json += ",\"rssi\":" + String(WiFi.RSSI());
+    } else {
+        json += ",\"ssid\":\"\"";
+        json += ",\"ip\":\"\"";
+        json += ",\"rssi\":0";
+    }
+    json += ",\"led\":" + String(getLedState() ? "true" : "false");
+    json += ",\"mqtt\":" + String(_mqttService.isConnected() ? "true" : "false");
+    json += ",\"state\":\"" + String(_stateManager.getStateString()) + "\"";
+    json += "}";
+    return json;
+}
