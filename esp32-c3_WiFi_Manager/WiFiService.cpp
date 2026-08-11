@@ -1,33 +1,11 @@
 #include "WiFiService.h"
 
-WiFiService::WiFiService(StateManager& stateManager, LedManager& ledManager)
-    : _stateManager(stateManager), _ledManager(ledManager),
-      _networkCount(0), _hasScanResult(false) {}
+WiFiService::WiFiService(StateManager& stateManager)
+    : _stateManager(stateManager), _networkCount(0), _hasScanResult(false) {}
 
-// --- Вспомогательный метод установки состояния + обновление светодиода ---
+// --- Вспомогательный метод установки состояния (только состояние) ---
 void WiFiService::setState(AppStateEnum newState) {
     _stateManager.setState(newState);
-    // Обновляем светодиод в зависимости от состояния
-    switch (newState) {
-        case AppStateEnum::IDLE:
-            _ledManager.setMode(LED_OFF);
-            break;
-        case AppStateEnum::SCANNING:
-            _ledManager.setMode(LED_BLINK_FAST);
-            break;
-        case AppStateEnum::CONNECTING:
-            _ledManager.setMode(LED_BLINK_SLOW);
-            break;
-        case AppStateEnum::CONNECTED:
-            _ledManager.setMode(LED_ON);
-            break;
-        case AppStateEnum::ERROR:
-            _ledManager.setMode(LED_BLINK_ERROR);
-            break;
-        default:
-            _ledManager.setMode(LED_OFF);
-            break;
-    }
 }
 
 // --- Публичный метод begin() ---

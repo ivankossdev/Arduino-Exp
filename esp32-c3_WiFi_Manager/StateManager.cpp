@@ -1,11 +1,13 @@
 #include "StateManager.h"
 
-StateManager::StateManager() : _state(AppStateEnum::IDLE) {}
+StateManager::StateManager() : _state(AppStateEnum::IDLE), _onChange(nullptr) {}
 
 void StateManager::setState(AppStateEnum newState) {
     _state = newState;
-    // Логирование изменения состояния (полезно для отладки)
     Serial.printf("📊 Состояние изменено: %s\n", getStateString());
+    if (_onChange) {
+        _onChange(newState);
+    }
 }
 
 AppStateEnum StateManager::getState() const {
@@ -46,4 +48,8 @@ const char* StateManager::getStateString() const {
         case AppStateEnum::ERROR:      return "ERROR";
         default:                       return "UNKNOWN";
     }
+}
+
+void StateManager::setOnStateChange(StateChangeCallback callback) {
+    _onChange = callback;
 }

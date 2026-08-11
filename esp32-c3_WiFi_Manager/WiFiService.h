@@ -5,11 +5,11 @@
 #include "WiFiManager.h"
 #include "WiFiCredentials.h"
 #include "StateManager.h"
-#include "LedManager.h"   // добавлено
 
 class WiFiService {
 public:
-    WiFiService(StateManager& stateManager, LedManager& ledManager);
+    // Конструктор теперь принимает только StateManager
+    WiFiService(StateManager& stateManager);
 
     void begin(); // автоподключение
 
@@ -42,7 +42,6 @@ private:
     static const int MAX_NETWORKS = 50;
 
     StateManager& _stateManager;
-    LedManager& _ledManager;      // добавлено
     WiFiManager _wifiManager;
     WiFiCredentials _credentials;
     String _lastSSID;
@@ -54,7 +53,7 @@ private:
     // Приватные методы
     bool connect(const String& ssid, const String& password);
     void autoConnect();
-    void setState(AppStateEnum newState); // теперь обновляет и светодиод
+    void setState(AppStateEnum newState); // только меняет состояние, без светодиода
 };
 
 #endif

@@ -1,12 +1,21 @@
 #include "AppState.h"
 
 AppState::AppState()
-    : _stateManager(),           // инициализация StateManager
-      _wifiService(_stateManager, _led) // передаём StateManager в WiFiService
-{}
+    : _stateManager(),
+      _wifiService(_stateManager),
+      _mqttService(_stateManager)
+{
+    // Светодиод по умолчанию выключен
+    _led.setMode(LED_OFF);
+
+    // Регистрируем колбэк для MQTT-сообщений
+    _mqttService.setMessageCallback([this](const String& topic, const String& payload) {
+        this->handleMqttMessage(topic, payload);
+    });
+}
 
 void AppState::begin() {
-    _wifiService.begin();  
+    _wifiService.begin();  // автоподключение Wi-Fi (без индикации)
 }
 
 String AppState::getStatusString() const {
@@ -21,92 +30,37 @@ String AppState::getStatusString() const {
 
 // --- Светодиод ---
 bool AppState::beginLed(int pin, bool activeLow) {
-    return _led.begin(pin, activeLow);
+    bool ok = _led.begin(pin, activeLow);
+    if (ok) {
+        _led.setMode(LED_OFF);  // стартуем выключенным
+    }
+    return ok;
 }
 
 void AppState::updateLed() {
-    _led.update();
+    _led.update();  // нужно для мигания (если режим изменится)
 }
 
-// --- MQTT ---
-bool AppState::beginMqtt() {
-    if (!loadMqttCredentials()) {
-        Serial.println("⚠️ Нет сохранённых настроек MQTT.");
-        return false;
-    }
-
-    String server = _mqttCredentials.getServer();
-    int port = _mqttCredentials.getPort();
-    String user = _mqttCredentials.getUser();
-    String password = _mqttCredentials.getPassword();
-    String cmdTopic = _mqttCredentials.getCmdTopic();
-    String stateTopic = _mqttCredentials.getStateTopic();
-
-    if (server.length() == 0) {
-        Serial.println("⚠️ Сервер MQTT не задан.");
-        return false;
-    }
-
-    bool result = _mqttManager.begin(server, port, user, password, cmdTopic, stateTopic);
-    if (result) {
-        MqttManager::setCallback([this](const String& topic, const String& payload) {
-            this->handleMqttMessage(topic, payload);
-        });
-        Serial.println("MQTT Manager инициализирован с сохранёнными настройками");
-    } else {
-        Serial.println("Ошибка инициализации MQTT Manager");
-    }
-    return result;
-}
-
-bool AppState::beginMqtt(const String& server, int port,
-                         const String& user, const String& password,
-                         const String& cmdTopic, const String& stateTopic) {
-    if (!configureMqtt(server, port, user, password, cmdTopic, stateTopic)) {
-        Serial.println("Ошибка сохранения настроек MQTT");
-        return false;
-    }
-    return beginMqtt();
-}
-
-bool AppState::configureMqtt(const String& server, int port,
-                             const String& user, const String& password,
-                             const String& cmdTopic, const String& stateTopic) {
-    _mqttCredentials.setServer(server);
-    _mqttCredentials.setPort(port);
-    _mqttCredentials.setUser(user);
-    _mqttCredentials.setPassword(password);
-    _mqttCredentials.setCmdTopic(cmdTopic);
-    _mqttCredentials.setStateTopic(stateTopic);
-    return saveMqttCredentials();
-}
-
-bool AppState::saveMqttCredentials() {
-    return _mqttCredentials.save();
-}
-
-bool AppState::loadMqttCredentials() {
-    return _mqttCredentials.load();
-}
-
-void AppState::updateMqtt() {
-    _mqttManager.update();
-}
-
-void AppState::update() {
-    updateLed();
-    updateMqtt();
-}
-
+// --- MQTT обработка ---
 void AppState::handleMqttMessage(const String& topic, const String& payload) {
-    Serial.printf("MQTT получено: топик=%s, сообщение=%s\n", topic.c_str(), payload.c_str());
+    Serial.printf("📨 AppState: получено MQTT сообщение: топик=%s, payload=%s\n",
+                  topic.c_str(), payload.c_str());
+
+    // Управление светодиодом через MQTT
     if (topic == "home/lamp/command") {
         if (payload == "ON") {
-            Serial.println("Lamp ON");
-            _mqttManager.publishState("ON");
+            _led.setMode(LED_ON);
+            _mqttService.publishState("ON");
         } else if (payload == "OFF") {
-            Serial.println("Lamp OFF");
-            _mqttManager.publishState("OFF");
+            _led.setMode(LED_OFF);
+            _mqttService.publishState("OFF");
         }
+        // Можно добавить другие команды (например, TOGGLE) при необходимости
     }
+}
+
+// --- Общий update ---
+void AppState::update() {
+    updateLed();        // обновление состояния светодиода (если мигает)
+    updateMqtt();       // обновление MQTT-клиента
 }

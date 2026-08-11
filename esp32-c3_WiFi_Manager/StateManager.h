@@ -2,6 +2,7 @@
 #define STATE_MANAGER_H
 
 #include <Arduino.h>
+#include <functional>
 
 enum class AppStateEnum {
     IDLE,
@@ -12,15 +13,18 @@ enum class AppStateEnum {
     ERROR
 };
 
+// Тип колбэка для уведомления об изменении состояния
+typedef std::function<void(AppStateEnum newState)> StateChangeCallback;
+
 class StateManager {
 public:
     StateManager();
 
-    // --- Управление состоянием ---
+    // Установка состояния
     void setState(AppStateEnum newState);
     AppStateEnum getState() const;
 
-    // --- Проверки состояния ---
+    // Проверки состояния
     bool isIdle() const;
     bool isScanning() const;
     bool isConnecting() const;
@@ -28,11 +32,15 @@ public:
     bool isError() const;
     bool isApMode() const;
 
-    // --- Строковое представление ---
+    // Строковое представление
     const char* getStateString() const;
+
+    // Регистрация колбэка на изменение состояния
+    void setOnStateChange(StateChangeCallback callback);
 
 private:
     AppStateEnum _state;
+    StateChangeCallback _onChange;
 };
 
 #endif
