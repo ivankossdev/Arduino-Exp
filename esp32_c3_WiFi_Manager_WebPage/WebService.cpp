@@ -189,7 +189,8 @@ static const char AP_PAGE[] PROGMEM = R"rawliteral(
         loadSavedNetworks();
         loadMqttSettings();
         // Автоматическое сканирование при загрузке
-        scanBtn.click();
+        // scanBtn.click();
+        showStatus('Нажмите "Сканировать сети" для поиска Wi‑Fi.', false);
     </script>
 </body>
 </html>
@@ -368,7 +369,10 @@ WebService::~WebService() {
 void WebService::begin(bool apMode) {
     _apMode = apMode;
     if (apMode) {
-        WiFi.softAP("ESP32-Setup", "12345678");
+        String ssid = "ESP32-Setup";
+        String password = "12345678";
+        WiFi.softAP(ssid.c_str(), password.c_str());
+        _appState.getWiFiService().setApCredentials(ssid, password); // сохраняем
         Serial.println("AP запущен, IP: 192.168.4.1");
     } else {
         Serial.print("Веб-сервер запущен, IP: ");

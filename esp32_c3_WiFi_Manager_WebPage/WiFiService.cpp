@@ -3,21 +3,49 @@
 WiFiService::WiFiService(StateManager& stateManager)
     : _stateManager(stateManager), _networkCount(0), _hasScanResult(false) {}
 
-// --- Вспомогательный метод установки состояния (только состояние) ---
 void WiFiService::setState(AppStateEnum newState) {
     _stateManager.setState(newState);
 }
 
-// --- Публичный метод begin() ---
 void WiFiService::begin() {
     autoConnect();
 }
 
-// --- Сканирование ---
+// --- Сохранение параметров AP ---
+void WiFiService::setApCredentials(const String& ssid, const String& password) {
+    _apSsid = ssid;
+    _apPassword = password;
+}
+
+// --- Исправленный метод сканирования ---
 bool WiFiService::startScan() {
     if (_stateManager.getState() == AppStateEnum::SCANNING) return false;
+
+    // Запоминаем текущий режим Wi-Fi
+    wifi_mode_t currentMode = WiFi.getMode();
+    bool apEnabled = (currentMode == WIFI_MODE_AP || currentMode == WIFI_MODE_APSTA);
+
     setState(AppStateEnum::SCANNING);
+
+    // Переключаемся в режим STA для сканирования
+    WiFi.mode(WIFI_STA);
+    WiFi.disconnect();
+    delay(100);
+
+    // Выполняем сканирование
     int count = _wifiManager.scan(_networks, MAX_NETWORKS);
+
+    // Восстанавливаем режим
+    if (apEnabled && _apSsid.length() > 0) {
+        // Включаем AP заново с сохранёнными параметрами
+        WiFi.mode(WIFI_AP);
+        WiFi.softAP(_apSsid.c_str(), _apPassword.c_str());
+        Serial.println("📡 AP восстановлен");
+    } else {
+        // Если был STA – оставляем STA
+        WiFi.mode(WIFI_STA);
+    }
+
     if (count > 0) {
         _networkCount = count;
         _hasScanResult = true;
@@ -30,6 +58,8 @@ bool WiFiService::startScan() {
         return false;
     }
 }
+
+// ... остальные методы (без изменений) ...
 
 int WiFiService::getNetworkCount() const {
     return _networkCount;
@@ -48,7 +78,6 @@ bool WiFiService::hasScanResult() const {
     return _hasScanResult;
 }
 
-// --- Подключение ---
 bool WiFiService::connect(const String& ssid, const String& password) {
     setState(AppStateEnum::CONNECTING);
     bool success = _wifiManager.connectToNetwork(ssid.c_str(), password.c_str());
@@ -117,7 +146,6 @@ bool WiFiService::deleteSavedNetwork(int index) {
     return _credentials.remove(ssid);
 }
 
-// --- Сохранённые сети ---
 int WiFiService::getSavedCount() {
     return _credentials.count();
 }
@@ -138,7 +166,6 @@ void WiFiService::printSavedNetworks() {
     _credentials.printAll();
 }
 
-// --- Статус Wi-Fi ---
 bool WiFiService::isConnected() const {
     return WiFi.status() == WL_CONNECTED;
 }
@@ -157,7 +184,6 @@ const char* WiFiService::getEncryptionType(uint8_t encType) const {
     return _wifiManager.getEncryptionType(encType);
 }
 
-// --- Автоподключение ---
 void WiFiService::autoConnect() {
     int count = _credentials.count();
     if (count == 0) {

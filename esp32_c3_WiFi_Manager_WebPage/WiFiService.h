@@ -8,10 +8,9 @@
 
 class WiFiService {
 public:
-    // Конструктор теперь принимает только StateManager
     WiFiService(StateManager& stateManager);
 
-    void begin(); // автоподключение
+    void begin();
 
     // --- Сканирование ---
     bool startScan();
@@ -38,6 +37,9 @@ public:
     IPAddress getIP() const;
     const char* getEncryptionType(uint8_t encType) const;
 
+    // --- Для режима AP ---
+    void setApCredentials(const String& ssid, const String& password);
+
 private:
     static const int MAX_NETWORKS = 50;
 
@@ -50,10 +52,12 @@ private:
     int _networkCount;
     bool _hasScanResult;
 
-    // Приватные методы
+    String _apSsid;      // сохранённый SSID AP
+    String _apPassword;  // сохранённый пароль AP
+
     bool connect(const String& ssid, const String& password);
     void autoConnect();
-    void setState(AppStateEnum newState); // только меняет состояние, без светодиода
+    void setState(AppStateEnum newState);
 };
 
 #endif
