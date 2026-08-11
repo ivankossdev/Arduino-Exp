@@ -1,8 +1,9 @@
 // script.js (улучшенный, с поддержкой новых элементов)
 
 // === Конфигурация MQTT ===
+const isSecure = window.location.protocol === 'https:';
 const MQTT_HOST = window.location.hostname;
-const MQTT_PORT = 80;
+const MQTT_PORT = isSecure ? 443 : 80;
 const WS_PATH = "/mqtt";
 
 const clientId = "web_" + Math.random().toString(16).substring(2, 10);
@@ -27,7 +28,7 @@ connectionStatus.className = 'value connecting';
 
 // === Настройки подключения ===
 const connectOptions = {
-    useSSL: false,
+    useSSL: isSecure,
     timeout: 3,
     onSuccess: () => {
         console.log('Подключено к MQTT брокеру через Nginx');
