@@ -2,44 +2,49 @@
 #define APP_STATE_H
 
 #include <Arduino.h>
-#include "WiFiManager.h"
-#include "WiFiCredentials.h"
+#include "StateManager.h"
+#include "WiFiService.h"      // новый
 #include "LedManager.h"
 #include "MqttManager.h"
 #include "MqttCredentials.h"
-#include "StateManager.h"
 
 class AppState {
 public:
     AppState();
     void begin();
 
-    // --- Сканирование ---
-    bool startScan();
-    int getNetworkCount() const;
-    NetworkInfo getNetwork(int index) const;
-    bool hasScanResult() const;
+    // --- Сканирование (делегирует WiFiService) ---
+    bool startScan() { return _wifiService.startScan(); }
+    int getNetworkCount() const { return _wifiService.getNetworkCount(); }
+    NetworkInfo getNetwork(int index) const { return _wifiService.getNetwork(index); }
+    bool hasScanResult() const { return _wifiService.hasScanResult(); }
 
-    // --- Подключение ---
-    bool connectToNetwork(const String& ssid, const String& password);
-    bool connectToSavedNetwork(int index);
-    bool saveCurrentNetwork();
-    bool deleteSavedNetwork(int index);
+    // --- Подключение (делегирует WiFiService) ---
+    bool connectToNetwork(const String& ssid, const String& password) {
+        return _wifiService.connectToNetwork(ssid, password);
+    }
+    bool connectToSavedNetwork(int index) {
+        return _wifiService.connectToSavedNetwork(index);
+    }
+    bool saveCurrentNetwork() { return _wifiService.saveCurrentNetwork(); }
+    bool deleteSavedNetwork(int index) { return _wifiService.deleteSavedNetwork(index); }
 
-    // --- Сохранённые сети ---
-    int getSavedCount();
-    String getSavedSSID(int index);
-    String getSavedPassword(const String& ssid);
-    bool hasSavedPassword(const String& ssid);
-    void printSavedNetworks();
+    // --- Сохранённые сети (делегирует WiFiService) ---
+    int getSavedCount() { return _wifiService.getSavedCount(); }
+    String getSavedSSID(int index) { return _wifiService.getSavedSSID(index); }
+    String getSavedPassword(const String& ssid) { return _wifiService.getSavedPassword(ssid); }
+    bool hasSavedPassword(const String& ssid) { return _wifiService.hasSavedPassword(ssid); }
+    void printSavedNetworks() { _wifiService.printSavedNetworks(); }
 
-    // --- Статус ---
-    AppStateEnum getState() const;
+    // --- Статус (делегирует WiFiService) ---
+    AppStateEnum getState() const { return _stateManager.getState(); }
     String getStatusString() const;
-    bool isConnected() const;
-    String getCurrentSSID() const;
-    IPAddress getIP() const;
-    const char* getEncryptionType(uint8_t encType) const;
+    bool isConnected() const { return _wifiService.isConnected(); }
+    String getCurrentSSID() const { return _wifiService.getCurrentSSID(); }
+    IPAddress getIP() const { return _wifiService.getIP(); }
+    const char* getEncryptionType(uint8_t encType) const {
+        return _wifiService.getEncryptionType(encType);
+    }
 
     // --- Светодиод ---
     bool beginLed(int pin, bool activeLow = true);
@@ -61,29 +66,17 @@ public:
     // Общий update
     void update();
 
-    // Доступ к менеджеру состояния (для Menu)
+    // Доступ к менеджеру состояния (для Menu, если потребуется)
     StateManager& getStateManager() { return _stateManager; }
 
 private:
-    static const int MAX_NETWORKS = 50;
-
     StateManager _stateManager;
-    WiFiManager _wifiManager;
-    WiFiCredentials _credentials;
-    String _lastSSID;
-    String _lastPassword;
-    NetworkInfo _networks[MAX_NETWORKS];
+    WiFiService _wifiService;      // заменяет старые Wi-Fi члены
     LedManager _led;
     MqttManager _mqttManager;
     MqttCredentials _mqttCredentials;
-    int _networkCount;
-    bool _hasScanResult;
 
-    // Приватный метод для установки состояния и обновления светодиода
-    void setState(AppStateEnum newState);
-
-    bool connect(const String& ssid, const String& password);
-    void autoConnect();
+    // Приватные методы, которые остались
     void handleMqttMessage(const String& topic, const String& payload);
 };
 

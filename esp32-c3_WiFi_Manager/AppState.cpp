@@ -1,193 +1,21 @@
 #include "AppState.h"
 
 AppState::AppState()
-    : _networkCount(0), _hasScanResult(false) {}
-
-// Вспомогательный метод для обновления светодиода при изменении состояния
-void AppState::setState(AppStateEnum newState) {
-    _stateManager.setState(newState);
-    // Обновляем светодиод в зависимости от состояния
-    switch (_stateManager.getState()) {
-        case AppStateEnum::IDLE:
-            _led.setMode(LED_OFF);
-            break;
-        case AppStateEnum::SCANNING:
-            _led.setMode(LED_BLINK_FAST);
-            break;
-        case AppStateEnum::CONNECTING:
-            _led.setMode(LED_BLINK_SLOW);
-            break;
-        case AppStateEnum::CONNECTED:
-            _led.setMode(LED_ON);
-            break;
-        case AppStateEnum::ERROR:
-            _led.setMode(LED_BLINK_ERROR);
-            break;
-        default:
-            _led.setMode(LED_OFF);
-            break;
-    }
-}
+    : _stateManager(),           // инициализация StateManager
+      _wifiService(_stateManager, _led) // передаём StateManager в WiFiService
+{}
 
 void AppState::begin() {
-    autoConnect();
-}
-
-void AppState::autoConnect() {
-    int count = _credentials.count();
-    if (count == 0) {
-        Serial.println("ℹ️ Нет сохранённых сетей для автоподключения.");
-        setState(AppStateEnum::ERROR);
-        return;
-    }
-
-    // Перебираем все сохранённые сети
-    for (int i = 0; i < count; i++) {
-        String ssid = _credentials.getSSID(i);
-        String password = _credentials.getPasswordByIndex(i);
-
-        if (ssid.length() == 0 || password.length() == 0) {
-            Serial.printf("⚠️ Ошибка получения данных сети #%d, пропускаем.\n", i);
-            continue;
-        }
-
-        Serial.printf("🔄 Попытка подключения к \"%s\"...\n", ssid.c_str());
-        if (connect(ssid, password)) {
-            return; // успех – выходим
-        }
-        Serial.printf("❌ Не удалось подключиться к \"%s\", пробуем следующую.\n", ssid.c_str());
-        setState(AppStateEnum::IDLE);
-        delay(500);
-    }
-
-    Serial.println("❌ Не удалось подключиться ни к одной сохранённой сети.");
-    setState(AppStateEnum::ERROR);
-}
-
-bool AppState::connect(const String& ssid, const String& password) {
-    setState(AppStateEnum::CONNECTING);
-    bool success = _wifiManager.connectToNetwork(ssid.c_str(), password.c_str());
-    if (success) {
-        setState(AppStateEnum::CONNECTED);
-        _lastSSID = ssid;
-        _lastPassword = password;
-        Serial.println("✅ Подключено успешно!");
-        Serial.print("IP-адрес: ");
-        Serial.println(WiFi.localIP());
-    } else {
-        setState(AppStateEnum::ERROR);
-        Serial.println("❌ Ошибка подключения.");
-    }
-    return success;
-}
-
-bool AppState::startScan() {
-    if (_stateManager.getState() == AppStateEnum::SCANNING) return false;
-    setState(AppStateEnum::SCANNING);
-    int count = _wifiManager.scan(_networks, MAX_NETWORKS);
-    if (count > 0) {
-        _networkCount = count;
-        _hasScanResult = true;
-        setState(AppStateEnum::IDLE);
-        return true;
-    } else {
-        _networkCount = 0;
-        _hasScanResult = false;
-        setState(AppStateEnum::IDLE);
-        return false;
-    }
-}
-
-int AppState::getNetworkCount() const {
-    return _networkCount;
-}
-
-NetworkInfo AppState::getNetwork(int index) const {
-    if (index >= 0 && index < _networkCount) {
-        return _networks[index];
-    }
-    NetworkInfo empty;
-    memset(&empty, 0, sizeof(empty));
-    return empty;
-}
-
-bool AppState::hasScanResult() const {
-    return _hasScanResult;
-}
-
-bool AppState::connectToNetwork(const String& ssid, const String& password) {
-    if (ssid.length() == 0 || password.length() == 0) return false;
-    return connect(ssid, password);
-}
-
-bool AppState::connectToSavedNetwork(int index) {
-    String ssid = _credentials.getSSID(index);
-    String password = _credentials.getPasswordByIndex(index);
-    if (ssid.length() == 0 || password.length() == 0) return false;
-    return connect(ssid, password);
-}
-
-bool AppState::saveCurrentNetwork() {
-    if (!isConnected()) {
-        Serial.println("⚠️ Нет подключения к Wi-Fi.");
-        return false;
-    }
-    String currentSSID = WiFi.SSID();
-    if (currentSSID.length() == 0) {
-        Serial.println("⚠️ Не удалось получить имя текущей сети.");
-        return false;
-    }
-    if (_lastSSID != currentSSID) {
-        _lastSSID = currentSSID;
-        String savedPass = _credentials.getPassword(currentSSID);
-        if (savedPass.length() > 0) {
-            _lastPassword = savedPass;
-        } else {
-            Serial.println("⚠️ Пароль для этой сети не сохранён. Используйте меню для подключения.");
-            return false;
-        }
-    }
-    if (_lastSSID.length() == 0 || _lastPassword.length() == 0) {
-        Serial.println("⚠️ Ошибка: нет данных для сохранения.");
-        return false;
-    }
-    if (_credentials.save(_lastSSID, _lastPassword)) {
-        Serial.printf("✅ Сеть \"%s\" сохранена.\n", _lastSSID.c_str());
-        return true;
-    } else {
-        Serial.println("❌ Ошибка сохранения.");
-        return false;
-    }
-}
-
-bool AppState::deleteSavedNetwork(int index) {
-    String ssid = _credentials.getSSID(index);
-    if (ssid.length() == 0) return false;
-    return _credentials.remove(ssid);
-}
-
-int AppState::getSavedCount() {
-    return _credentials.count();
-}
-
-String AppState::getSavedSSID(int index) {
-    return _credentials.getSSID(index);
-}
-
-String AppState::getSavedPassword(const String& ssid) {
-    return _credentials.getPassword(ssid);
-}
-
-bool AppState::hasSavedPassword(const String& ssid) {
-    return _credentials.hasCredentials(ssid);
-}
-
-void AppState::printSavedNetworks() {
-    _credentials.printAll();
-}
-
-AppStateEnum AppState::getState() const {
-    return _stateManager.getState();
+    // Запускаем автоподключение через WiFiService
+    // (у WiFiService есть метод autoConnect, но он приватный – вызовем через публичный метод begin?)
+    // Можно сделать публичный метод WiFiService::begin(), но проще вызвать autoConnect() напрямую через дружественный класс?
+    // Вместо этого добавим публичный метод в WiFiService – например, begin().
+    // Но мы не хотим менять интерфейс WiFiService – сделаем так: вызовем приватный метод через другое публичное.
+    // Я добавлю в WiFiService публичный метод begin(), который вызывает autoConnect().
+    // Покажу это ниже в изменениях WiFiService.
+    // Пока что оставим заглушку – мы добавим метод позже.
+    // Для совместимости добавим в WiFiService метод begin() и вызовем его.
+    _wifiService.begin();  // добавим этот метод в WiFiService (см. ниже)
 }
 
 String AppState::getStatusString() const {
@@ -198,24 +26,6 @@ String AppState::getStatusString() const {
     } else {
         return "Не подключено к Wi-Fi.";
     }
-}
-
-bool AppState::isConnected() const {
-    return WiFi.status() == WL_CONNECTED;
-}
-
-String AppState::getCurrentSSID() const {
-    if (isConnected()) return WiFi.SSID();
-    return "";
-}
-
-IPAddress AppState::getIP() const {
-    if (isConnected()) return WiFi.localIP();
-    return IPAddress();
-}
-
-const char* AppState::getEncryptionType(uint8_t encType) const {
-    return _wifiManager.getEncryptionType(encType);
 }
 
 // --- Светодиод ---
