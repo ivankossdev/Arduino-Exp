@@ -6,16 +6,7 @@ AppState::AppState()
 {}
 
 void AppState::begin() {
-    // Запускаем автоподключение через WiFiService
-    // (у WiFiService есть метод autoConnect, но он приватный – вызовем через публичный метод begin?)
-    // Можно сделать публичный метод WiFiService::begin(), но проще вызвать autoConnect() напрямую через дружественный класс?
-    // Вместо этого добавим публичный метод в WiFiService – например, begin().
-    // Но мы не хотим менять интерфейс WiFiService – сделаем так: вызовем приватный метод через другое публичное.
-    // Я добавлю в WiFiService публичный метод begin(), который вызывает autoConnect().
-    // Покажу это ниже в изменениях WiFiService.
-    // Пока что оставим заглушку – мы добавим метод позже.
-    // Для совместимости добавим в WiFiService метод begin() и вызовем его.
-    _wifiService.begin();  // добавим этот метод в WiFiService (см. ниже)
+    _wifiService.begin();  
 }
 
 String AppState::getStatusString() const {
