@@ -17,34 +17,11 @@ void WiFiService::setApCredentials(const String& ssid, const String& password) {
     _apPassword = password;
 }
 
-// --- Исправленный метод сканирования ---
 bool WiFiService::startScan() {
     if (_stateManager.getState() == AppStateEnum::SCANNING) return false;
 
-    // Запоминаем текущий режим Wi-Fi
-    wifi_mode_t currentMode = WiFi.getMode();
-    bool apEnabled = (currentMode == WIFI_MODE_AP || currentMode == WIFI_MODE_APSTA);
-
     setState(AppStateEnum::SCANNING);
-
-    // Переключаемся в режим STA для сканирования
-    WiFi.mode(WIFI_STA);
-    WiFi.disconnect();
-    delay(100);
-
-    // Выполняем сканирование
     int count = _wifiManager.scan(_networks, MAX_NETWORKS);
-
-    // Восстанавливаем режим
-    if (apEnabled && _apSsid.length() > 0) {
-        // Включаем AP заново с сохранёнными параметрами
-        WiFi.mode(WIFI_AP);
-        WiFi.softAP(_apSsid.c_str(), _apPassword.c_str());
-        Serial.println("📡 AP восстановлен");
-    } else {
-        // Если был STA – оставляем STA
-        WiFi.mode(WIFI_STA);
-    }
 
     if (count > 0) {
         _networkCount = count;
@@ -58,8 +35,6 @@ bool WiFiService::startScan() {
         return false;
     }
 }
-
-// ... остальные методы (без изменений) ...
 
 int WiFiService::getNetworkCount() const {
     return _networkCount;

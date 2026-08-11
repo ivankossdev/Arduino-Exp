@@ -91,8 +91,12 @@ static const char AP_PAGE[] PROGMEM = R"rawliteral(
         }
 
         scanBtn.onclick = function() {
+            showStatus('Сканирование...', false);
             fetch('/scan')
-                .then(res => res.json())
+                .then(res => {
+                    if (!res.ok) throw new Error('HTTP error ' + res.status);
+                    return res.json();
+                })
                 .then(data => {
                     networksDiv.innerHTML = '';
                     if (data.length === 0) {
@@ -106,6 +110,11 @@ static const char AP_PAGE[] PROGMEM = R"rawliteral(
                         div.innerHTML = '<span>' + net.ssid + ' ' + secured + ' (RSSI: ' + net.rssi + ')</span> <button onclick="connectTo(\'' + net.ssid + '\')">Подключиться</button>';
                         networksDiv.appendChild(div);
                     });
+                    showStatus('Найдено ' + data.length + ' сетей', false);
+                })
+                .catch(error => {
+                    console.error('Ошибка сканирования:', error);
+                    showStatus('Не удалось выполнить сканирование. Проверьте соединение с ESP32 и нажмите "Сканировать сети" снова.', true);
                 });
         };
 
@@ -172,10 +181,7 @@ static const char AP_PAGE[] PROGMEM = R"rawliteral(
 
         saveRebootBtn.onclick = function() {
             if (confirm('Сохранить настройки и перезагрузить?')) {
-                // Сохраняем MQTT (если не сохранены)
                 saveMqttBtn.click();
-                // Сохраняем Wi-Fi (если уже подключились, то сеть сохранится при подключении)
-                // Но мы уже сохраняем при подключении. Просто перезагружаемся.
                 fetch('/reboot', { method: 'POST' })
                 .then(res => res.json())
                 .then(data => {
@@ -188,9 +194,10 @@ static const char AP_PAGE[] PROGMEM = R"rawliteral(
         // Инициализация
         loadSavedNetworks();
         loadMqttSettings();
-        // Автоматическое сканирование при загрузке
-        // scanBtn.click();
-        showStatus('Нажмите "Сканировать сети" для поиска Wi‑Fi.', false);
+        // Автоматическое сканирование через 500 мс
+        setTimeout(function() {
+            scanBtn.click();
+        }, 500);
     </script>
 </body>
 </html>
@@ -366,15 +373,20 @@ WebService::~WebService() {
     _server.stop();
 }
 
+
 void WebService::begin(bool apMode) {
     _apMode = apMode;
     if (apMode) {
+        // Включаем режим AP+STA, чтобы клиент не терял соединение при сканировании
+        WiFi.mode(WIFI_AP_STA);
         String ssid = "ESP32-Setup";
         String password = "12345678";
         WiFi.softAP(ssid.c_str(), password.c_str());
-        _appState.getWiFiService().setApCredentials(ssid, password); // сохраняем
+        _appState.getWiFiService().setApCredentials(ssid, password);
         Serial.println("AP запущен, IP: 192.168.4.1");
     } else {
+        // В клиентском режиме используем только STA
+        WiFi.mode(WIFI_STA);
         Serial.print("Веб-сервер запущен, IP: ");
         Serial.println(WiFi.localIP());
     }
@@ -409,6 +421,7 @@ void WebService::handleRoot() {
 }
 
 void WebService::handleScan() {
+    Serial.println("🔍 GET /scan");
     _appState.startScan();
     delay(100);
     String json = getScanJson();

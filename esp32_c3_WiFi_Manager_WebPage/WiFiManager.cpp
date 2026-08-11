@@ -7,9 +7,10 @@ int WiFiManager::scan(NetworkInfo* results, int maxCount) {
 
   Serial.println(F("🔍 Сканирование Wi-Fi..."));
 
-  WiFi.mode(WIFI_STA);
-  WiFi.disconnect();
-  delay(100);
+  // Убираем переключение режима и отключение
+  // WiFi.mode(WIFI_STA);
+  // WiFi.disconnect();
+  // delay(100); qJaHxeUC
 
   int n = WiFi.scanNetworks(false, true);
 
