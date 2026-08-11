@@ -1,0 +1,188 @@
+/* style.css - Темная тема для управления лампой */
+
+/* Глобальные переменные для темной темы */
+:root {
+    --primary-color: #6C8CFF;
+    --primary-hover: #5A7AEE;
+    --success-color: #4ADE80;
+    --danger-color: #F87171;
+    --warning-color: #FBBF24;
+    --gray-color: #9CA3AF;
+    --bg-color: #0F172A;          /* темный фон страницы */
+    --card-bg: #1E293B;           /* фон карточки */
+    --text-primary: #F1F5F9;      /* основной текст */
+    --text-secondary: #94A3B8;    /* второстепенный текст */
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    --radius: 16px;
+    --transition: 0.3s ease;
+    --panel-bg: #0F172A;          /* фон панели статусов (немного темнее карточки) */
+    --panel-border: #334155;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg-color);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    color: var(--text-primary);
+}
+
+/* Карточка */
+.container {
+    background: var(--card-bg);
+    max-width: 460px;
+    width: 100%;
+    padding: 40px 32px 32px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    text-align: center;
+    transition: transform var(--transition);
+    border: 1px solid #334155;
+}
+
+.container:hover {
+    transform: translateY(-4px);
+}
+
+h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 28px;
+    letter-spacing: -0.5px;
+}
+
+/* Панель статусов */
+.status-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 28px;
+    background: var(--panel-bg);
+    padding: 16px 20px;
+    border-radius: 12px;
+    text-align: left;
+    border: 1px solid var(--panel-border);
+}
+
+.status-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 15px;
+    color: var(--text-secondary);
+}
+
+.status-item .label {
+    font-weight: 500;
+}
+
+.status-item .value {
+    font-weight: 600;
+    color: var(--text-primary);
+    transition: color var(--transition);
+}
+
+/* Состояния статуса лампы */
+.value.on {
+    color: var(--success-color);
+}
+.value.off {
+    color: var(--danger-color);
+}
+.value.unknown {
+    color: var(--gray-color);
+}
+.value.connecting {
+    color: var(--warning-color);
+}
+.value.connected {
+    color: var(--success-color);
+}
+.value.disconnected {
+    color: var(--danger-color);
+}
+
+/* Кнопка */
+.lamp-btn {
+    width: 100%;
+    padding: 16px 24px;
+    font-size: 20px;
+    font-weight: 600;
+    border: none;
+    border-radius: 12px;
+    background: var(--primary-color);
+    color: #fff;
+    cursor: pointer;
+    transition: background var(--transition), transform 0.15s, box-shadow var(--transition);
+    box-shadow: 0 4px 12px rgba(108, 140, 255, 0.3);
+    letter-spacing: 0.3px;
+}
+
+.lamp-btn:hover:not(:disabled) {
+    background: var(--primary-hover);
+    box-shadow: 0 6px 16px rgba(108, 140, 255, 0.4);
+    transform: scale(1.01);
+}
+
+.lamp-btn:active:not(:disabled) {
+    transform: scale(0.97);
+}
+
+.lamp-btn:disabled {
+    background: #475569;
+    cursor: not-allowed;
+    box-shadow: none;
+    opacity: 0.6;
+}
+
+/* Состояния кнопки (включено/выключено) */
+.lamp-btn.on-state {
+    background: var(--success-color);
+    box-shadow: 0 4px 12px rgba(74, 222, 128, 0.3);
+    color: #0F172A;
+}
+.lamp-btn.on-state:hover:not(:disabled) {
+    background: #34D399;
+    box-shadow: 0 6px 16px rgba(74, 222, 128, 0.4);
+}
+
+.lamp-btn.off-state {
+    background: var(--danger-color);
+    box-shadow: 0 4px 12px rgba(248, 113, 113, 0.3);
+    color: #0F172A;
+}
+.lamp-btn.off-state:hover:not(:disabled) {
+    background: #F87171;
+    box-shadow: 0 6px 16px rgba(248, 113, 113, 0.4);
+}
+
+/* Подсказка */
+.hint {
+    margin-top: 20px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    opacity: 0.8;
+}
+
+/* Адаптивность для маленьких экранов */
+@media (max-width: 480px) {
+    .container {
+        padding: 24px 16px 20px;
+    }
+    h1 {
+        font-size: 22px;
+    }
+    .lamp-btn {
+        font-size: 18px;
+        padding: 14px 20px;
+    }
+}

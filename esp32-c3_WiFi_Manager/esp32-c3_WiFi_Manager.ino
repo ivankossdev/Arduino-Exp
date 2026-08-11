@@ -17,6 +17,7 @@ void setup() {
     // Инициализация меню
     menu.begin();
     appState.beginMqtt();  
+}
 
 void loop() {
     menu.update();

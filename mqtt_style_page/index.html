@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление лампой</title>
+    <!-- Подключаем стили -->
+    <link rel="stylesheet" href="style.css">
+    <!-- библиотека Paho MQTT -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>💡 Управление светодиодом</h1>
+        
+        <div class="status-panel">
+            <div class="status-item">
+                <span class="label">Статус лампы:</span>
+                <span id="lampStatus" class="value unknown">Неизвестен</span>
+            </div>
+            <div class="status-item">
+                <span class="label">Подключение:</span>
+                <span id="connectionStatus" class="value connecting">Соединение...</span>
+            </div>
+        </div>
+
+        <button id="lampButton" class="lamp-btn" disabled>Включить</button>
+        
+        <p class="hint">Нажмите кнопку, чтобы включить или выключить лампу</p>
+    </div>
+
+    <!-- Подключаем собственный скрипт (улучшенный) -->
+    <script src="script.js"></script>
+</body>
+</html>
