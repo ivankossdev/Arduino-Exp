@@ -29,7 +29,7 @@ bool DisplayService::begin() {
     _display.setTextSize(1);
     _display.setCursor(0, 0);
     _display.println("ESP32");
-    _display.println("Загрузка...");
+    _display.println("Load...");
     _display.display();
 
     Serial.println("✅ OLED дисплей инициализирован");
@@ -78,42 +78,33 @@ void DisplayService::drawScreen() {
 void DisplayService::drawApMode() {
     _display.clearDisplay();
     _display.setCursor(0, 0);
-    _display.println("=== AP РЕЖИМ ===");
+    _display.println("=== AP MODE ===");
     _display.println("SSID: ESP32-Setup");
     _display.println("IP: 192.168.4.1");
-    _display.println("Настройте через");
-    _display.println("веб-интерфейс");
+    _display.println("Configure via");
+    _display.println("web interface");
     _display.display();
 }
 
 void DisplayService::drawClientMode() {
     _display.clearDisplay();
     _display.setCursor(0, 0);
-    _display.println("=== КЛИЕНТ ===");
+    _display.println("=== CLIENT ===");
 
-    // Wi-Fi статус
     if (_wifiService.isConnected()) {
         _display.print("WiFi: ");
         _display.println(_wifiService.getCurrentSSID());
         _display.print("IP: ");
         _display.println(_wifiService.getIP().toString());
-
-        // RSSI (уровень сигнала)
         _display.print("RSSI: ");
         _display.print(WiFi.RSSI());
         _display.println(" dBm");
     } else {
-        _display.println("WiFi: НЕТ");
+        _display.println("WiFi: NO");
     }
 
-    // MQTT статус
     _display.print("MQTT: ");
-    _display.println(_mqttService.isConnected() ? "OK" : "НЕТ");
-
-    // Состояние светодиода
-    // Можно добавить, если есть доступ к LedManager через AppState
-    // _display.print("LED: ");
-    // _display.println(_appState.getLedState() ? "ON" : "OFF");
+    _display.println(_mqttService.isConnected() ? "OK" : "NO");
 
     _display.display();
 }
@@ -121,27 +112,27 @@ void DisplayService::drawClientMode() {
 void DisplayService::drawScanning() {
     _display.clearDisplay();
     _display.setCursor(0, 0);
-    _display.println("=== СКАНИРОВАНИЕ ===");
-    _display.println("Поиск сетей...");
-    _display.println("Подождите...");
+    _display.println("=== SCANNING ===");
+    _display.println("Searching...");
+    _display.println("Please wait");
     _display.display();
 }
 
 void DisplayService::drawConnecting() {
     _display.clearDisplay();
     _display.setCursor(0, 0);
-    _display.println("=== ПОДКЛЮЧЕНИЕ ===");
-    _display.println("Подключение к");
-    _display.println("Wi-Fi сети...");
+    _display.println("=== CONNECTING ===");
+    _display.println("Connecting to");
+    _display.println("Wi-Fi...");
     _display.display();
 }
 
 void DisplayService::drawError() {
     _display.clearDisplay();
     _display.setCursor(0, 0);
-    _display.println("!!! ОШИБКА !!!");
-    _display.println("Не удалось");
-    _display.println("подключиться к");
-    _display.println("Wi-Fi сети");
+    _display.println("!!! ERROR !!!");
+    _display.println("Failed to");
+    _display.println("connect to");
+    _display.println("Wi-Fi");
     _display.display();
 }
