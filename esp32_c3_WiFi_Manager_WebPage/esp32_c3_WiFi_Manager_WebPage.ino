@@ -5,7 +5,7 @@ AppState appState;
 WebService webService(appState);
 
 void setup() {
-    Serial.begin(115200);
+    //Serial.begin(115200);
     // Инициализация светодиода (пин 8, activeLow = true)
     appState.beginLed(8, true);
 
