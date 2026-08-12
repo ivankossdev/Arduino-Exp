@@ -3,7 +3,8 @@
 AppState::AppState()
     : _stateManager(),
       _wifiService(_stateManager),
-      _mqttService(_stateManager)
+      _mqttService(_stateManager),
+      _displayService(_stateManager, _wifiService, _mqttService)
 {
     // Светодиод по умолчанию выключен
     _led.setMode(LED_OFF);
@@ -16,6 +17,7 @@ AppState::AppState()
 
 void AppState::begin() {
     _wifiService.begin();  // автоподключение Wi-Fi (без индикации)
+    _displayService.begin();
 }
 
 String AppState::getStatusString() const {
@@ -63,6 +65,7 @@ void AppState::handleMqttMessage(const String& topic, const String& payload) {
 void AppState::update() {
     updateLed();        // обновление состояния светодиода (если мигает)
     updateMqtt();       // обновление MQTT-клиента
+    _displayService.update();
 }
 
 

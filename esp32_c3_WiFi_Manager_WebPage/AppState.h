@@ -4,8 +4,9 @@
 #include <Arduino.h>
 #include "StateManager.h"
 #include "WiFiService.h"
-#include "MqttService.h"      // новый
+#include "MqttService.h"      
 #include "LedManager.h"
+#include "DisplayService.h"
 
 class AppState {
 public:
@@ -70,6 +71,7 @@ public:
     StateManager& getStateManager() { return _stateManager; }
     WiFiService& getWiFiService() { return _wifiService; }
     MqttService& getMqttService() { return _mqttService; }
+    DisplayService& getDisplayService() { return _displayService; }
 
     // --- Управление светодиодом (для веб-интерфейса) ---
     void setLed(bool on);
@@ -77,12 +79,14 @@ public:
 
     // --- Получение статуса в JSON (опционально) ---
     String getStatusJson();
+    
 
 private:
     StateManager _stateManager;
     LedManager _led;
     WiFiService _wifiService;
-    MqttService _mqttService;    // новый член
+    MqttService _mqttService;    
+    DisplayService _displayService;
 
     // Приватный метод для обработки MQTT-сообщений (регистрируем как колбэк)
     void handleMqttMessage(const String& topic, const String& payload);

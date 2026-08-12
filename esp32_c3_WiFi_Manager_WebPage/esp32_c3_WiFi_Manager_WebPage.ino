@@ -5,9 +5,14 @@ AppState appState;
 WebService webService(appState);
 
 void setup() {
-    //Serial.begin(115200);
-    // Инициализация светодиода (пин 8, activeLow = true)
+    // Serial.begin(115200);
+    // Инициализация светодиода
     appState.beginLed(8, true);
+
+    // Инициализация дисплея
+    if (!appState.getDisplayService().begin()) {
+        Serial.println("⚠️ Дисплей не инициализирован");
+    }
 
     // Проверяем, есть ли сохранённые сети
     int savedCount = appState.getSavedCount();
@@ -46,6 +51,7 @@ void setup() {
 }
 
 void loop() {
-    appState.update();        // обновление MQTT и светодиода
-    webService.handleClient(); // обработка HTTP-запросов
+    appState.update();           // обновление MQTT и светодиода
+    webService.handleClient();   // обработка HTTP-запросов
+    appState.getDisplayService().update();  // обновление дисплея
 }
