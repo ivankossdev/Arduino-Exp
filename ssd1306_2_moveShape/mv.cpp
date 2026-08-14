@@ -24,9 +24,7 @@ Wall walls[MAX_WALLS] = {
 };
 
 int wallCount = 5;
-
 int shapeCount = 4;
-// 5 итераций обычно достаточно, чтобы фигуры «расцепились» без лишней нагрузки
 const int COLLISION_ITERATIONS = 5;
 
 void Logic_1() {
@@ -52,12 +50,10 @@ void Logic_1() {
   }
 }
 
-
 void constrainToWalls(Shape& s) {
   // Левая стена
   if (s.xPos <= MIN_XPOS) {
     s.xPos = MIN_XPOS;
-    // Инвертируем скорость только если летели в стену (защита от «залипания на границе»)
     if (s.speedX < 0) {
       s.speedX = -s.speedX;
     }
@@ -104,7 +100,6 @@ void resolveCollision(Shape& a, Shape& b) {
     overlapY = (b.yPos + b.sizeShape) - a.yPos;
   }
 
-  // Выталкиваем по оси с МЕНЬШИМ перекрытием — это даёт более естественное поведение
   if (overlapX < overlapY) {
     int shift = overlapX / 2;
     if (a.xPos < b.xPos) {
@@ -130,6 +125,9 @@ void resolveCollision(Shape& a, Shape& b) {
   }
 }
 
+// ============================================================
+// ИСПРАВЛЕННАЯ ФУНКЦИЯ predictAndResolveCollisions
+// ============================================================
 void predictAndResolveCollisions() {
   // Сначала считаем, где фигуры будут на следующем кадре
   for (int i = 0; i < shapeCount; ++i) {
@@ -166,32 +164,33 @@ void predictAndResolveCollisions() {
           overlapY = (shapes[j].nextY + shapes[j].sizeShape) - shapes[i].nextY;
         }
 
-        // Коррекция по оси с меньшим перекрытием
+        // ============= ИСПРАВЛЕНИЕ =============
+        // Раньше здесь был код, который сдвигал только одну фигуру.
+        // Теперь применяем симметричное выталкивание (аналогично resolveCollision).
         if (overlapX < overlapY) {
+          int shift = overlapX / 2;
           if (shapes[i].nextX < shapes[j].nextX) {
-            int contactX = shapes[j].nextX - shapes[i].sizeShape;
-            shapes[i].nextX = contactX;
-            shapes[j].nextX = shapes[i].nextX + shapes[i].sizeShape;
+            shapes[i].nextX -= shift;
+            shapes[j].nextX += shift;
           } else {
-            int contactX = shapes[i].nextX - shapes[j].sizeShape;
-            shapes[j].nextX = contactX;
-            shapes[i].nextX = shapes[j].nextX + shapes[j].sizeShape;
+            shapes[i].nextX += shift;
+            shapes[j].nextX -= shift;
           }
           shapes[i].speedX = -shapes[i].speedX;
           shapes[j].speedX = -shapes[j].speedX;
         } else {
+          int shift = overlapY / 2;
           if (shapes[i].nextY < shapes[j].nextY) {
-            int contactY = shapes[j].nextY - shapes[i].sizeShape;
-            shapes[i].nextY = contactY;
-            shapes[j].nextY = shapes[i].nextY + shapes[i].sizeShape;
+            shapes[i].nextY -= shift;
+            shapes[j].nextY += shift;
           } else {
-            int contactY = shapes[i].nextY - shapes[j].sizeShape;
-            shapes[j].nextY = contactY;
-            shapes[i].nextY = shapes[j].nextY + shapes[j].sizeShape;
+            shapes[i].nextY += shift;
+            shapes[j].nextY -= shift;
           }
           shapes[i].speedY = -shapes[i].speedY;
           shapes[j].speedY = -shapes[j].speedY;
         }
+        // ======================================
       }
     }
 
@@ -199,6 +198,7 @@ void predictAndResolveCollisions() {
     if (!anyCollision) break;
   }
 }
+// ============================================================
 
 void drawFrame() {
   drawShape.clearScreen();
@@ -217,15 +217,12 @@ void drawFrame() {
   drawShape.show();
 }
 
-
 void checkShapeWallCollision(Shape& s, const Wall& w) {
-  // Проверка пересечения прямоугольников
   bool xOverlap = s.xPos < w.x + w.w && w.x < s.xPos + s.sizeShape;
   bool yOverlap = s.yPos < w.y + w.h && w.y < s.yPos + s.sizeShape;
 
   if (!xOverlap || !yOverlap) return;
 
-  // Глубина перекрытия
   int overlapX = 0;
   if (s.xPos < w.x) {
     overlapX = (s.xPos + s.sizeShape) - w.x;
@@ -240,17 +237,14 @@ void checkShapeWallCollision(Shape& s, const Wall& w) {
     overlapY = (w.y + w.h) - s.yPos;
   }
 
-  // Выталкиваем по оси с меньшим перекрытием
   if (overlapX < overlapY) {
-    // Столкновение по X: корректируем X, инвертируем speedX
     if (s.xPos < w.x) {
-      s.xPos = w.x - s.sizeShape; // фигура слева, ставим вплотную к стене
+      s.xPos = w.x - s.sizeShape;
     } else {
-      s.xPos = w.x + w.w;          // фигура справа, ставим вплотную
+      s.xPos = w.x + w.w;
     }
     s.speedX = -s.speedX;
   } else {
-    // Столкновение по Y: корректируем Y, инвертируем speedY
     if (s.yPos < w.y) {
       s.yPos = w.y - s.sizeShape;
     } else {
@@ -259,4 +253,3 @@ void checkShapeWallCollision(Shape& s, const Wall& w) {
     s.speedY = -s.speedY;
   }
 }
-
