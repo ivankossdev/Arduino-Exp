@@ -16,6 +16,7 @@ public:
   int width, height;
 
   DrawShape(int w, int h, TwoWire *wire, int rst);
+  bool begin();
 
   void clearScreen();
   void show();

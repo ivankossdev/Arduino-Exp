@@ -1,19 +1,23 @@
 #include "drawShape.h"
 
-
 DrawShape::DrawShape(int w, int h, TwoWire *wire, int rst) {
   width = w;
   height = h;
   oled = new Adafruit_SSD1306(w, h, wire, rst);
-  if (!oled->begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
-    Serial.begin(115200);
-    Serial.println(F("SSD1306 allocation failed"));
-    for (;;); // зависаем, если экран не инициализировался
-  }
-  clearScreen();
+  // Инициализация вынесена в begin()
 }
 
-// Остальные методы остаются
+bool DrawShape::begin() {
+  if (!oled->begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+    // Можно вывести сообщение в Serial, если он уже инициализирован
+    Serial.begin(115200);
+    Serial.println(F("SSD1306 allocation failed"));
+    return false;  // или зависнуть, но лучше вернуть false
+  }
+  clearScreen();
+  return true;
+}
+
 void DrawShape::clearScreen() {
   oled->clearDisplay();
 }
