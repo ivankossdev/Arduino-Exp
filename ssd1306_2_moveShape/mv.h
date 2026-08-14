@@ -6,12 +6,10 @@
 #include "config.h"
 #include "Wall.h"
 
-// Вспомогательные функции для стен
 void constrainToWalls(Shape& s);
-void resolveCollision(Shape& a, Shape& b);   
-void checkShapeWallCollision(Shape& s, const Wall& wall);
+void resolveCollision(Shape& a, Shape& b);
+bool checkShapeWallCollision(Shape& s, const Wall& wall);  // теперь возвращает bool
 
-// Основная логика
 void Logic_1();
 void drawFrame();
 
