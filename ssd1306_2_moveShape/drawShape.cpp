@@ -10,7 +10,7 @@ DrawShape::DrawShape(int w, int h, TwoWire *wire, int rst) {
 bool DrawShape::begin() {
   if (!oled->begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
     // Можно вывести сообщение в Serial, если он уже инициализирован
-    Serial.begin(115200);
+    
     Serial.println(F("SSD1306 allocation failed"));
     return false;  // или зависнуть, но лучше вернуть false
   }

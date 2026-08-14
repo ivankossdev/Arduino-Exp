@@ -10,8 +10,10 @@ DrawShape drawShape(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 Shape shapes[MAX_SHAPES] = {
   Shape(10, 20, 2, 3, 6),
   Shape(80, 40, 2, 3, 6),
-  Shape(100, 40, 2, 1, 8),
-  Shape(60, 30, -1, -1, 8),
+  Shape(100, 40, 2, 1, 6),
+  Shape(60, 30, -1, -1, 6),
+  Shape(90, 20, 2, -1, 6),
+  Shape(40, 40, -1, -1, 6),
 };
 
 Wall walls[MAX_WALLS] = {
@@ -23,11 +25,14 @@ Wall walls[MAX_WALLS] = {
 };
 
 int wallCount = 5;
-int shapeCount = 4;
+int shapeCount = 6;
 const int COLLISION_ITERATIONS = 5;
 
+// ============================================================
+// ОСНОВНАЯ ЛОГИКА
+// ============================================================
 void Logic_1() {
-  // 1. Коллизии между фигурами
+  // 1. Коллизии между фигурами (предсказание + итеративное разрешение)
   predictAndResolveCollisions();
 
   // 2. Применяем исправленные позиции
@@ -36,15 +41,13 @@ void Logic_1() {
     shapes[i].yPos = shapes[i].nextY;
   }
 
-  // 3. Итеративная обработка столкновений со стенами (исправленная версия)
+  // 3. Итеративная обработка столкновений со стенами (увеличено до 20 итераций)
   for (int i = 0; i < shapeCount; ++i) {
     bool anyCollision = true;
     int iter = 0;
-    // Повторяем, пока есть пересечения, но не более 10 раз (защита от зацикливания)
-    while (anyCollision && iter < 10) {
+    while (anyCollision && iter < 20) {   // было 10
       anyCollision = false;
       for (int j = 0; j < wallCount; ++j) {
-        // checkShapeWallCollision возвращает true, если было разрешено столкновение
         if (checkShapeWallCollision(shapes[i], walls[j])) {
           anyCollision = true;
         }
@@ -57,8 +60,37 @@ void Logic_1() {
   for (int i = 0; i < shapeCount; ++i) {
     constrainToWalls(shapes[i]);
   }
+
+  // 5. Повторное разрешение коллизий между фигурами (финальный проход)
+  resolveFinalShapeCollisions();
 }
 
+// ============================================================
+// Финальное разрешение коллизий между фигурами
+// ============================================================
+void resolveFinalShapeCollisions() {
+  const int FINAL_ITERATIONS = 3;
+  for (int iter = 0; iter < FINAL_ITERATIONS; ++iter) {
+    bool anyCollision = false;
+    for (int i = 0; i < shapeCount; ++i) {
+      for (int j = i + 1; j < shapeCount; ++j) {
+        bool xOverlap = shapes[i].xPos < shapes[j].xPos + shapes[j].sizeShape &&
+                        shapes[j].xPos < shapes[i].xPos + shapes[i].sizeShape;
+        bool yOverlap = shapes[i].yPos < shapes[j].yPos + shapes[j].sizeShape &&
+                        shapes[j].yPos < shapes[i].yPos + shapes[i].sizeShape;
+        if (xOverlap && yOverlap) {
+          anyCollision = true;
+          resolveCollision(shapes[i], shapes[j]);
+        }
+      }
+    }
+    if (!anyCollision) break;
+  }
+}
+
+// ============================================================
+// Ограничение границами экрана (без изменений)
+// ============================================================
 void constrainToWalls(Shape& s) {
   if (s.xPos <= MIN_XPOS) {
     s.xPos = MIN_XPOS;
@@ -78,6 +110,9 @@ void constrainToWalls(Shape& s) {
   }
 }
 
+// ============================================================
+// Разрешение столкновения между двумя фигурами (без изменений)
+// ============================================================
 void resolveCollision(Shape& a, Shape& b) {
   bool xOverlap = a.xPos < b.xPos + b.sizeShape && b.xPos < a.xPos + a.sizeShape;
   bool yOverlap = a.yPos < b.yPos + b.sizeShape && b.yPos < a.yPos + a.sizeShape;
@@ -122,6 +157,9 @@ void resolveCollision(Shape& a, Shape& b) {
   }
 }
 
+// ============================================================
+// predictAndResolveCollisions (симметричное выталкивание, без изменений)
+// ============================================================
 void predictAndResolveCollisions() {
   for (int i = 0; i < shapeCount; ++i) {
     shapes[i].nextX = shapes[i].xPos + shapes[i].speedX;
@@ -156,7 +194,6 @@ void predictAndResolveCollisions() {
           overlapY = (shapes[j].nextY + shapes[j].sizeShape) - shapes[i].nextY;
         }
 
-        // Симметричное выталкивание
         if (overlapX < overlapY) {
           int shift = overlapX / 2;
           if (shapes[i].nextX < shapes[j].nextX) {
@@ -187,6 +224,9 @@ void predictAndResolveCollisions() {
   }
 }
 
+// ============================================================
+// checkShapeWallCollision – ИСПРАВЛЕНА (убрана проверка направления скорости)
+// ============================================================
 bool checkShapeWallCollision(Shape& s, const Wall& w) {
   bool xOverlap = s.xPos < w.x + w.w && w.x < s.xPos + s.sizeShape;
   bool yOverlap = s.yPos < w.y + w.h && w.y < s.yPos + s.sizeShape;
@@ -209,23 +249,25 @@ bool checkShapeWallCollision(Shape& s, const Wall& w) {
   if (overlapX < overlapY) {
     if (s.xPos < w.x) {
       s.xPos = w.x - s.sizeShape;
-      if (s.speedX < 0) s.speedX = -s.speedX;   // инвертируем, если движемся к стене
     } else {
       s.xPos = w.x + w.w;
-      if (s.speedX > 0) s.speedX = -s.speedX;
     }
+    // Всегда инвертируем скорость – так фигура гарантированно отскочит
+    s.speedX = -s.speedX;
   } else {
     if (s.yPos < w.y) {
       s.yPos = w.y - s.sizeShape;
-      if (s.speedY < 0) s.speedY = -s.speedY;
     } else {
       s.yPos = w.y + w.h;
-      if (s.speedY > 0) s.speedY = -s.speedY;
     }
+    s.speedY = -s.speedY;
   }
   return true;
 }
 
+// ============================================================
+// Отрисовка
+// ============================================================
 void drawFrame() {
   drawShape.clearScreen();
 
@@ -237,6 +279,5 @@ void drawFrame() {
     drawShape.drawFrame(shapes[i]);
   }
 
-  drawShape.dispCord(shapes[0]);
   drawShape.show();
 }

@@ -8,10 +8,13 @@
 
 void constrainToWalls(Shape& s);
 void resolveCollision(Shape& a, Shape& b);
-bool checkShapeWallCollision(Shape& s, const Wall& wall);  // теперь возвращает bool
+bool checkShapeWallCollision(Shape& s, const Wall& wall);
 
 void Logic_1();
 void drawFrame();
+
+// Новая функция для повторного разрешения коллизий между фигурами
+void resolveFinalShapeCollisions();
 
 extern DrawShape drawShape;
 extern Shape shapes[MAX_SHAPES];
