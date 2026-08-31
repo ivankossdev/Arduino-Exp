@@ -30,8 +30,8 @@ connectionStatus.className = 'value connecting';
 const connectOptions = {
     useSSL: isSecure,
     timeout: 3,
-    userName: "esp32_user",   // <-- обязательно добавьте
-    password: "1234",          // <-- и пароль
+    userName: "esp32_user",
+    password: "1234",   
     onSuccess: () => {
         console.log('Подключено к MQTT брокеру через Nginx');
         isConnected = true;
