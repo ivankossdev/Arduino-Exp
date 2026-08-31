@@ -7,7 +7,7 @@ WebService webService(appState);
 void setup() {
     // Serial.begin(115200);
     // Инициализация светодиода
-    appState.beginLed(8, true);
+    appState.beginLed(10, false);
 
     // Инициализация дисплея
     if (!appState.getDisplayService().begin()) {
