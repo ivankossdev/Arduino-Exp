@@ -4,7 +4,7 @@ AppState::AppState()
     : _stateManager(),
       _wifiService(_stateManager),
       _mqttService(_stateManager),
-      _displayService(_stateManager, _wifiService, _mqttService)
+      _displayService(_stateManager, _wifiService, _mqttService, *this)   // Передаём ссылку на себя
 {
     // Светодиод по умолчанию выключен
     _led.setMode(LED_OFF);

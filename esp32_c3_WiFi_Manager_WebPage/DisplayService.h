@@ -9,13 +9,18 @@
 #include "WiFiService.h"
 #include "MqttService.h"
 
+// Предварительное объявление класса AppState для избежания циклической зависимости
+class AppState;
+
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 #define OLED_RESET -1
 
 class DisplayService {
 public:
-    DisplayService(StateManager& stateManager, WiFiService& wifiService, MqttService& mqttService);
+    // Конструктор теперь принимает ссылку на AppState для доступа к состоянию лампы
+    DisplayService(StateManager& stateManager, WiFiService& wifiService,
+                   MqttService& mqttService, AppState& appState);
 
     bool begin();
     void update();
@@ -24,6 +29,7 @@ private:
     StateManager& _stateManager;
     WiFiService& _wifiService;
     MqttService& _mqttService;
+    AppState& _appState;          // Ссылка на главный объект приложения
     Adafruit_SSD1306 _display;
 
     unsigned long _lastUpdate;
@@ -34,7 +40,7 @@ private:
     void drawClientMode();
     void drawError();
     void drawConnecting();
-    void drawScanning();   // <--- добавлен прототип
+    void drawScanning();
 
     void setState(AppStateEnum newState);
     void handleStateChange(AppStateEnum newState);

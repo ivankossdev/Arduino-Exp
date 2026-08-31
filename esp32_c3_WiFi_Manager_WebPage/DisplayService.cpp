@@ -1,12 +1,15 @@
 #include "DisplayService.h"
+#include "AppState.h"   // Теперь нужен для вызова getLedState()
 
-DisplayService::DisplayService(StateManager& stateManager, WiFiService& wifiService, MqttService& mqttService)
+DisplayService::DisplayService(StateManager& stateManager, WiFiService& wifiService,
+                               MqttService& mqttService, AppState& appState)
     : _stateManager(stateManager),
       _wifiService(wifiService),
       _mqttService(mqttService),
+      _appState(appState),          // Инициализация ссылки на AppState
       _display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET),
       _lastUpdate(0),
-      _updateInterval(2000), // Обновление каждые 2 секунды
+      _updateInterval(2000),
       _currentState(AppStateEnum::IDLE)
 {
     // Регистрируем колбэк на изменение состояния
@@ -16,7 +19,7 @@ DisplayService::DisplayService(StateManager& stateManager, WiFiService& wifiServ
 }
 
 bool DisplayService::begin() {
-    // Инициализация I2C (пины могут отличаться, для ESP32-C3 обычно SDA=4, SCL=5)
+    // Инициализация I2C (пины можно настроить под свою плату)
     // Wire.begin(4, 5);  // SDA, SCL
 
     if (!_display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
@@ -37,7 +40,6 @@ bool DisplayService::begin() {
 }
 
 void DisplayService::update() {
-    // Обновляем экран по таймеру (для отображения динамических данных)
     unsigned long now = millis();
     if (now - _lastUpdate >= _updateInterval) {
         _lastUpdate = now;
@@ -47,7 +49,7 @@ void DisplayService::update() {
 
 void DisplayService::handleStateChange(AppStateEnum newState) {
     _currentState = newState;
-    drawScreen(); // Сразу обновляем экран при смене состояния
+    drawScreen();
 }
 
 void DisplayService::drawScreen() {
@@ -105,6 +107,13 @@ void DisplayService::drawClientMode() {
 
     _display.print("MQTT: ");
     _display.println(_mqttService.isConnected() ? "OK" : "NO");
+
+    // -------- НОВЫЙ БЛОК: отображение состояния лампы ----------
+    // Получаем состояние светодиода через AppState и выводим на экран
+    bool ledOn = _appState.getLedState();
+    _display.print("LAMP: ");
+    _display.println(ledOn ? "ON" : "OFF");
+    // -----------------------------------------------------------
 
     _display.display();
 }
