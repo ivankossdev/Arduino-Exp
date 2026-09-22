@@ -9,6 +9,10 @@
 // Тип колбэка для обработки входящих MQTT-сообщений
 typedef std::function<void(const String& topic, const String& payload)> MqttMessageCallback;
 
+// === ИЗМЕНЕНИЕ: тип колбэка для события успешного (пере)подключения к брокеру ===
+typedef std::function<void()> MqttConnectedCallback;
+// === КОНЕЦ ИЗМЕНЕНИЯ ===
+
 class MqttService {
 public:
     MqttService(StateManager& stateManager);
@@ -37,11 +41,19 @@ public:
     // --- Установка колбэка для входящих сообщений ---
     void setMessageCallback(MqttMessageCallback callback);
 
+    // === ИЗМЕНЕНИЕ: установка внешнего колбэка на успешное (пере)подключение ===
+    void setOnConnected(MqttConnectedCallback callback);
+    // === КОНЕЦ ИЗМЕНЕНИЯ ===
+
 private:
     StateManager& _stateManager;
     MqttManager _manager;
     MqttCredentials _credentials;
     MqttMessageCallback _messageCallback;
+
+    // === ИЗМЕНЕНИЕ: храним внешний колбэк (пере)подключения ===
+    MqttConnectedCallback _connectedCallback;
+    // === КОНЕЦ ИЗМЕНЕНИЯ ===
 
     // Приватный обработчик (вызывается из статического колбэка MqttManager)
     void handleMessage(const String& topic, const String& payload);

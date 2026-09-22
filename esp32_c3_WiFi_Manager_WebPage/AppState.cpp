@@ -13,6 +13,20 @@ AppState::AppState()
     _mqttService.setMessageCallback([this](const String& topic, const String& payload) {
         this->handleMqttMessage(topic, payload);
     });
+
+    // === ИЗМЕНЕНИЕ: публикуем актуальное состояние лампы при (пере)подключении к MQTT ===
+    // Раньше MqttManager после каждого реконнекта принудительно публиковал "OFF",
+    // из-за чего состояние на брокере расходилось с реальным (например, если лампа
+    // была включена через веб-интерфейс, а потом MQTT переподключился).
+    // Теперь на реконнект AppState сам публикует то состояние, которое реально
+    // сейчас у светодиода — синхронизация сохраняется при любых обрывах связи.
+    _mqttService.setOnConnected([this]() {
+        bool on = _led.getState();
+        Serial.printf("🔄 MQTT (пере)подключён — публикуем актуальное состояние лампы: %s\n",
+                      on ? "ON" : "OFF");
+        _mqttService.publishState(on ? "ON" : "OFF");
+    });
+    // === КОНЕЦ ИЗМЕНЕНИЯ ===
 }
 
 void AppState::begin() {

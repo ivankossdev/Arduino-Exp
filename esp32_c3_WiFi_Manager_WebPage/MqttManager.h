@@ -8,6 +8,10 @@
 
 typedef std::function<void(const String& topic, const String& payload)> MqttCallback;
 
+// === ИЗМЕНЕНИЕ: новый тип колбэка для события успешного (пере)подключения ===
+typedef std::function<void()> MqttConnectedCallback;
+// === КОНЕЦ ИЗМЕНЕНИЯ ===
+
 class MqttManager {
 public:
     MqttManager();
@@ -18,6 +22,12 @@ public:
                const String& cmdTopic, const String& stateTopic);
 
     static void setCallback(MqttCallback callback);
+
+    // === ИЗМЕНЕНИЕ: регистрация колбэка, вызываемого после успешного (пере)подключения ===
+    // Нужно для того, чтобы внешний код (AppState) мог опубликовать актуальное
+    // состояние лампы вместо принудительного "OFF", который был раньше.
+    static void setOnConnected(MqttConnectedCallback callback);
+    // === КОНЕЦ ИЗМЕНЕНИЯ ===
 
     void update();
 
@@ -38,6 +48,10 @@ private:
     String _stateTopic;
 
     static MqttCallback _callback;
+
+    // === ИЗМЕНЕНИЕ: статический колбэк на (пере)подключение ===
+    static MqttConnectedCallback _onConnected;
+    // === КОНЕЦ ИЗМЕНЕНИЯ ===
 
     static void staticCallback(char* topic, byte* payload, unsigned int length);
     void internalCallback(const String& topic, const String& payload);

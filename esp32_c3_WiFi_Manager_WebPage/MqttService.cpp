@@ -1,7 +1,10 @@
 #include "MqttService.h"
 
+// === ИЗМЕНЕНИЕ: инициализируем новый колбэк в списке инициализации ===
 MqttService::MqttService(StateManager& stateManager)
-    : _stateManager(stateManager), _messageCallback(nullptr) {}
+    : _stateManager(stateManager), _messageCallback(nullptr),
+      _connectedCallback(nullptr) {}
+// === КОНЕЦ ИЗМЕНЕНИЯ ===
 
 // --- Инициализация с сохранёнными настройками ---
 bool MqttService::begin() {
@@ -28,6 +31,19 @@ bool MqttService::begin() {
         MqttManager::setCallback([this](const String& topic, const String& payload) {
             this->handleMessage(topic, payload);
         });
+
+        // === ИЗМЕНЕНИЕ: пробрасываем колбэк (пере)подключения от менеджера наружу ===
+        // MqttManager уведомляет нас о факте подключения — мы, в свою очередь,
+        // вызываем внешний _connectedCallback, который был установлен через
+        // setOnConnected(). Так AppState получает шанс опубликовать актуальное
+        // состояние лампы после реконнекта.
+        MqttManager::setOnConnected([this]() {
+            if (this->_connectedCallback) {
+                this->_connectedCallback();
+            }
+        });
+        // === КОНЕЦ ИЗМЕНЕНИЯ ===
+
         Serial.println("MQTT Manager инициализирован с сохранёнными настройками");
     } else {
         Serial.println("Ошибка инициализации MQTT Manager");
@@ -86,6 +102,12 @@ bool MqttService::isConnected() {
 void MqttService::setMessageCallback(MqttMessageCallback callback) {
     _messageCallback = callback;
 }
+
+// === ИЗМЕНЕНИЕ: реализация установки внешнего колбэка (пере)подключения ===
+void MqttService::setOnConnected(MqttConnectedCallback callback) {
+    _connectedCallback = callback;
+}
+// === КОНЕЦ ИЗМЕНЕНИЯ ===
 
 // --- Приватный обработчик входящих сообщений ---
 void MqttService::handleMessage(const String& topic, const String& payload) {

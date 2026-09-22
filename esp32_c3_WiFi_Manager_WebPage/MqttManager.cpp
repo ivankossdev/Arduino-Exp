@@ -2,6 +2,10 @@
 
 MqttCallback MqttManager::_callback = nullptr;
 
+// === ИЗМЕНЕНИЕ: определение статического колбэка (пере)подключения ===
+MqttConnectedCallback MqttManager::_onConnected = nullptr;
+// === КОНЕЦ ИЗМЕНЕНИЯ ===
+
 MqttManager::MqttManager()
     : _port(1883), _mqttClient(_wifiClient) {}
 
@@ -24,6 +28,12 @@ bool MqttManager::begin(const String& server, int port,
 void MqttManager::setCallback(MqttCallback callback) {
     _callback = callback;
 }
+
+// === ИЗМЕНЕНИЕ: реализация регистрации колбэка (пере)подключения ===
+void MqttManager::setOnConnected(MqttConnectedCallback callback) {
+    _onConnected = callback;
+}
+// === КОНЕЦ ИЗМЕНЕНИЯ ===
 
 void MqttManager::staticCallback(char* topic, byte* payload, unsigned int length) {
     String message;
@@ -84,7 +94,20 @@ void MqttManager::reconnect() {
         } else {
             Serial.println("Ошибка подписки на топик!");
         }
-        publishState("OFF", true);
+
+        // === ИЗМЕНЕНИЕ: вместо принудительной публикации "OFF" уведомляем подписчика ===
+        // Раньше здесь было:
+        //     publishState("OFF", true);
+        // Из-за этого при каждом реконнекте брокер получал "OFF" независимо от
+        // фактического состояния лампы, и состояние на брокере рассинхронизировалось
+        // с реальным. Теперь MqttManager не навязывает состояние — он только
+        // сообщает наружу о факте подключения, а актуальное состояние публикует
+        // тот, кто реально им управляет (AppState).
+        if (_onConnected) {
+            _onConnected();
+        }
+        // === КОНЕЦ ИЗМЕНЕНИЯ ===
+
         attempts = 0;
         lastAttemptTime = 0;
     } else {
@@ -97,7 +120,6 @@ void MqttManager::reconnect() {
     }
 }
 
-// --- ДОБАВЛЕННАЯ РЕАЛИЗАЦИЯ publishState ---
 bool MqttManager::publishState(const String& message, bool retained) {
     if (!_mqttClient.connected()) return false;
     return _mqttClient.publish(_stateTopic.c_str(), message.c_str(), retained);
