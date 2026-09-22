@@ -71,6 +71,19 @@ void AppState::update() {
 
 void AppState::setLed(bool on) {
     _led.setMode(on ? LED_ON : LED_OFF);
+
+    // === ИЗМЕНЕНИЕ ===
+    // Публикуем новое состояние светодиода в MQTT-брокер.
+    // Это нужно, чтобы команды, пришедшие из веб-интерфейса
+    // (WebService::handleLed -> AppState::setLed), а также из любого
+    // другого источника, отражались в топике состояния MQTT.
+    // Публикуем только если MQTT-клиент реально подключён к брокеру,
+    // чтобы не терять сообщения в никуда и не пытаться писать в
+    // неподключённый PubSubClient.
+    if (_mqttService.isConnected()) {
+        _mqttService.publishState(on ? "ON" : "OFF");
+    }
+    // === КОНЕЦ ИЗМЕНЕНИЯ ===
 }
 
 bool AppState::getLedState() const {
