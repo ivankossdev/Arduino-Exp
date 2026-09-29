@@ -79,7 +79,6 @@ public:
 
     // --- Получение статуса в JSON (опционально) ---
     String getStatusJson();
-    
 
 private:
     StateManager _stateManager;
@@ -87,6 +86,17 @@ private:
     WiFiService _wifiService;
     MqttService _mqttService;    
     DisplayService _displayService;
+
+    // === ИЗМЕНЕНИЕ (п.1.2): поля для синхронизации с retained-состоянием ===
+    // _awaitingRetainedState — true, пока мы после (пере)подключения ждём
+    //   retained-сообщение из state-топика, чтобы применить его к лампе.
+    // _connectedAt — момент последнего успешного (пере)подключения к брокеру;
+    //   нужен, чтобы по таймауту опубликовать своё состояние, если retained
+    //   на брокере отсутствует (первый запуск / топик пустой).
+    bool _awaitingRetainedState = false;
+    unsigned long _connectedAt = 0;
+    const unsigned long _retainedWaitTimeout = 1500; // мс
+    // === КОНЕЦ ИЗМЕНЕНИЯ ===
 
     // Приватный метод для обработки MQTT-сообщений (регистрируем как колбэк)
     void handleMqttMessage(const String& topic, const String& payload);

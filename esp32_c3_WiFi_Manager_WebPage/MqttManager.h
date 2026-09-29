@@ -24,8 +24,6 @@ public:
     static void setCallback(MqttCallback callback);
 
     // === ИЗМЕНЕНИЕ: регистрация колбэка, вызываемого после успешного (пере)подключения ===
-    // Нужно для того, чтобы внешний код (AppState) мог опубликовать актуальное
-    // состояние лампы вместо принудительного "OFF", который был раньше.
     static void setOnConnected(MqttConnectedCallback callback);
     // === КОНЕЦ ИЗМЕНЕНИЯ ===
 
@@ -33,6 +31,12 @@ public:
 
     bool publishState(const String& message, bool retained = true);
     bool isConnected();  
+
+    // === ИЗМЕНЕНИЕ (п.1.2): публичная подписка на произвольный топик ===
+    // Нужна AppState, чтобы подписаться на топик состояния и прочитать
+    // retained-значение сразу после (пере)подключения к брокеру.
+    bool subscribe(const String& topic);
+    // === КОНЕЦ ИЗМЕНЕНИЯ ===
 
     void reconnect();
 

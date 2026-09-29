@@ -45,6 +45,12 @@ public:
     void setOnConnected(MqttConnectedCallback callback);
     // === КОНЕЦ ИЗМЕНЕНИЯ ===
 
+    // === ИЗМЕНЕНИЕ (п.1.2): подписка на топик состояния ===
+    // Обёртка над MqttManager::subscribe для подписки на state-топик с целью
+    // чтения retained-значения после (пере)подключения.
+    bool subscribeState();
+    // === КОНЕЦ ИЗМЕНЕНИЯ ===
+
 private:
     StateManager& _stateManager;
     MqttManager _manager;

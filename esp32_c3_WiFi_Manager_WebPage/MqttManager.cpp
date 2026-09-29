@@ -35,6 +35,15 @@ void MqttManager::setOnConnected(MqttConnectedCallback callback) {
 }
 // === КОНЕЦ ИЗМЕНЕНИЯ ===
 
+// === ИЗМЕНЕНИЕ (п.1.2): публичная подписка на топик ===
+// Используется AppState для подписки на state-топик после (пере)подключения.
+bool MqttManager::subscribe(const String& topic) {
+    if (!_mqttClient.connected()) return false;
+    if (topic.length() == 0) return false;
+    return _mqttClient.subscribe(topic.c_str());
+}
+// === КОНЕЦ ИЗМЕНЕНИЯ ===
+
 void MqttManager::staticCallback(char* topic, byte* payload, unsigned int length) {
     String message;
     for (unsigned int i = 0; i < length; i++) {
@@ -96,13 +105,9 @@ void MqttManager::reconnect() {
         }
 
         // === ИЗМЕНЕНИЕ: вместо принудительной публикации "OFF" уведомляем подписчика ===
-        // Раньше здесь было:
-        //     publishState("OFF", true);
-        // Из-за этого при каждом реконнекте брокер получал "OFF" независимо от
-        // фактического состояния лампы, и состояние на брокере рассинхронизировалось
-        // с реальным. Теперь MqttManager не навязывает состояние — он только
-        // сообщает наружу о факте подключения, а актуальное состояние публикует
-        // тот, кто реально им управляет (AppState).
+        // Раньше здесь было publishState("OFF", true). Теперь MqttManager не навязывает
+        // состояние — он только сообщает наружу о факте подключения, а решение о том,
+        // что и когда публиковать, принимает AppState (см. AppState.cpp: onConnected).
         if (_onConnected) {
             _onConnected();
         }

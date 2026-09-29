@@ -34,9 +34,9 @@ bool MqttService::begin() {
 
         // === ИЗМЕНЕНИЕ: пробрасываем колбэк (пере)подключения от менеджера наружу ===
         // MqttManager уведомляет нас о факте подключения — мы, в свою очередь,
-        // вызываем внешний _connectedCallback, который был установлен через
-        // setOnConnected(). Так AppState получает шанс опубликовать актуальное
-        // состояние лампы после реконнекта.
+        // вызываем внешний _connectedCallback, который установлен через
+        // setOnConnected(). Так AppState получает шанс синхронизировать лампу
+        // с retained-состоянием брокера.
         MqttManager::setOnConnected([this]() {
             if (this->_connectedCallback) {
                 this->_connectedCallback();
@@ -109,6 +109,19 @@ void MqttService::setOnConnected(MqttConnectedCallback callback) {
 }
 // === КОНЕЦ ИЗМЕНЕНИЯ ===
 
+// === ИЗМЕНЕНИЕ (п.1.2): подписка на топик состояния ===
+// Возвращает false, если топик пуст или клиент не подключён — в этих случаях
+// читать retained бессмысленно.
+bool MqttService::subscribeState() {
+    String stateTopic = _credentials.getStateTopic();
+    if (stateTopic.length() == 0) {
+        Serial.println("⚠️ MQTT: state-топик не задан, пропускаем подписку на retained.");
+        return false;
+    }
+    return _manager.subscribe(stateTopic);
+}
+// === КОНЕЦ ИЗМЕНЕНИЯ ===
+
 // --- Приватный обработчик входящих сообщений ---
 void MqttService::handleMessage(const String& topic, const String& payload) {
     Serial.printf("MQTT получено: топик=%s, сообщение=%s\n", topic.c_str(), payload.c_str());
@@ -118,6 +131,7 @@ void MqttService::handleMessage(const String& topic, const String& payload) {
         _messageCallback(topic, payload);
     } else {
         // Встроенная обработка (для совместимости со старой логикой)
+        // Оставлена как есть; основной путь идёт через _messageCallback → AppState.
         if (topic == "home/lamp/command") {
             if (payload == "ON") {
                 Serial.println("Lamp ON");
