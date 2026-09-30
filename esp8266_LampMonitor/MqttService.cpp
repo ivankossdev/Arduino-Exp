@@ -2,7 +2,7 @@
 
 MqttService::MqttService(StateManager& stateManager)
     : _stateManager(stateManager), _messageCallback(nullptr),
-      _connectedCallback(nullptr) {}
+      _connectedCallback(nullptr), _callbacksRegistered(false) {}
 
 bool MqttService::begin() {
     if (!loadCredentials()) {
@@ -21,17 +21,31 @@ bool MqttService::begin() {
         return false;
     }
 
+    // === ИСПРАВЛЕНИЕ: если уже подключены к старому брокеру — рвём соединение,
+    // чтобы не остались висеть старые подписки. Без этого повторный вызов
+    // begin() после сохранения настроек через веб мог приводить к дублированию
+    // сообщений (SUBSCRIBE отправлялся дважды для одного и того же топика).
+    _manager.disconnect();
+
     bool result = _manager.begin(server, port, user, password, stateTopic);
     if (result) {
-        MqttManager::setCallback([this](const String& topic, const String& payload) {
-            this->handleMessage(topic, payload);
-        });
+        // === ИСПРАВЛЕНИЕ: регистрируем статические колбэки РОВНО ОДИН РАЗ ===
+        // Если делать это при каждом begin(), вторая регистрация перезапишет
+        // лямбду от первой. Само по себе это не смертельно, но исторически
+        // провоцировало двойную подписку на брокере. Регистрируем один раз.
+        if (!_callbacksRegistered) {
+            MqttManager::setCallback([this](const String& topic, const String& payload) {
+                this->handleMessage(topic, payload);
+            });
 
-        MqttManager::setOnConnected([this]() {
-            if (this->_connectedCallback) {
-                this->_connectedCallback();
-            }
-        });
+            MqttManager::setOnConnected([this]() {
+                if (this->_connectedCallback) {
+                    this->_connectedCallback();
+                }
+            });
+
+            _callbacksRegistered = true;
+        }
 
         Serial.println("MQTT Manager инициализирован");
     } else {
@@ -40,7 +54,6 @@ bool MqttService::begin() {
     return result;
 }
 
-// === ИЗМЕНЕНО: сигнатура без cmdTopic ===
 bool MqttService::begin(const String& server, int port,
                         const String& user, const String& password,
                         const String& stateTopic) {
@@ -59,7 +72,6 @@ bool MqttService::configure(const String& server, int port,
     _credentials.setUser(user);
     _credentials.setPassword(password);
     _credentials.setStateTopic(stateTopic);
-    // === УДАЛЕНО: setCmdTopic ===
     return saveCredentials();
 }
 
@@ -74,8 +86,6 @@ bool MqttService::loadCredentials() {
 void MqttService::update() {
     _manager.update();
 }
-
-// === УДАЛЕНО: publishState ===
 
 bool MqttService::isConnected() {
     return _manager.isConnected();
@@ -104,6 +114,4 @@ void MqttService::handleMessage(const String& topic, const String& payload) {
     if (_messageCallback) {
         _messageCallback(topic, payload);
     }
-    // === УДАЛЕНО: fallback с хардкодом home/lamp/command ===
-    // Теперь единственный путь — через _messageCallback → AppState → LampStateService.
 }

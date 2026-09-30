@@ -14,7 +14,6 @@ public:
     MqttService(StateManager& stateManager);
 
     bool begin();
-    // === ИЗМЕНЕНО: сигнатуры без cmdTopic ===
     bool begin(const String& server, int port,
                const String& user, const String& password,
                const String& stateTopic);
@@ -26,8 +25,6 @@ public:
     MqttCredentials& getCredentials() { return _credentials; }
 
     void update();
-
-    // === УДАЛЕНО: publishState — только чтение ===
 
     bool isConnected();
 
@@ -42,6 +39,13 @@ private:
     MqttCredentials _credentials;
     MqttMessageCallback _messageCallback;
     MqttConnectedCallback _connectedCallback;
+
+    // === НОВОЕ: флаг, что статические колбэки уже зарегистрированы ===
+    // MqttManager::setCallback и setOnConnected — статические, и их повторная
+    // регистрация при каждом begin() может приводить к нежелательным эффектам
+    // (перезапись лямбд, двойная подписка, дублирование сообщений).
+    // Регистрируем один раз — при первом успешном begin().
+    bool _callbacksRegistered = false;
 
     void handleMessage(const String& topic, const String& payload);
 };

@@ -6,7 +6,6 @@ MqttConnectedCallback MqttManager::_onConnected = nullptr;
 MqttManager::MqttManager()
     : _port(1883), _mqttClient(_wifiClient) {}
 
-// === ИЗМЕНЕНО: убран cmdTopic, убрана подписка на cmdTopic ===
 bool MqttManager::begin(const String& server, int port,
                         const String& user, const String& password,
                         const String& stateTopic) {
@@ -20,6 +19,18 @@ bool MqttManager::begin(const String& server, int port,
     _mqttClient.setCallback(staticCallback);
     _mqttClient.setBufferSize(1024);
     return true;
+}
+
+// === НОВОЕ: чистый разрыв соединения ===
+// Вызывается из MqttService::begin() перед повторной инициализацией.
+// Нам не нужны «зависшие» подписки на брокере от прошлой сессии.
+void MqttManager::disconnect() {
+    if (_mqttClient.connected()) {
+        _mqttClient.disconnect();
+        // Даём PubSubClient время отправить DISCONNECT-пакет,
+        // прежде чем перезаписывать настройки сервера.
+        delay(50);
+    }
 }
 
 void MqttManager::setCallback(MqttCallback callback) {
@@ -90,9 +101,7 @@ void MqttManager::reconnect() {
     if (_mqttClient.connect(clientId.c_str(), _user.c_str(), _password.c_str())) {
         Serial.println(" ✅ MQTT подключён");
 
-        // === УДАЛЕНО: подписка на cmdTopic (устройство только читает) ===
-        // === ОСТАВЛЕНО: уведомление о подключении — LampStateService подпишется сам ===
-
+        // Уведомляем подписчиков — LampStateService подпишется на свой топик сам
         if (_onConnected) {
             _onConnected();
         }
@@ -108,5 +117,3 @@ void MqttManager::reconnect() {
         Serial.printf("Следующая попытка через %lu сек\n", delayMs / 1000);
     }
 }
-
-// === УДАЛЕНО: publishState ===
