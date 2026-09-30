@@ -6,7 +6,7 @@ MqttService::MqttService(StateManager& stateManager)
 
 bool MqttService::begin() {
     if (!loadCredentials()) {
-        Serial.println("⚠️ Нет сохранённых настроек MQTT.");
+        Serial.println("[MQTT] Настройки не найдены");
         return false;
     }
 
@@ -17,22 +17,14 @@ bool MqttService::begin() {
     String stateTopic = _credentials.getStateTopic();
 
     if (server.length() == 0) {
-        Serial.println("⚠️ Сервер MQTT не задан.");
+        Serial.println("[MQTT] Сервер не задан");
         return false;
     }
 
-    // === ИСПРАВЛЕНИЕ: если уже подключены к старому брокеру — рвём соединение,
-    // чтобы не остались висеть старые подписки. Без этого повторный вызов
-    // begin() после сохранения настроек через веб мог приводить к дублированию
-    // сообщений (SUBSCRIBE отправлялся дважды для одного и того же топика).
     _manager.disconnect();
 
     bool result = _manager.begin(server, port, user, password, stateTopic);
     if (result) {
-        // === ИСПРАВЛЕНИЕ: регистрируем статические колбэки РОВНО ОДИН РАЗ ===
-        // Если делать это при каждом begin(), вторая регистрация перезапишет
-        // лямбду от первой. Само по себе это не смертельно, но исторически
-        // провоцировало двойную подписку на брокере. Регистрируем один раз.
         if (!_callbacksRegistered) {
             MqttManager::setCallback([this](const String& topic, const String& payload) {
                 this->handleMessage(topic, payload);
@@ -46,10 +38,11 @@ bool MqttService::begin() {
 
             _callbacksRegistered = true;
         }
-
-        Serial.println("MQTT Manager инициализирован");
+        // === ИЗМЕНЕНО: убран лог "MQTT Manager инициализирован" ===
+        // Успешная инициализация видна по последующему "[MQTT] Подключено"
+        // или "[MQTT] FAIL ..." от MqttManager::reconnect().
     } else {
-        Serial.println("Ошибка инициализации MQTT Manager");
+        Serial.println("[MQTT] Ошибка инициализации");
     }
     return result;
 }
@@ -58,7 +51,7 @@ bool MqttService::begin(const String& server, int port,
                         const String& user, const String& password,
                         const String& stateTopic) {
     if (!configure(server, port, user, password, stateTopic)) {
-        Serial.println("Ошибка сохранения настроек MQTT");
+        Serial.println("[MQTT] Ошибка сохранения настроек");
         return false;
     }
     return begin();
@@ -102,15 +95,17 @@ void MqttService::setOnConnected(MqttConnectedCallback callback) {
 bool MqttService::subscribeState() {
     String stateTopic = _credentials.getStateTopic();
     if (stateTopic.length() == 0) {
-        Serial.println("⚠️ MQTT: state-топик не задан, пропускаем подписку.");
+        Serial.println("[MQTT] state-топик не задан");
         return false;
     }
     return _manager.subscribe(stateTopic);
 }
 
 void MqttService::handleMessage(const String& topic, const String& payload) {
-    Serial.printf("MQTT получено: topic=%s, payload=%s\n", topic.c_str(), payload.c_str());
-
+    // === ИЗМЕНЕНО: убран лог "MQTT получено: topic=..., payload=..." ===
+    // Он дублировал то, что уже логирует LampStateService. Транспортный
+    // уровень сам по себе не несёт полезной информации — важно только
+    // применение значения, а это видно по "[LAMP] ...".
     if (_messageCallback) {
         _messageCallback(topic, payload);
     }

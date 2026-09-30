@@ -27,12 +27,11 @@ bool WiFiService::startScan() {
         _hasScanResult = true;
         setState(AppStateEnum::IDLE);
         return true;
-    } else {
-        _networkCount = 0;
-        _hasScanResult = false;
-        setState(AppStateEnum::IDLE);
-        return false;
     }
+    _networkCount = 0;
+    _hasScanResult = false;
+    setState(AppStateEnum::IDLE);
+    return false;
 }
 
 int WiFiService::getNetworkCount() const { return _networkCount; }
@@ -53,12 +52,8 @@ bool WiFiService::connect(const String& ssid, const String& password) {
         setState(AppStateEnum::CONNECTED);
         _lastSSID = ssid;
         _lastPassword = password;
-        Serial.println("✅ Подключено успешно!");
-        Serial.print("IP-адрес: ");
-        Serial.println(WiFi.localIP());
     } else {
         setState(AppStateEnum::ERROR);
-        Serial.println("❌ Ошибка подключения.");
     }
     return success;
 }
@@ -77,12 +72,10 @@ bool WiFiService::connectToSavedNetwork(int index) {
 
 bool WiFiService::saveCurrentNetwork() {
     if (!isConnected()) {
-        Serial.println("⚠️ Нет подключения к Wi-Fi.");
         return false;
     }
     String currentSSID = WiFi.SSID();
     if (currentSSID.length() == 0) {
-        Serial.println("⚠️ Не удалось получить SSID.");
         return false;
     }
     if (_lastSSID != currentSSID) {
@@ -91,19 +84,16 @@ bool WiFiService::saveCurrentNetwork() {
         if (savedPass.length() > 0) {
             _lastPassword = savedPass;
         } else {
-            Serial.println("⚠️ Пароль не сохранён.");
             return false;
         }
     }
     if (_lastSSID.length() == 0 || _lastPassword.length() == 0) {
-        Serial.println("⚠️ Нет данных для сохранения.");
         return false;
     }
     if (_credentials.save(_lastSSID, _lastPassword)) {
-        Serial.printf("✅ Сеть \"%s\" сохранена.\n", _lastSSID.c_str());
+        Serial.printf("[WiFi] Сеть \"%s\" сохранена\n", _lastSSID.c_str());
         return true;
     }
-    Serial.println("❌ Ошибка сохранения.");
     return false;
 }
 
@@ -148,7 +138,7 @@ const char* WiFiService::getEncryptionType(uint8_t encType) const {
 void WiFiService::autoConnect() {
     int count = _credentials.count();
     if (count == 0) {
-        Serial.println("ℹ️ Нет сохранённых сетей для автоподключения.");
+        Serial.println("[WiFi] Нет сохранённых сетей");
         setState(AppStateEnum::ERROR);
         return;
     }
@@ -157,18 +147,13 @@ void WiFiService::autoConnect() {
         String ssid = _credentials.getSSID(i);
         String password = _credentials.getPasswordByIndex(i);
 
-        if (ssid.length() == 0 || password.length() == 0) {
-            Serial.printf("⚠️ Ошибка получения данных сети #%d, пропускаем.\n", i);
-            continue;
-        }
+        if (ssid.length() == 0 || password.length() == 0) continue;
 
-        Serial.printf("🔄 Попытка подключения к \"%s\"...\n", ssid.c_str());
         if (connect(ssid, password)) return;
-        Serial.printf("❌ Не удалось подключиться к \"%s\".\n", ssid.c_str());
         setState(AppStateEnum::IDLE);
         delay(500);
     }
 
-    Serial.println("❌ Не удалось подключиться ни к одной сохранённой сети.");
+    Serial.println("[WiFi] Все попытки подключения провалились");
     setState(AppStateEnum::ERROR);
 }

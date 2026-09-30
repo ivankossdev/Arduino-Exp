@@ -21,14 +21,9 @@ bool MqttManager::begin(const String& server, int port,
     return true;
 }
 
-// === НОВОЕ: чистый разрыв соединения ===
-// Вызывается из MqttService::begin() перед повторной инициализацией.
-// Нам не нужны «зависшие» подписки на брокере от прошлой сессии.
 void MqttManager::disconnect() {
     if (_mqttClient.connected()) {
         _mqttClient.disconnect();
-        // Даём PubSubClient время отправить DISCONNECT-пакет,
-        // прежде чем перезаписывать настройки сервера.
         delay(50);
     }
 }
@@ -82,7 +77,7 @@ void MqttManager::reconnect() {
     }
 
     if (attempts >= MAX_ATTEMPTS) {
-        Serial.println("❌ MQTT: превышено максимальное число попыток.");
+        Serial.println("[MQTT] Превышен лимит попыток — до перезагрузки");
         return;
     }
 
@@ -91,29 +86,20 @@ void MqttManager::reconnect() {
         return;
     }
 
-    Serial.print("Попытка подключения к MQTT... (");
-    Serial.print(attempts + 1);
-    Serial.print("/");
-    Serial.print(MAX_ATTEMPTS);
-    Serial.println(")");
-
     String clientId = "ESP8266_Client_" + String(random(0xffff), HEX);
     if (_mqttClient.connect(clientId.c_str(), _user.c_str(), _password.c_str())) {
-        Serial.println(" ✅ MQTT подключён");
-
-        // Уведомляем подписчиков — LampStateService подпишется на свой топик сам
-        if (_onConnected) {
-            _onConnected();
-        }
-
+        // === ИЗМЕНЕНО: один короткий лог на успех ===
+        Serial.println("[MQTT] Подключено");
+        if (_onConnected) _onConnected();
         attempts = 0;
         lastAttemptTime = 0;
     } else {
-        Serial.printf(" ❌ MQTT fail, rc=%d\n", _mqttClient.state());
+        // === ИЗМЕНЕНО: один лог на провал с rc и временем до следующей попытки ===
         attempts++;
         lastAttemptTime = millis();
         unsigned long delayMs = BASE_DELAY << (attempts - 1);
         if (delayMs > 60000) delayMs = 60000;
-        Serial.printf("Следующая попытка через %lu сек\n", delayMs / 1000);
+        Serial.printf("[MQTT] FAIL rc=%d, retry %lus\n",
+                      _mqttClient.state(), delayMs / 1000);
     }
 }

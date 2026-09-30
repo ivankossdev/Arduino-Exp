@@ -295,11 +295,8 @@ void WebService::begin(bool apMode) {
         startApMode();
     } else {
         WiFi.mode(WIFI_STA);
-        Serial.print("Веб-сервер запущен, IP: ");
-        Serial.println(WiFi.localIP());
-
-        // === НОВОЕ: фиксируем стартовый момент — считаем, что Wi-Fi пока ОК ===
-        _lastWifiOk = millis();
+        Serial.printf("[WEB] Сервер запущен, IP %s\n",
+                      WiFi.localIP().toString().c_str());
     }
     _server.begin();
 }
@@ -314,7 +311,6 @@ void WebService::startApMode() {
     String password = "12345678";
     WiFi.softAP(ssid.c_str(), password.c_str());
     _appState.getWiFiService().setApCredentials(ssid, password);
-    Serial.println("♻️ AP запущен/восстановлен, IP: 192.168.4.1");
 }
 
 // === НОВЫЙ МЕТОД: следим за потерей Wi-Fi в клиентском режиме ===
@@ -337,7 +333,7 @@ void WebService::checkWifiLoss() {
     }
 
     if (millis() - _lastWifiOk > AP_FALLBACK_TIMEOUT_MS) {
-        Serial.println("⚠️ Wi-Fi потерян > 60 сек в клиентском режиме — перезагрузка");
+        Serial.println("[WiFi] Потеря > 60 сек — перезагрузка");
         delay(100);
         ESP.restart();
     }
@@ -373,7 +369,6 @@ void WebService::handleRoot() {
 }
 
 void WebService::handleScan() {
-    Serial.println("🔍 GET /scan");
     _appState.startScan();
     delay(100);
     String json = getScanJson();
@@ -392,12 +387,6 @@ void WebService::handleConnect() {
         _server.send(400, "application/json", "{\"success\":false,\"error\":\"Invalid JSON\"}");
         return;
     }
-    // String ssid = doc["ssid"].as<String>();
-    // String password = doc["password"].as<String>();
-    // if (ssid.length() == 0) {
-    //     _server.send(400, "application/json", "{\"success\":false,\"error\":\"SSID empty\"}");
-    //     return;
-    // }
 
     String ssid = doc["ssid"].as<String>();
     String password = doc["password"].as<String>();
@@ -405,16 +394,6 @@ void WebService::handleConnect() {
         _server.send(400, "application/json", "{\"success\":false,\"error\":\"SSID empty\"}");
         return;
     }
-
-    // === ДИАГНОСТИКА: смотрим, что реально пришло с веб-страницы ===
-    Serial.printf("📥 HTTP /connect: ssid=\"%s\" (len=%d), password_len=%d\n",
-                  ssid.c_str(), ssid.length(), password.length());
-    Serial.print("   password hex: ");
-    for (size_t i = 0; i < password.length(); i++) {
-        Serial.printf("%02X ", (uint8_t)password[i]);
-    }
-    Serial.println();
-    // === КОНЕЦ ДИАГНОСТИКИ ===
 
     bool success = _appState.connectToNetwork(ssid, password);
     if (success) {

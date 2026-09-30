@@ -1,7 +1,3 @@
-// === ИЗМЕНЕНО: точка входа адаптирована под ESP8266 ===
-// === УДАЛЕНО: инициализация светодиода (beginLed) ===
-// === ДОБАВЛЕНО: default state-топик при первом запуске ===
-
 #include "AppState.h"
 #include "WebService.h"
 
@@ -11,29 +7,27 @@ WebService webService(appState);
 void setup() {
     Serial.begin(115200);
     delay(100);
-    Serial.println("\n=== ESP8266 Lamp Monitor ===");
+    Serial.println();
+    Serial.println("=== ESP8266 Lamp Monitor ===");
 
-    // === ДОБАВЛЕНО: если state-топик не сохранён — ставим home/lamp/status ===
+    // Если state-топик не сохранён — ставим home/lamp/status по умолчанию
     MqttCredentials& creds = appState.getMqttCredentials();
     if (creds.getStateTopic().length() == 0) {
         creds.setStateTopic("home/lamp/status");
         creds.save();
-        Serial.println("ℹ️ Установлен state-топик по умолчанию: home/lamp/status");
     }
 
-    // Инициализация дисплея
     if (!appState.getDisplayService().begin()) {
-        Serial.println("⚠️ Дисплей не инициализирован");
+        Serial.println("[ERR] OLED init failed");
     }
 
-    // Проверяем, есть ли сохранённые Wi-Fi сети
     int savedCount = appState.getSavedCount();
 
     if (savedCount == 0) {
-        Serial.println("ℹ️ Нет сохранённых сетей. Запуск в режиме AP.");
+        Serial.println("[WiFi] Нет сохранённых сетей — AP mode");
         webService.begin(true);
     } else {
-        appState.begin(); // автоподключение
+        appState.begin();
 
         unsigned long start = millis();
         bool connected = false;
@@ -48,17 +42,15 @@ void setup() {
         if (connected) {
             webService.begin(false);
         } else {
-            Serial.println("⚠️ Не удалось подключиться. Запуск в режиме AP.");
+            Serial.println("[WiFi] Автоподключение не удалось — AP mode");
             webService.begin(true);
         }
     }
 
-    // Попытка запуска MQTT (если сохранены настройки)
     appState.beginMqtt();
 }
 
 void loop() {
-    // === ИЗМЕНЕНО: убран отдельный вызов getDisplayService().update() — он уже внутри AppState::update() ===
     appState.update();
     webService.handleClient();
 }
