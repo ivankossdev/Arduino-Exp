@@ -189,7 +189,7 @@ DisplayService OLED SSD1306. Экраны для AP/клиента/сканир�
 ## Веб
 
 ```text
-Класс Назначение
+Класс      Назначение
 WebService HTTP-сервер на порту 80. Отдаёт страницы (AP/клиент) и REST-роуты. HTML встроен в PROGMEM.
 ```
 
@@ -207,5 +207,76 @@ POST   /led     Управление светодиодом ({state: "ON"/"OFF"}
 GET    /mqtt    Текущие MQTT-настройки
 POST   /mqtt    Сохранение MQTT-настроек, переподключение
 POST   /reset   Удаление всех Wi-Fi и MQTT настроек, перезагрузка
-POST   /reboot   Перезагрузка устройства
+POST   /reboot  Перезагрузка устройства
+```
+
+## Формат JSON-статуса (/status)
+
+```JSON
+{
+  "connected": true,
+  "ssid": "MyWiFi",
+  "ip": "192.168.0.42",
+  "rssi": -58,
+  "led": true,
+  "mqtt": true,
+  "state": "CONNECTED"
+}
+```
+
+## Настройки по умолчанию
+
+```text
+Параметр                    Значение          Где меняется
+Пин светодиода              10                esp32_c3_WiFi_Manager_WebPage.ino, beginLed(10, false)
+activeLow                   false             там же
+AP                          SSID              ESP32-Setup WebService::begin
+AP пароль                   12345678          WebService::begin
+Порт веб-сервера            80 WebService     конструктор
+Порт MQTT по умолчанию      1883              MqttCredentials конструктор
+Интервал обновления дисплея 2000 мс           DisplayService конструктор
+Таймаут ожидания retained   1500 мс           LedService::_retainedTimeout
+```
+## Библиотеки
+
+```text
+    WiFi (ESP32 core)
+
+    WebServer (ESP32 core)
+
+    Preferences (ESP32 core)
+
+    Wire (ESP32 core)
+
+    PubSubClient
+
+    ArduinoJson
+
+    Adafruit_GFX
+
+    Adafruit_SSD1306
+```
+
+## Известные ограничения
+
+```text
+    Блокирующее подключение к Wi-Fi. WiFiManager::connectToNetwork держит loop до 10 с, на это время MQTT, веб и дисплей не обновляются.
+
+    Блокирующее сканирование. В AP-режиме (WIFI_AP_STA) веб-клиент может подвиснуть на время скана.
+
+    Статические колбэки в MqttManager. Второй экземпляр перетрёт первый. В проекте экземпляр один.
+
+    Реконнект MQTT прекращается после 10 попыток до перезагрузки устройства.
+
+    Нет LWT/availability-топика. Внешние системы (Home Assistant и т.п.) не узнают, что устройство отвалилось — retained-значение лампы остаётся «как было».
+
+    Нет аутентификации веб-интерфейса. Любой в локальной сети может управлять устройством и менять MQTT-настройки.
+
+    Пароль MQTT хранится в открытом виде в Preferences и отдаётся в GET /mqtt.
+
+    Пароль AP захардкожен (12345678).
+
+    Нет OTA-обновления.
+
+    JSON в /saved собирается конкатенацией строк — SSID со спецсимволами может сломать ответ (в /status уже используется ArduinoJson).
 ```
