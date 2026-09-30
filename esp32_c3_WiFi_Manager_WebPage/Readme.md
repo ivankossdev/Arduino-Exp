@@ -152,39 +152,50 @@ MQTT-логика
 
 ## Ядро
 
+```text
 Класс         Назначение
 AppState      Композиционный корень. Владеет всеми сервисами, роутит MQTT-сообщения, предоставляет API для WebService и DisplayService.
 StateManager  Машина состояний (IDLE, SCANNING, CONNECTING, CONNECTED, AP_MODE, ERROR). Уведомляет через колбэк.
 StatusBuilder Собирает JSON-статус (ArduinoJson) и текстовую строку для /status и Serial-логов.
+```
 
 ## Wi-Fi
 
+```text
 Класс              Назначение
 WiFiManager        Низкоуровневые операции: scan, connectToNetwork, getEncryptionType.
 WiFiCredentials    Хранение SSID/паролей в Preferences (JSON). Миграция из старого текстового формата.
 WiFiService Фасад: сканирование, подключение, сохранение/удаление сетей, автоподключение.
+```
 
 ## MQTT
 
+```text
 Класс              Назначение
 MqttManager        Обёртка PubSubClient: connect/reconnect с backoff, publish, subscribe, static callbacks.
 MqttCredentials    Хранение MQTT-настроек (server/port/user/password/cmdTopic/stateTopic) в JSON.
 MqttService Фасад: держит MqttManager + MqttCredentials, предоставляет колбэки onConnected и onMessage.
+```
 
 ## Периферия
 
+```text
 Класс          Назначение
 LedManager     Низкоуровневое управление светодиодом: режимы OFF/ON/BLINK_*, учёт activeLow.
 LedService     Управление лампой: set/isOn, публикация состояния, retained-синхронизация.
 DisplayService OLED SSD1306. Экраны для AP/клиента/сканирования/ошибки, обновление по таймеру и на смену состояния.
+```
 
 ## Веб
 
+```text
 Класс Назначение
 WebService HTTP-сервер на порту 80. Отдаёт страницы (AP/клиент) и REST-роуты. HTML встроен в PROGMEM.
+```
 
 ## Веб-интерфейс: маршруты
 
+```text
 Метод  Путь     Назначение
 GET    /        HTML-страница (AP или клиент — в зависимости от режима)
 GET    /scan    Сканирование Wi-Fi, возвращает JSON массив сетей
@@ -197,3 +208,4 @@ GET    /mqtt    Текущие MQTT-настройки
 POST   /mqtt    Сохранение MQTT-настроек, переподключение
 POST   /reset   Удаление всех Wi-Fi и MQTT настроек, перезагрузка
 POST   /reboot   Перезагрузка устройства
+```
