@@ -56,31 +56,52 @@ bool WiFiManager::connectToNetwork(const char* ssid, const char* password) {
 
   Serial.printf("🔄 Подключение к \"%s\"\n", ssid);
 
-  // === ИЗМЕНЕНО: не отключаем радио полностью, только рвём текущую сессию ===
-  WiFi.disconnect(false);
-  delay(100);
-
-  // === ИЗМЕНЕНО: переключаем режим явно и даём радио просыпаться ===
+  // 1. Полная очистка сохранённых кредов и сброс радио
+  WiFi.persistent(false);
+  WiFi.setAutoConnect(false);
+  WiFi.setAutoReconnect(false);
+  WiFi.disconnect(true, true);   // wifioff=true, eraseap=true — стирает SSID/пароль из flash
+  delay(200);
+  WiFi.mode(WIFI_OFF);
+  delay(200);
   WiFi.mode(WIFI_STA);
   delay(200);
 
-  WiFi.begin(ssid, password);
+  // 2. Ищем целевую сеть в скане и запоминаем канал
+  int targetChannel = 0;
+  int n = WiFi.scanNetworks(false, true);
+  for (int i = 0; i < n; i++) {
+    if (WiFi.SSID(i) == String(ssid)) {
+      targetChannel = WiFi.channel(i);
+      Serial.printf("🎯 Найдена \"%s\" на канале %d\n", ssid, targetChannel);
+      break;
+    }
+  }
+  WiFi.scanDelete();
+
+  if (targetChannel == 0) {
+    Serial.println("⚠️ Сеть не найдена при сканировании — пробуем без указания канала");
+  }
+
+  // 3. Подключаемся (с каналом, если нашли)
+  if (targetChannel > 0) {
+    WiFi.begin(ssid, password, targetChannel);
+  } else {
+    WiFi.begin(ssid, password);
+  }
 
   unsigned long start = millis();
-  unsigned long lastLog = 0;
+  int lastStatus = -1;
   while (WiFi.status() != WL_CONNECTED) {
     delay(200);
-    // === ДОБАВЛЕНО: раз в секунду печатаем код статуса ===
-    //  0=IDLE, 1=NO_SSID, 2=SCAN_DONE, 3=CONNECTED,
-    //  4=CONNECT_FAILED, 5=CONNECTION_LOST, 6=DISCONNECTED
-    if (millis() - lastLog > 1000) {
-      lastLog = millis();
-      Serial.printf("  [%lus] WiFi.status()=%d\n",
-                    (millis() - start) / 1000, WiFi.status());
+    int st = WiFi.status();
+    if (st != lastStatus) {
+      lastStatus = st;
+      Serial.printf("  status → %d\n", st);
     }
-    if (millis() - start > 15000) {   // === ИЗМЕНЕНО: 15 сек вместо 10 ===
-      Serial.printf("\n⏱️ Таймаут. Итоговый статус: %d\n", WiFi.status());
-      WiFi.disconnect(true);
+    if (millis() - start > 20000) {
+      Serial.printf("\n⏱️ Таймаут. Статус: %d\n", st);
+      WiFi.printDiag(Serial);
       return false;
     }
   }
@@ -92,11 +113,11 @@ bool WiFiManager::connectToNetwork(const char* ssid, const char* password) {
 // === ИЗМЕНЕНО: на ESP8266 константы шифрования другие ===
 const char* WiFiManager::getEncryptionType(uint8_t encType) const {
   switch (encType) {
-    case ENC_TYPE_NONE:  return "OPEN";
-    case ENC_TYPE_WEP:   return "WEP";
-    case ENC_TYPE_TKIP:  return "WPA";
-    case ENC_TYPE_CCMP:  return "WPA2";
-    case ENC_TYPE_AUTO:  return "AUTO";
-    default:             return "UNKN";
+    case ENC_TYPE_NONE: return "OPEN";
+    case ENC_TYPE_WEP: return "WEP";
+    case ENC_TYPE_TKIP: return "WPA";
+    case ENC_TYPE_CCMP: return "WPA2";
+    case ENC_TYPE_AUTO: return "AUTO";
+    default: return "UNKN";
   }
 }

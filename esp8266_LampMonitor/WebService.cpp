@@ -352,12 +352,30 @@ void WebService::handleConnect() {
         _server.send(400, "application/json", "{\"success\":false,\"error\":\"Invalid JSON\"}");
         return;
     }
+    // String ssid = doc["ssid"].as<String>();
+    // String password = doc["password"].as<String>();
+    // if (ssid.length() == 0) {
+    //     _server.send(400, "application/json", "{\"success\":false,\"error\":\"SSID empty\"}");
+    //     return;
+    // }
+
     String ssid = doc["ssid"].as<String>();
     String password = doc["password"].as<String>();
     if (ssid.length() == 0) {
         _server.send(400, "application/json", "{\"success\":false,\"error\":\"SSID empty\"}");
         return;
     }
+
+    // === ДИАГНОСТИКА: смотрим, что реально пришло с веб-страницы ===
+    Serial.printf("📥 HTTP /connect: ssid=\"%s\" (len=%d), password_len=%d\n",
+                  ssid.c_str(), ssid.length(), password.length());
+    Serial.print("   password hex: ");
+    for (size_t i = 0; i < password.length(); i++) {
+        Serial.printf("%02X ", (uint8_t)password[i]);
+    }
+    Serial.println();
+    // === КОНЕЦ ДИАГНОСТИКИ ===
+
     bool success = _appState.connectToNetwork(ssid, password);
     if (success) {
         _appState.saveCurrentNetwork();
