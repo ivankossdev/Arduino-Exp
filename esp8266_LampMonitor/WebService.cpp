@@ -291,22 +291,62 @@ WebService::~WebService() {
 void WebService::begin(bool apMode) {
     _apMode = apMode;
     if (apMode) {
-        WiFi.mode(WIFI_AP_STA);
-        String ssid = "ESP32-Setup";
-        String password = "12345678";
-        WiFi.softAP(ssid.c_str(), password.c_str());
-        _appState.getWiFiService().setApCredentials(ssid, password);
-        Serial.println("AP запущен, IP: 192.168.4.1");
+        // === ИЗМЕНЕНО: логика AP вынесена в startApMode() ===
+        startApMode();
     } else {
         WiFi.mode(WIFI_STA);
         Serial.print("Веб-сервер запущен, IP: ");
         Serial.println(WiFi.localIP());
+
+        // === НОВОЕ: фиксируем стартовый момент — считаем, что Wi-Fi пока ОК ===
+        _lastWifiOk = millis();
     }
     _server.begin();
 }
 
+// === НОВЫЙ МЕТОД: поднимает AP-точку ===
+// Вызывается из begin(true) и повторно — при провале подключения через
+// веб-форму, если мы в AP-режиме. Может вызываться многократно: softAP()
+// при уже активном AP с теми же параметрами не даёт побочных эффектов.
+void WebService::startApMode() {
+    WiFi.mode(WIFI_AP_STA);
+    String ssid = "ESP32-Setup";
+    String password = "12345678";
+    WiFi.softAP(ssid.c_str(), password.c_str());
+    _appState.getWiFiService().setApCredentials(ssid, password);
+    Serial.println("♻️ AP запущен/восстановлен, IP: 192.168.4.1");
+}
+
+// === НОВЫЙ МЕТОД: следим за потерей Wi-Fi в клиентском режиме ===
+// Если Wi-Fi потерян надолго — перезагружаемся. После перезагрузки setup()
+// попробует подключиться к сохранённой сети. Если не получится — уйдёт
+// в AP-режим, и пользователь сможет снова зайти и настроить устройство.
+void WebService::checkWifiLoss() {
+    // В AP-режиме STA-подключения нет по определению — не считаем потерю
+    if (_apMode) return;
+
+    if (WiFi.status() == WL_CONNECTED) {
+        _lastWifiOk = millis();
+        return;
+    }
+
+    if (_lastWifiOk == 0) {
+        // Первое наблюдение потери — фиксируем точку отсчёта
+        _lastWifiOk = millis();
+        return;
+    }
+
+    if (millis() - _lastWifiOk > AP_FALLBACK_TIMEOUT_MS) {
+        Serial.println("⚠️ Wi-Fi потерян > 60 сек в клиентском режиме — перезагрузка");
+        delay(100);
+        ESP.restart();
+    }
+}
+
 void WebService::handleClient() {
     _server.handleClient();
+    // === НОВОЕ: проверяем, не потеряли ли Wi-Fi надолго ===
+    checkWifiLoss();
 }
 
 void WebService::setupRoutes() {
@@ -381,7 +421,15 @@ void WebService::handleConnect() {
         _appState.saveCurrentNetwork();
         _server.send(200, "application/json", "{\"success\":true}");
     } else {
-        _server.send(500, "application/json", "{\"success\":false,\"error\":\"Connection failed\"}");
+        // === НОВОЕ: если мы в AP-режиме — проверим, что AP на месте ===
+        // WiFiManager::connectToNetwork() держит AP активным через AP_STA,
+        // но подстрахуемся: если что-то пошло не так, поднимем AP заново,
+        // чтобы пользователь не остался без веб-интерфейса.
+        if (_apMode) {
+            startApMode();
+        }
+        _server.send(500, "application/json",
+                     "{\"success\":false,\"error\":\"Connection failed\"}");
     }
 }
 

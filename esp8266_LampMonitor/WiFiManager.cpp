@@ -5,8 +5,6 @@ int WiFiManager::scan(NetworkInfo* results, int maxCount) {
 
   Serial.println(F("🔍 Сканирование Wi-Fi..."));
 
-  // На ESP8266 оставляем режим как есть — в AP-режиме используется AP+STA,
-  // чтобы клиент не отваливался на время скана.
   int n = WiFi.scanNetworks(false, true);
 
   if (n == 0) {
@@ -51,44 +49,45 @@ int WiFiManager::scan(NetworkInfo* results, int maxCount) {
   return count;
 }
 
+// === ИЗМЕНЕНО: сохраняем AP, если он был активен ===
+// Раньше здесь был WiFi.mode(WIFI_OFF), который гасил AP на время попытки
+// подключения — пользователь, зашедший через веб в AP-режиме, терял связь
+// с устройством на все 20 секунд ожидания.
+//
+// Теперь: если AP был активен, возвращаемся в WIFI_AP_STA — AP продолжает
+// работать параллельно с попыткой STA-подключения. Если AP не был активен
+// (обычный клиентский режим) — используется чистый WIFI_STA.
 bool WiFiManager::connectToNetwork(const char* ssid, const char* password) {
   if (ssid == nullptr || strlen(ssid) == 0) return false;
 
   Serial.printf("🔄 Подключение к \"%s\"\n", ssid);
 
-  // 1. Полная очистка сохранённых кредов и сброс радио
+  // === ИСПРАВЛЕНО: на ESP8266 тип называется WiFiMode_t, не wifi_mode_t ===
+  // (wifi_mode_t — это ESP-IDF/ESP32; в ядре ESP8266 Arduino используется
+  //  WiFiMode_t. Константы WIFI_AP / WIFI_AP_STA тут же того же типа.)
+  WiFiMode_t prevMode = WiFi.getMode();
+  bool apWasActive = (prevMode == WIFI_AP || prevMode == WIFI_AP_STA);
+
+  // 2. Сбрасываем креды и авто-подключение. disconnect(true, true):
+  //    wifioff = true  — выключаем STA-радио
+  //    eraseap = true  — стираем сохранённые SSID/пароль из flash
+  //    ВАЖНО: softAP при этом не затрагивается.
   WiFi.persistent(false);
   WiFi.setAutoConnect(false);
   WiFi.setAutoReconnect(false);
-  WiFi.disconnect(true, true);   // wifioff=true, eraseap=true — стирает SSID/пароль из flash
-  delay(200);
-  WiFi.mode(WIFI_OFF);
-  delay(200);
-  WiFi.mode(WIFI_STA);
+  WiFi.disconnect(true, true);
   delay(200);
 
-  // 2. Ищем целевую сеть в скане и запоминаем канал
-  int targetChannel = 0;
-  int n = WiFi.scanNetworks(false, true);
-  for (int i = 0; i < n; i++) {
-    if (WiFi.SSID(i) == String(ssid)) {
-      targetChannel = WiFi.channel(i);
-      Serial.printf("🎯 Найдена \"%s\" на канале %d\n", ssid, targetChannel);
-      break;
-    }
-  }
-  WiFi.scanDelete();
-
-  if (targetChannel == 0) {
-    Serial.println("⚠️ Сеть не найдена при сканировании — пробуем без указания канала");
-  }
-
-  // 3. Подключаемся (с каналом, если нашли)
-  if (targetChannel > 0) {
-    WiFi.begin(ssid, password, targetChannel);
+  // 3. Возвращаемся в нужный режим
+  if (apWasActive) {
+    WiFi.mode(WIFI_AP_STA);   // AP остаётся, добавляется STA
   } else {
-    WiFi.begin(ssid, password);
+    WiFi.mode(WIFI_STA);      // чистый клиентский режим
   }
+  delay(200);
+
+  // 4. Подключаемся
+  WiFi.begin(ssid, password);
 
   unsigned long start = millis();
   int lastStatus = -1;
@@ -100,7 +99,7 @@ bool WiFiManager::connectToNetwork(const char* ssid, const char* password) {
       Serial.printf("  status → %d\n", st);
     }
     if (millis() - start > 20000) {
-      Serial.printf("\n⏱️ Таймаут. Статус: %d\n", st);
+      Serial.printf("\n⏱️ Таймаут. Итоговый статус: %d\n", st);
       WiFi.printDiag(Serial);
       return false;
     }
@@ -110,14 +109,13 @@ bool WiFiManager::connectToNetwork(const char* ssid, const char* password) {
   return true;
 }
 
-// === ИЗМЕНЕНО: на ESP8266 константы шифрования другие ===
 const char* WiFiManager::getEncryptionType(uint8_t encType) const {
   switch (encType) {
-    case ENC_TYPE_NONE: return "OPEN";
-    case ENC_TYPE_WEP: return "WEP";
-    case ENC_TYPE_TKIP: return "WPA";
-    case ENC_TYPE_CCMP: return "WPA2";
-    case ENC_TYPE_AUTO: return "AUTO";
-    default: return "UNKN";
+    case ENC_TYPE_NONE:  return "OPEN";
+    case ENC_TYPE_WEP:   return "WEP";
+    case ENC_TYPE_TKIP:  return "WPA";
+    case ENC_TYPE_CCMP:  return "WPA2";
+    case ENC_TYPE_AUTO:  return "AUTO";
+    default:             return "UNKN";
   }
 }
