@@ -4,154 +4,77 @@ AppState::AppState()
     : _stateManager(),
       _wifiService(_stateManager),
       _mqttService(_stateManager),
-      _displayService(_stateManager, _wifiService, _mqttService, *this)   // Передаём ссылку на себя
+      _ledService(_mqttService),   // === НОВОЕ: LedService зависит от MqttService ===
+      _displayService(_stateManager, _wifiService, _mqttService, *this),
+      _statusBuilder(_stateManager, _wifiService, _mqttService, _ledService)  // === НОВОЕ ===
 {
-    // Светодиод по умолчанию выключен
-    _led.setMode(LED_OFF);
-
-    // Регистрируем колбэк для MQTT-сообщений
+    // Регистрируем роутер входящих MQTT-сообщений. Сам роутер тонкий:
+    // он делегирует в LedService и в будущем сможет делегировать в другие сервисы.
     _mqttService.setMessageCallback([this](const String& topic, const String& payload) {
         this->handleMqttMessage(topic, payload);
     });
 
-    // === ИЗМЕНЕНИЕ (п.1.2): синхронизация с retained-состоянием при (пере)подключении ===
-    // Раньше здесь мы сразу публиковали текущее состояние _led, чем затирали
-    // retained-значение на брокере. Теперь мы:
-    //   1) подписываемся на state-топик, чтобы прочитать retained;
-    //   2) ждём сообщение (см. handleMqttMessage) и применяем его к лампе;
-    //   3) если retained не пришёл за _retainedWaitTimeout — публикуем своё
-    //      состояние (см. update()).
-    _mqttService.setOnConnected([this]() {
-        Serial.println("🔄 MQTT (пере)подключён — ожидаем retained-состояние из state-топика");
-        _connectedAt = millis();
-        _awaitingRetainedState = true;
-        _mqttService.subscribeState();
-    });
-    // === КОНЕЦ ИЗМЕНЕНИЯ ===
+    // === УБРАНО (шаг 3): лямбда onConnected с логикой retained-синхронизации ===
+    // Теперь LedService сам регистрирует свой onConnected-колбэк в конструкторе.
+
+    // === УБРАНО (шаг 2): _led.setMode(LED_OFF) ===
+    // Начальное состояние светодиода выставляет LedService::begin().
+
+    // === УБРАНО (шаг 3): поля _awaitingRetainedState / _connectedAt / _retainedWaitTimeout ===
+    // Переехали в LedService.
 }
 
 void AppState::begin() {
-    _wifiService.begin();  // автоподключение Wi-Fi (без индикации)
+    _wifiService.begin();
     _displayService.begin();
 }
 
+// === ИЗМЕНЕНО (шаг 1): делегат в StatusBuilder ===
 String AppState::getStatusString() const {
-    if (isConnected()) {
-        String ssid = WiFi.SSID();
-        IPAddress ip = WiFi.localIP();
-        return "Подключено к \"" + ssid + "\", IP: " + ip.toString();
-    } else {
-        return "Не подключено к Wi-Fi.";
-    }
+    return _statusBuilder.buildText();
 }
 
-// --- Светодиод ---
+// --- Светодиод (делегаты в LedService) — шаг 2 ---
+
 bool AppState::beginLed(int pin, bool activeLow) {
-    bool ok = _led.begin(pin, activeLow);
-    if (ok) {
-        _led.setMode(LED_OFF);  // стартуем выключенным
-    }
-    return ok;
+    return _ledService.begin(pin, activeLow);
 }
 
 void AppState::updateLed() {
-    _led.update();  // нужно для мигания (если режим изменится)
+    // Оставлено для совместимости. Основной путь обновления — AppState::update().
+    _ledService.update();
 }
 
-// --- MQTT обработка ---
+void AppState::setLed(bool on) {
+    // LedService::set сам публикует состояние в MQTT, если брокер подключён.
+    _ledService.set(on);
+}
+
+bool AppState::getLedState() const {
+    return _ledService.isOn();
+}
+
+// === ИЗМЕНЕНО (шаг 3): handleMqttMessage стал тонким роутером ===
 void AppState::handleMqttMessage(const String& topic, const String& payload) {
     Serial.printf("📨 AppState: получено MQTT сообщение: топик=%s, payload=%s\n",
                   topic.c_str(), payload.c_str());
 
-    // === ИЗМЕНЕНИЕ (п.1.1): берём топики из конфига, а не из хардкода ===
-    // Раньше здесь было жёстко "home/lamp/command", из-за чего смена топика
-    // через веб-интерфейс не влияла на обработку команд.
-    const String& stateTopic = _mqttService.getCredentials().getStateTopic();
-    const String& cmdTopic   = _mqttService.getCredentials().getCmdTopic();
-    // === КОНЕЦ ИЗМЕНЕНИЯ ===
+    // Делегируем в LedService. Он сам решит, относится ли сообщение к лампе
+    // (retained-state из state-топика либо команда из cmd-топика).
+    if (_ledService.handleMqttMessage(topic, payload)) return;
 
-    // === ИЗМЕНЕНИЕ (п.1.2): обработка retained-состояния после (пере)подключения ===
-    // Если мы ждём retained и пришло сообщение из state-топика — применяем его
-    // к лампе и снимаем флаг. Это единственный момент, когда retained влияет
-    // на состояние; дальше источником истины снова становится _led.
-    if (_awaitingRetainedState && topic == stateTopic) {
-        _awaitingRetainedState = false;
-        if (payload == "ON") {
-            _led.setMode(LED_ON);
-        } else if (payload == "OFF") {
-            _led.setMode(LED_OFF);
-        }
-        Serial.printf("📥 Применено retained-состояние из MQTT: %s\n", payload.c_str());
-        return;
-    }
-    // === КОНЕЦ ИЗМЕНЕНИЯ ===
-
-    // Управление светодиодом через MQTT (команды из cmd-топика)
-    if (topic == cmdTopic) {
-        if (payload == "ON") {
-            _led.setMode(LED_ON);
-            _mqttService.publishState("ON");
-        } else if (payload == "OFF") {
-            _led.setMode(LED_OFF);
-            _mqttService.publishState("OFF");
-        }
-        // Можно добавить другие команды (например, TOGGLE) при необходимости
-    }
+    // Сюда в будущем можно добавлять другие обработчики (reboot, status request и т.п.).
 }
 
-// --- Общий update ---
+// === ИЗМЕНЕНО (шаги 2–3): update теперь дёргает LedService ===
 void AppState::update() {
-    updateLed();        // обновление состояния светодиода (если мигает)
-    updateMqtt();       // обновление MQTT-клиента
-
-    // === ИЗМЕНЕНИЕ (п.1.2): публикуем своё состояние, если retained так и не пришёл ===
-    // Такое бывает при первом запуске, когда на брокере ещё нет retained-значения,
-    // или если state-топик не задан. Публикуем текущее состояние _led, чтобы
-    // брокер и подписчики знали о нём.
-    if (_awaitingRetainedState && millis() - _connectedAt > _retainedWaitTimeout) {
-        _awaitingRetainedState = false;
-        bool on = _led.getState();
-        Serial.printf("⏱️ Retained-состояние не получено — публикуем своё: %s\n",
-                      on ? "ON" : "OFF");
-        _mqttService.publishState(on ? "ON" : "OFF");
-    }
-    // === КОНЕЦ ИЗМЕНЕНИЯ ===
-
+    // LedService::update() делает и _led.update(), и проверку retained-таймаута.
+    _ledService.update();
+    _mqttService.update();
     _displayService.update();
 }
 
-void AppState::setLed(bool on) {
-    _led.setMode(on ? LED_ON : LED_OFF);
-
-    // === ИЗМЕНЕНИЕ (из прошлой задачи) ===
-    // Публикуем новое состояние светодиода в MQTT-брокер, чтобы команды из
-    // веб-интерфейса (WebService::handleLed -> AppState::setLed) отражались
-    // в топике состояния MQTT.
-    if (_mqttService.isConnected()) {
-        _mqttService.publishState(on ? "ON" : "OFF");
-    }
-    // === КОНЕЦ ИЗМЕНЕНИЯ ===
-}
-
-bool AppState::getLedState() const {
-    return _led.getState();
-}
-
+// === ИЗМЕНЕНО (шаг 1): делегат в StatusBuilder ===
 String AppState::getStatusJson() {
-    String json = "{";
-    json += "\"connected\":" + String(isConnected() ? "true" : "false");
-    if (isConnected()) {
-        json += ",\"ssid\":\"" + WiFi.SSID() + "\"";
-        json += ",\"ip\":\"" + WiFi.localIP().toString() + "\"";
-        json += ",\"rssi\":" + String(WiFi.RSSI());
-    } else {
-        json += ",\"ssid\":\"\"";
-        json += ",\"ip\":\"\"";
-        json += ",\"rssi\":0";
-    }
-    json += ",\"led\":" + String(getLedState() ? "true" : "false");
-    json += ",\"mqtt\":" + String(_mqttService.isConnected() ? "true" : "false");
-    json += ",\"state\":\"" + String(_stateManager.getStateString()) + "\"";
-    json += "}";
-    return json;
+    return _statusBuilder.buildJson();
 }

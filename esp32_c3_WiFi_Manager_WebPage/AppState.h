@@ -4,16 +4,17 @@
 #include <Arduino.h>
 #include "StateManager.h"
 #include "WiFiService.h"
-#include "MqttService.h"      
-#include "LedManager.h"
+#include "MqttService.h"
+#include "LedService.h"       // === ИЗМЕНЕНО: было LedManager.h ===
 #include "DisplayService.h"
+#include "StatusBuilder.h"    // === НОВОЕ: класс-сборщик статуса ===
 
 class AppState {
 public:
     AppState();
     void begin();
 
-    // --- Wi-Fi (делегирует WiFiService) ---
+    // --- Wi-Fi (делегирует WiFiService) — без изменений ---
     bool startScan() { return _wifiService.startScan(); }
     int getNetworkCount() const { return _wifiService.getNetworkCount(); }
     NetworkInfo getNetwork(int index) const { return _wifiService.getNetwork(index); }
@@ -35,7 +36,7 @@ public:
     void printSavedNetworks() { _wifiService.printSavedNetworks(); }
 
     AppStateEnum getState() const { return _stateManager.getState(); }
-    String getStatusString() const;
+    String getStatusString() const;   // === ИЗМЕНЕНО: теперь делегат в StatusBuilder ===
     bool isConnected() const { return _wifiService.isConnected(); }
     String getCurrentSSID() const { return _wifiService.getCurrentSSID(); }
     IPAddress getIP() const { return _wifiService.getIP(); }
@@ -43,11 +44,14 @@ public:
         return _wifiService.getEncryptionType(encType);
     }
 
-    // --- Светодиод ---
+    // --- Светодиод === ИЗМЕНЕНО: делегаты в LedService ---
+    // Публичный API сохранён, чтобы не трогать WebService и DisplayService.
     bool beginLed(int pin, bool activeLow = true);
-    void updateLed();
+    void updateLed();      // оставлен для совместимости; внутри — LedService::update()
+    void setLed(bool on);  // делегат в LedService::set
+    bool getLedState() const;  // делегат в LedService::isOn
 
-    // --- MQTT (делегирует MqttService) ---
+    // --- MQTT (делегирует MqttService) — без изменений ---
     bool beginMqtt() { return _mqttService.begin(); }
     bool beginMqtt(const String& server, int port,
                    const String& user, const String& password,
@@ -67,38 +71,29 @@ public:
     // Общий update
     void update();
 
-    // Доступ к сервисам (для Menu, если потребуется)
+    // Доступ к сервисам
     StateManager& getStateManager() { return _stateManager; }
     WiFiService& getWiFiService() { return _wifiService; }
     MqttService& getMqttService() { return _mqttService; }
     DisplayService& getDisplayService() { return _displayService; }
 
-    // --- Управление светодиодом (для веб-интерфейса) ---
-    void setLed(bool on);
-    bool getLedState() const;
-
-    // --- Получение статуса в JSON (опционально) ---
+    // --- Получение статуса в JSON (делегат в StatusBuilder) ---
     String getStatusJson();
 
 private:
     StateManager _stateManager;
-    LedManager _led;
     WiFiService _wifiService;
-    MqttService _mqttService;    
+    MqttService _mqttService;
+    LedService _ledService;          // === НОВОЕ: заменяет LedManager _led ===
     DisplayService _displayService;
+    StatusBuilder _statusBuilder;    // === НОВОЕ ===
 
-    // === ИЗМЕНЕНИЕ (п.1.2): поля для синхронизации с retained-состоянием ===
-    // _awaitingRetainedState — true, пока мы после (пере)подключения ждём
-    //   retained-сообщение из state-топика, чтобы применить его к лампе.
-    // _connectedAt — момент последнего успешного (пере)подключения к брокеру;
-    //   нужен, чтобы по таймауту опубликовать своё состояние, если retained
-    //   на брокере отсутствует (первый запуск / топик пустой).
-    bool _awaitingRetainedState = false;
-    unsigned long _connectedAt = 0;
-    const unsigned long _retainedWaitTimeout = 1500; // мс
-    // === КОНЕЦ ИЗМЕНЕНИЯ ===
+    // === УБРАНЫ поля retained-синхронизации (шаг 3) ===
+    // _awaitingRetainedState, _connectedAt, _retainedWaitTimeout
+    // теперь живут в LedService.
 
-    // Приватный метод для обработки MQTT-сообщений (регистрируем как колбэк)
+    // Роутер входящих MQTT-сообщений. Делегирует в LedService,
+    // при необходимости будет роутить в другие сервисы.
     void handleMqttMessage(const String& topic, const String& payload);
 };
 
