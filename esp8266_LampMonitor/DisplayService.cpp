@@ -26,11 +26,13 @@ DisplayService::DisplayService(StateManager& stateManager,
 }
 
 bool DisplayService::begin() {
-    // === ИЗМЕНЕНО: явно указываем I2C-пины для D1 mini (SDA=D2=GPIO4, SCL=D1=GPIO5) ===
+    static bool inited = false;
+    if (inited) return true;
+
     Wire.begin(4, 5);
 
     if (!_display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
-        Serial.println("❌ OLED инициализация не удалась!");
+        Serial.println("[ERR] OLED init failed");
         return false;
     }
 
@@ -42,7 +44,8 @@ bool DisplayService::begin() {
     _display.println("Load...");
     _display.display();
 
-    Serial.println("✅ OLED дисплей инициализирован");
+    Serial.println("[OLED] OK");
+    inited = true;
     return true;
 }
 
