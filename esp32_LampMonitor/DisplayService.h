@@ -1,8 +1,9 @@
 // ============================================================
 // DisplayService — управление дисплеем ST7789 (TTGO T-Display)
 // ============================================================
-// ИЗМЕНЕНО: SCREEN_WIDTH/SCREEN_HEIGHT перенесены в config.h
-// ИЗМЕНЕНО: добавлен #include "config.h"
+// ИЗМЕНЕНО: буфер QR-кода объявлен через AP_QR_BUFFER_SIZE
+//           из config.h, а не через qrcode_getBufferSize() —
+//           она не является constexpr и не годится для размера массива.
 // ============================================================
 
 #ifndef DISPLAY_SERVICE_H
@@ -11,8 +12,9 @@
 #include <Arduino.h>
 #include <WebServer.h>
 #include <TFT_eSPI.h>
+#include "qrcode.h"             // локальная копия ricmoo в корне проекта
 
-#include "config.h"             // ИЗМЕНЕНО: константы вынесены сюда
+#include "config.h"
 #include "StateManager.h"
 #include "WiFiService.h"
 #include "MqttService.h"
@@ -36,6 +38,11 @@ private:
 
     TFT_eSPI _tft;
 
+    QRCode  _qr;
+    // ИЗМЕНЕНО: было qrcode_getBufferSize(AP_QR_VERSION) —
+    // функция не constexpr, компилятор C++ её не принимает.
+    uint8_t _qrData[AP_QR_BUFFER_SIZE];
+
     unsigned long _lastUpdate;
     unsigned long _updateInterval;
 
@@ -45,6 +52,8 @@ private:
     void drawError();
     void drawConnecting();
     void drawScanning();
+
+    void drawQrCode();
 
     void handleStateChange(AppStateEnum newState);
 
