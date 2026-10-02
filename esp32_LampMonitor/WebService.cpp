@@ -13,6 +13,7 @@
 
 #include "WebService.h"
 #include "config.h"
+#include "log.h"       // ИЗМЕНЕНО: макросы логирования
 
 // ======== HTML-страницы (PROGMEM) ========
 
@@ -321,8 +322,8 @@ void WebService::begin(bool apMode) {
         startApMode();
     } else {
         WiFi.mode(WIFI_STA);
-        Serial.printf("[WEB] Сервер запущен, IP %s\n",
-                      WiFi.localIP().toString().c_str());
+        LOG(LOG_CAT_WEB, "[WEB] Сервер запущен, IP %s\n",
+            WiFi.localIP().toString().c_str());
     }
     _server.begin();
 }
@@ -349,7 +350,7 @@ void WebService::checkWifiLoss() {
     }
 
     if (millis() - _lastWifiOk > AP_FALLBACK_TIMEOUT_MS) {
-        Serial.println("[WiFi] Потеря > 60 сек — перезагрузка");
+        LOG_LN(LOG_CAT_WIFI, "[WiFi] Потеря > 60 сек — перезагрузка");
         delay(STARTUP_DELAY_MS);
         ESP.restart();
     }

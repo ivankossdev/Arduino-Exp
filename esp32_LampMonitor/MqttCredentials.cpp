@@ -1,19 +1,16 @@
 // ============================================================
 // MqttCredentials — хранилище MQTT-настроек
 // ============================================================
-// ИЗМЕНЕНО: NAMESPACE и KEY берутся из config.h
-// ИЗМЕНЕНО: дефолтный порт и state-топик берутся из config.h
+// ИЗМЕНЕНО: Serial.println заменён на LOG_LN(LOG_CAT_MQTT)
 // ============================================================
 
 #include "MqttCredentials.h"
-#include "config.h"      // ИЗМЕНЕНО: константы вынесены сюда
+#include "config.h"
+#include "log.h"       // ИЗМЕНЕНО: макросы логирования
 
-// ИЗМЕНЕНО: было "mqtt"
 const char* MqttCredentials::NAMESPACE = PREF_NAMESPACE_MQTT;
-// ИЗМЕНЕНО: было "config"
 const char* MqttCredentials::KEY = PREF_KEY_MQTT;
 
-// ИЗМЕНЕНО: было _port(1883), _stateTopic("home/lamp/status")
 MqttCredentials::MqttCredentials()
     : _port(MQTT_DEFAULT_PORT), _stateTopic(MQTT_DEFAULT_STATE_TOPIC) {}
 
@@ -41,7 +38,7 @@ JsonDocument MqttCredentials::parseData(const String& data) {
   }
   DeserializationError error = deserializeJson(doc, data);
   if (error) {
-    Serial.println("Ошибка парсинга JSON MQTT, данные сброшены.");
+    LOG_LN(LOG_CAT_MQTT, "Ошибка парсинга JSON MQTT, данные сброшены.");
     doc.clear();
   }
   return doc;
@@ -65,7 +62,6 @@ bool MqttCredentials::load() {
   _password = doc["password"].as<String>();
   _stateTopic = doc["stateTopic"].as<String>();
   if (_stateTopic.length() == 0) {
-    // ИЗМЕНЕНО: было "home/lamp/status"
     _stateTopic = MQTT_DEFAULT_STATE_TOPIC;
   }
   return true;

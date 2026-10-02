@@ -1,4 +1,12 @@
+// ============================================================
+// LampStateService — приём и хранение состояния лампы
+// ============================================================
+// ИЗМЕНЕНО: лог подписки → LOG_CAT_MQTT, лог изменения состояния →
+//           LOG_CAT_LAMP. Теперь категории можно фильтровать отдельно.
+// ============================================================
+
 #include "LampStateService.h"
+#include "log.h"       // ИЗМЕНЕНО: макросы логирования
 
 LampStateService::LampStateService(MqttService& mqttService)
     : _mqttService(mqttService)
@@ -9,8 +17,7 @@ LampStateService::LampStateService(MqttService& mqttService)
 }
 
 void LampStateService::onMqttConnected() {
-    // === ИЗМЕНЕНО: один короткий лог вместо развёрнутой строки ===
-    Serial.println("[MQTT] Подписка на state-топик");
+    LOG_LN(LOG_CAT_MQTT, "[MQTT] Подписка на state-топик");
     _hasData = false;
     _mqttService.subscribeState();
 }
@@ -19,7 +26,6 @@ bool LampStateService::handleMqttMessage(const String& topic, const String& payl
     const String& stateTopic = _mqttService.getCredentials().getStateTopic();
     if (topic != stateTopic) return false;
 
-    // Дедупликация: одинаковые подряд идущие payload'ы игнорируем
     if (_hasData && _payload == payload) {
         return true;
     }
@@ -27,8 +33,7 @@ bool LampStateService::handleMqttMessage(const String& topic, const String& payl
     _payload = payload;
     _hasData = true;
 
-    // === ИЗМЕНЕНО: единственный содержательный лог — смена состояния лампы ===
-    Serial.printf("[LAMP] %s\n", payload.c_str());
+    LOG(LOG_CAT_LAMP, "[LAMP] %s\n", payload.c_str());
 
     if (_onChange) _onChange(_payload);
     return true;

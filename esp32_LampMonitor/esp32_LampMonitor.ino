@@ -1,10 +1,13 @@
 // ============================================================
 // ESP32 Lamp Monitor для TTGO T-Display v1.1
 // ============================================================
-// ИЗМЕНЕНО: таймауты и дефолтный state-топик берутся из config.h
+// ИЗМЕНЕНО: пользовательские сообщения переведены на LOG/LOG_LN.
+//           Ошибка инициализации TFT печатается через LOG_ALWAYS
+//           — она показывается даже при полностью выключенных логах.
 // ============================================================
 
-#include "config.h"            // ИЗМЕНЕНО: подключены константы
+#include "config.h"
+#include "log.h"              // ИЗМЕНЕНО: макросы логирования
 #include "AppState.h"
 #include "WebService.h"
 
@@ -13,10 +16,9 @@ WebService webService(appState);
 
 void setup() {
     Serial.begin(SERIAL_BAUD);
-    // ИЗМЕНЕНО: было delay(100)
     delay(STARTUP_DELAY_MS);
     Serial.println();
-    Serial.println("=== ESP32 Lamp Monitor (TTGO T-Display) ===");
+    LOG_LN(LOG_CAT_SYS, "=== ESP32 Lamp Monitor (TTGO T-Display) ===");
 
     // Подсветка TFT — пин GPIO4 на TTGO T-Display
     pinMode(4, OUTPUT);
@@ -24,37 +26,37 @@ void setup() {
 
     MqttCredentials& creds = appState.getMqttCredentials();
     if (creds.getStateTopic().length() == 0) {
-        // ИЗМЕНЕНО: было "home/lamp/status"
         creds.setStateTopic(MQTT_DEFAULT_STATE_TOPIC);
         creds.save();
     }
 
     if (!appState.getDisplayService().begin()) {
-        Serial.println("[ERR] TFT init failed");
+        // ИЗМЕНЕНО: критичная ошибка — печатается всегда, вне маски
+        LOG_ALWAYS("[ERR] TFT init failed\n");
     }
 
     int savedCount = appState.getSavedCount();
 
     if (savedCount == 0) {
-        Serial.println("[WiFi] Нет сохранённых сетей — AP mode");
+        LOG_LN(LOG_CAT_WIFI, "[WiFi] Нет сохранённых сетей — AP mode");
         webService.begin(true);
     } else {
         appState.begin();
 
         unsigned long start = millis();
         bool connected = false;
-        while (millis() - start < WIFI_BOOT_WAIT_MS) {   // ИЗМЕНЕНО: было 10000
+        while (millis() - start < WIFI_BOOT_WAIT_MS) {
             if (appState.isConnected()) {
                 connected = true;
                 break;
             }
-            delay(WIFI_BOOT_POLL_MS);                    // ИЗМЕНЕНО: было 200
+            delay(WIFI_BOOT_POLL_MS);
         }
 
         if (connected) {
             webService.begin(false);
         } else {
-            Serial.println("[WiFi] Автоподключение не удалось — AP mode");
+            LOG_LN(LOG_CAT_WIFI, "[WiFi] Автоподключение не удалось — AP mode");
             webService.begin(true);
         }
     }

@@ -1,11 +1,14 @@
 // ============================================================
 // WiFiManager — реализация для ESP32 (Core 3.x)
 // ============================================================
-// ИЗМЕНЕНО: WiFi.setAutoConnect() удалён в ESP32 Core 3.x — строка убрана
-// ИЗМЕНЕНО: ENC_TYPE_* → WIFI_AUTH_* (ESP32 использует другие константы)
+// ИЗМЕНЕНО: все Serial.print* заменены на LOG/LOG_LN с категорией
+//           LOG_CAT_WIFI. Логи Wi-Fi теперь можно отключить одной
+//           строкой в config.h.
 // ============================================================
 
 #include "WiFiManager.h"
+#include "config.h"
+#include "log.h"       // ИЗМЕНЕНО: подключены макросы логирования
 
 int WiFiManager::scan(NetworkInfo* results, int maxCount) {
   if (results == nullptr || maxCount <= 0) return -1;
@@ -13,7 +16,7 @@ int WiFiManager::scan(NetworkInfo* results, int maxCount) {
   int n = WiFi.scanNetworks(false, true);
 
   if (n <= 0) {
-    Serial.printf("[WiFi] Скан: %d сетей\n", n);
+    LOG(LOG_CAT_WIFI, "[WiFi] Скан: %d сетей\n", n);
     WiFi.scanDelete();
     return n;
   }
@@ -44,49 +47,45 @@ int WiFiManager::scan(NetworkInfo* results, int maxCount) {
   }
 
   WiFi.scanDelete();
-  Serial.printf("[WiFi] Скан: %d сетей\n", count);
+  LOG(LOG_CAT_WIFI, "[WiFi] Скан: %d сетей\n", count);
   return count;
 }
 
 bool WiFiManager::connectToNetwork(const char* ssid, const char* password) {
   if (ssid == nullptr || strlen(ssid) == 0) return false;
 
-  Serial.printf("[WiFi] Подключение к \"%s\"...\n", ssid);
+  LOG(LOG_CAT_WIFI, "[WiFi] Подключение к \"%s\"...\n", ssid);
 
   WiFiMode_t prevMode = WiFi.getMode();
   bool apWasActive = (prevMode == WIFI_AP || prevMode == WIFI_AP_STA);
 
   WiFi.persistent(false);
-  // ИЗМЕНЕНО: WiFi.setAutoConnect(false) удалён в ESP32 Core 3.x
-  // На ESP32 достаточно setAutoReconnect — автоподключение и так отключено
-  // после disconnect(). Строка просто удалена.
   WiFi.setAutoReconnect(false);
   WiFi.disconnect(true, true);
-  delay(200);
+  delay(WIFI_SETTLE_DELAY_MS);
 
   if (apWasActive) {
     WiFi.mode(WIFI_AP_STA);
   } else {
     WiFi.mode(WIFI_STA);
   }
-  delay(200);
+  delay(WIFI_SETTLE_DELAY_MS);
 
   WiFi.begin(ssid, password);
 
   unsigned long start = millis();
   while (WiFi.status() != WL_CONNECTED) {
-    delay(200);
-    if (millis() - start > 20000) {
-      Serial.printf("[WiFi] FAIL (status=%d)\n", WiFi.status());
+    delay(WIFI_SETTLE_DELAY_MS);
+    if (millis() - start > WIFI_CONNECT_TIMEOUT_MS) {
+      LOG(LOG_CAT_WIFI, "[WiFi] FAIL (status=%d)\n", WiFi.status());
       return false;
     }
   }
-  Serial.printf("[WiFi] OK, IP %s\n", WiFi.localIP().toString().c_str());
+  LOG(LOG_CAT_WIFI, "[WiFi] OK, IP %s\n", WiFi.localIP().toString().c_str());
   return true;
 }
 
 const char* WiFiManager::getEncryptionType(uint8_t encType) const {
-  // ИЗМЕНЕНО: на ESP32 используются константы WIFI_AUTH_* вместо ENC_TYPE_*
   switch (encType) {
     case WIFI_AUTH_OPEN:            return "OPEN";
     case WIFI_AUTH_WEP:             return "WEP";

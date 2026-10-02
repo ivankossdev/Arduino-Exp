@@ -1,5 +1,16 @@
-#include "WiFiService.h"
+// ============================================================
+// WiFiService — реализация для ESP32
+// ============================================================
+// ИЗМЕНЕНО: Serial.print* заменены на LOG/LOG_LN(LOG_CAT_WIFI)
+// ============================================================
 
+#include "WiFiService.h"
+#include "log.h"       // ИЗМЕНЕНО: макросы логирования
+
+// === ВАЖНО: конструктор ===
+// Этот блок был пропущен в предыдущем ответе — отсюда ошибка
+// "undefined reference to WiFiService::WiFiService(StateManager&)".
+// Конструктор инициализирует ссылку на StateManager и счётчики.
 WiFiService::WiFiService(StateManager& stateManager)
     : _stateManager(stateManager), _networkCount(0), _hasScanResult(false) {}
 
@@ -91,7 +102,7 @@ bool WiFiService::saveCurrentNetwork() {
         return false;
     }
     if (_credentials.save(_lastSSID, _lastPassword)) {
-        Serial.printf("[WiFi] Сеть \"%s\" сохранена\n", _lastSSID.c_str());
+        LOG(LOG_CAT_WIFI, "[WiFi] Сеть \"%s\" сохранена\n", _lastSSID.c_str());
         return true;
     }
     return false;
@@ -138,7 +149,7 @@ const char* WiFiService::getEncryptionType(uint8_t encType) const {
 void WiFiService::autoConnect() {
     int count = _credentials.count();
     if (count == 0) {
-        Serial.println("[WiFi] Нет сохранённых сетей");
+        LOG_LN(LOG_CAT_WIFI, "[WiFi] Нет сохранённых сетей");
         setState(AppStateEnum::ERROR);
         return;
     }
@@ -151,9 +162,9 @@ void WiFiService::autoConnect() {
 
         if (connect(ssid, password)) return;
         setState(AppStateEnum::IDLE);
-        delay(500);
+        delay(WIFI_AUTOCONNECT_RETRY_DELAY_MS);
     }
 
-    Serial.println("[WiFi] Все попытки подключения провалились");
+    LOG_LN(LOG_CAT_WIFI, "[WiFi] Все попытки подключения провалились");
     setState(AppStateEnum::ERROR);
 }

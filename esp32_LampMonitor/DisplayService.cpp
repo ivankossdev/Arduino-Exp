@@ -6,6 +6,7 @@
 // ============================================================
 
 #include "DisplayService.h"
+#include "log.h"       // ИЗМЕНЕНО: макросы логирования
 
 // Позиции строк в клиентском режиме (px, сверху вниз).
 // Оставлены здесь, потому что это компоновочные параметры
@@ -58,7 +59,7 @@ bool DisplayService::begin() {
     _tft.println("ESP32");
     _tft.println("Load...");
 
-    Serial.println("[TFT] OK");
+    LOG_LN(LOG_CAT_TFT, "[TFT] OK");
     inited = true;
     return true;
 }

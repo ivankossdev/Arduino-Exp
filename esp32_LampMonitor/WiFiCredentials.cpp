@@ -1,16 +1,14 @@
 // ============================================================
 // WiFiCredentials — хранилище Wi-Fi credentials
 // ============================================================
-// ИЗМЕНЕНО: NAMESPACE и KEY берутся из config.h
-// ИЗМЕНЕНО: размеры DynamicJsonDocument заменены на константы
+// ИЗМЕНЕНО: Serial.print* заменены на LOG/LOG_LN(LOG_CAT_WIFI)
 // ============================================================
 
 #include "WiFiCredentials.h"
-#include "config.h"      // ИЗМЕНЕНО: константы вынесены сюда
+#include "config.h"
+#include "log.h"       // ИЗМЕНЕНО: макросы логирования
 
-// ИЗМЕНЕНО: было "wifi"
 const char* WiFiCredentials::NAMESPACE = PREF_NAMESPACE_WIFI;
-// ИЗМЕНЕНО: было "creds"
 const char* WiFiCredentials::KEY = PREF_KEY_WIFI;
 
 WiFiCredentials::WiFiCredentials()
@@ -34,15 +32,13 @@ void WiFiCredentials::loadData() {
   if (data[0] == '{') {
     DeserializationError error = deserializeJson(*_doc, data);
     if (error) {
-      Serial.println("Ошибка парсинга JSON, данные сброшены.");
+      LOG_LN(LOG_CAT_WIFI, "Ошибка парсинга JSON, данные сброшены.");
       _doc->clear();
     }
     return;
   }
 
-  // Миграция старого формата
-  Serial.println("Обнаружен старый формат хранения, выполняю миграцию...");
-  // ИЗМЕНЕНО: было DynamicJsonDocument newDoc(1024)
+  LOG_LN(LOG_CAT_WIFI, "Обнаружен старый формат хранения, выполняю миграцию...");
   DynamicJsonDocument newDoc(WIFI_CRED_MIGRATION_JSON_SIZE);
   int pos = 0;
   while (pos < data.length()) {
@@ -62,7 +58,7 @@ void WiFiCredentials::loadData() {
     (*_doc)[kv.key().c_str()] = kv.value().as<String>();
   }
   saveData();
-  Serial.println("Миграция завершена успешно.");
+  LOG_LN(LOG_CAT_WIFI, "Миграция завершена успешно.");
 }
 
 void WiFiCredentials::saveData() {
@@ -120,13 +116,13 @@ void WiFiCredentials::clearAll() {
 void WiFiCredentials::printAll() {
   ensureLoaded();
   if (_doc->size() == 0) {
-    Serial.println("Нет сохранённых сетей.");
+    LOG_LN(LOG_CAT_WIFI, "Нет сохранённых сетей.");
     return;
   }
-  Serial.println("Сохранённые сети (SSID):");
+  LOG_LN(LOG_CAT_WIFI, "Сохранённые сети (SSID):");
   int idx = 0;
   for (JsonPair kv : _doc->as<JsonObject>()) {
-    Serial.printf("%d. %s\n", idx, kv.key().c_str());
+    LOG(LOG_CAT_WIFI, "%d. %s\n", idx, kv.key().c_str());
     idx++;
   }
 }

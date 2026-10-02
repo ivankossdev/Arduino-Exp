@@ -1,4 +1,11 @@
+// ============================================================
+// MqttService — фасад над MqttManager и MqttCredentials
+// ============================================================
+// ИЗМЕНЕНО: Serial.print* заменены на LOG/LOG_LN(LOG_CAT_MQTT)
+// ============================================================
+
 #include "MqttService.h"
+#include "log.h"       // ИЗМЕНЕНО: макросы логирования
 
 MqttService::MqttService(StateManager& stateManager)
     : _stateManager(stateManager), _messageCallback(nullptr),
@@ -6,7 +13,7 @@ MqttService::MqttService(StateManager& stateManager)
 
 bool MqttService::begin() {
     if (!loadCredentials()) {
-        Serial.println("[MQTT] Настройки не найдены");
+        LOG_LN(LOG_CAT_MQTT, "[MQTT] Настройки не найдены");
         return false;
     }
 
@@ -17,7 +24,7 @@ bool MqttService::begin() {
     String stateTopic = _credentials.getStateTopic();
 
     if (server.length() == 0) {
-        Serial.println("[MQTT] Сервер не задан");
+        LOG_LN(LOG_CAT_MQTT, "[MQTT] Сервер не задан");
         return false;
     }
 
@@ -38,11 +45,8 @@ bool MqttService::begin() {
 
             _callbacksRegistered = true;
         }
-        // === ИЗМЕНЕНО: убран лог "MQTT Manager инициализирован" ===
-        // Успешная инициализация видна по последующему "[MQTT] Подключено"
-        // или "[MQTT] FAIL ..." от MqttManager::reconnect().
     } else {
-        Serial.println("[MQTT] Ошибка инициализации");
+        LOG_LN(LOG_CAT_MQTT, "[MQTT] Ошибка инициализации");
     }
     return result;
 }
@@ -51,7 +55,7 @@ bool MqttService::begin(const String& server, int port,
                         const String& user, const String& password,
                         const String& stateTopic) {
     if (!configure(server, port, user, password, stateTopic)) {
-        Serial.println("[MQTT] Ошибка сохранения настроек");
+        LOG_LN(LOG_CAT_MQTT, "[MQTT] Ошибка сохранения настроек");
         return false;
     }
     return begin();
@@ -95,17 +99,13 @@ void MqttService::setOnConnected(MqttConnectedCallback callback) {
 bool MqttService::subscribeState() {
     String stateTopic = _credentials.getStateTopic();
     if (stateTopic.length() == 0) {
-        Serial.println("[MQTT] state-топик не задан");
+        LOG_LN(LOG_CAT_MQTT, "[MQTT] state-топик не задан");
         return false;
     }
     return _manager.subscribe(stateTopic);
 }
 
 void MqttService::handleMessage(const String& topic, const String& payload) {
-    // === ИЗМЕНЕНО: убран лог "MQTT получено: topic=..., payload=..." ===
-    // Он дублировал то, что уже логирует LampStateService. Транспортный
-    // уровень сам по себе не несёт полезной информации — важно только
-    // применение значения, а это видно по "[LAMP] ...".
     if (_messageCallback) {
         _messageCallback(topic, payload);
     }
