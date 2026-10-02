@@ -285,7 +285,8 @@ static const char CLIENT_PAGE[] PROGMEM = R"rawliteral(
 
 
 WebService::WebService(AppState& appState)
-    : _appState(appState), _server(80), _apMode(false)
+    // ИЗМЕНЕНО: было _server(80)
+    : _appState(appState), _server(WEB_SERVER_PORT), _apMode(false)
 {
     setupRoutes();
 }
@@ -308,8 +309,9 @@ void WebService::begin(bool apMode) {
 
 void WebService::startApMode() {
     WiFi.mode(WIFI_AP_STA);
-    String ssid = "ESP32-Setup";
-    String password = "12345678";
+    // ИЗМЕНЕНО: было String ssid = "ESP32-Setup"; password = "12345678";
+    String ssid = AP_SSID;
+    String password = AP_PASSWORD;
     WiFi.softAP(ssid.c_str(), password.c_str());
     _appState.getWiFiService().setApCredentials(ssid, password);
 }
@@ -329,7 +331,8 @@ void WebService::checkWifiLoss() {
 
     if (millis() - _lastWifiOk > AP_FALLBACK_TIMEOUT_MS) {
         Serial.println("[WiFi] Потеря > 60 сек — перезагрузка");
-        delay(100);
+        // ИЗМЕНЕНО: было delay(100)
+        delay(STARTUP_DELAY_MS);
         ESP.restart();
     }
 }
@@ -354,7 +357,6 @@ void WebService::setupRoutes() {
 }
 
 void WebService::handleRoot() {
-    // ИЗМЕНЕНО: send_P() → send() (на ESP32 PROGMEM не нужен)
     if (_apMode) {
         _server.send(200, "text/html", AP_PAGE);
     } else {
@@ -364,7 +366,8 @@ void WebService::handleRoot() {
 
 void WebService::handleScan() {
     _appState.startScan();
-    delay(100);
+    // ИЗМЕНЕНО: было delay(100)
+    delay(WEB_SCAN_DELAY_MS);
     String json = getScanJson();
     _server.send(200, "application/json", json);
 }
@@ -375,7 +378,8 @@ void WebService::handleConnect() {
         return;
     }
     String body = _server.arg("plain");
-    DynamicJsonDocument doc(256);
+    // ИЗМЕНЕНО: было DynamicJsonDocument doc(256);
+    DynamicJsonDocument doc(JSON_DOC_CONNECT_SIZE);
     DeserializationError error = deserializeJson(doc, body);
     if (error) {
         _server.send(400, "application/json", "{\"success\":false,\"error\":\"Invalid JSON\"}");
@@ -413,7 +417,8 @@ void WebService::handleDelete() {
         return;
     }
     String body = _server.arg("plain");
-    DynamicJsonDocument doc(128);
+    // ИЗМЕНЕНО: было DynamicJsonDocument doc(128);
+    DynamicJsonDocument doc(JSON_DOC_DELETE_SIZE);
     DeserializationError error = deserializeJson(doc, body);
     if (error) {
         _server.send(400, "application/json", "{\"success\":false,\"error\":\"Invalid JSON\"}");
@@ -440,7 +445,8 @@ void WebService::handleMqttPost() {
         return;
     }
     String body = _server.arg("plain");
-    DynamicJsonDocument doc(512);
+    // ИЗМЕНЕНО: было DynamicJsonDocument doc(512);
+    DynamicJsonDocument doc(JSON_DOC_MQTT_SIZE);
     DeserializationError error = deserializeJson(doc, body);
     if (error) {
         _server.send(400, "application/json", "{\"success\":false,\"error\":\"Invalid JSON\"}");
@@ -465,15 +471,18 @@ void WebService::handleReset() {
     while (_appState.getSavedCount() > 0) {
         _appState.deleteSavedNetwork(0);
     }
-    _appState.configureMqtt("", 1883, "", "", "home/lamp/status");
+    // ИЗМЕНЕНО: было "home/lamp/status"
+    _appState.configureMqtt("", MQTT_DEFAULT_PORT, "", "", MQTT_DEFAULT_STATE_TOPIC);
     _server.send(200, "application/json", "{\"success\":true}");
-    delay(100);
+    // ИЗМЕНЕНО: было delay(100)
+    delay(WEB_RESTART_DELAY_MS);
     ESP.restart();
 }
 
 void WebService::handleReboot() {
     _server.send(200, "application/json", "{\"success\":true}");
-    delay(100);
+    // ИЗМЕНЕНО: было delay(100)
+    delay(WEB_RESTART_DELAY_MS);
     ESP.restart();
 }
 

@@ -1,30 +1,22 @@
 // ============================================================
 // DisplayService — управление дисплеем ST7789 (TTGO T-Display)
 // ============================================================
-// ИЗМЕНЕНО: Adafruit_SSD1306 → TFT_eSPI (цветной ST7789V)
-// ИЗМЕНЕНО: разрешение 128x64 → 240x135 (альбомная ориентация)
-// ИЗМЕНЕНО: WebServer.h подключается ДО TFT_eSPI.h — иначе конфликт
-//           макроса FS_NO_GLOBALS
-// ИЗМЕНЕНО: добавлен кэш последних отрисованных значений —
-//           устраняет мерцание от периодических полных перерисовок
+// ИЗМЕНЕНО: SCREEN_WIDTH/SCREEN_HEIGHT перенесены в config.h
+// ИЗМЕНЕНО: добавлен #include "config.h"
 // ============================================================
 
 #ifndef DISPLAY_SERVICE_H
 #define DISPLAY_SERVICE_H
 
 #include <Arduino.h>
-
-// ВАЖНО: этот include должен идти ПЕРЕД TFT_eSPI.h
 #include <WebServer.h>
 #include <TFT_eSPI.h>
 
+#include "config.h"             // ИЗМЕНЕНО: константы вынесены сюда
 #include "StateManager.h"
 #include "WiFiService.h"
 #include "MqttService.h"
 #include "LampStateService.h"
-
-#define SCREEN_WIDTH  240
-#define SCREEN_HEIGHT 135
 
 class DisplayService {
 public:
@@ -58,10 +50,7 @@ private:
 
     AppStateEnum _currentState;
 
-    // === НОВОЕ: кэш последних отрисованных значений ===
-    // Экран полностью перерисовывается только при смене состояния
-    // приложения. Периодические тики обновляют только изменившиеся блоки.
-    bool   _fullRedraw;     // принудительная полная перерисовка (после смены состояния)
+    bool   _fullRedraw;
     bool   _lastWifi;
     String _lastSSID;
     String _lastIP;

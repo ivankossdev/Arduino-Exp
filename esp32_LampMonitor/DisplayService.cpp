@@ -1,17 +1,15 @@
 // ============================================================
 // DisplayService — реализация для TFT_eSPI (ST7789V)
 // ============================================================
-// ИЗМЕНЕНО: все вызовы Adafruit_SSD1306 заменены на TFT_eSPI
-// ИЗМЕНЕНО: drawClientMode() перерисовывает экран ПОСТРОЧНО —
-//           каждая строка (WiFi / IP / RSSI / MQTT / LAMP) сравнивается
-//           со своим кэшем и обновляется только при изменении.
-//           Это устраняет любое мерцание при смене одного значения.
+// ИЗМЕНЕНО: _updateInterval инициализируется DISPLAY_UPDATE_INTERVAL_MS
+// ИЗМЕНЕНО: квантование RSSI использует RSSI_QUANTIZE_STEP
 // ============================================================
 
 #include "DisplayService.h"
 
 // Позиции строк в клиентском режиме (px, сверху вниз).
-// Высота каждой строки — 14 px: 8 px текст (font size 1) + 6 px зазор.
+// Оставлены здесь, потому что это компоновочные параметры
+// конкретного экрана, а не общесистемные константы.
 #define LINE_WIFI_Y   26
 #define LINE_IP_Y     40
 #define LINE_RSSI_Y   54
@@ -29,7 +27,8 @@ DisplayService::DisplayService(StateManager& stateManager,
       _lampStateService(lampStateService),
       _tft(),
       _lastUpdate(0),
-      _updateInterval(2000),
+      // ИЗМЕНЕНО: было _updateInterval(2000)
+      _updateInterval(DISPLAY_UPDATE_INTERVAL_MS),
       _currentState(AppStateEnum::IDLE),
       _fullRedraw(true),
       _lastWifi(false),
@@ -51,7 +50,7 @@ bool DisplayService::begin() {
     if (inited) return true;
 
     _tft.init();
-    _tft.setRotation(1);              // альбомная ориентация (240x135)
+    _tft.setRotation(1);
     _tft.fillScreen(TFT_BLACK);
     _tft.setTextColor(TFT_WHITE, TFT_BLACK);
     _tft.setTextSize(2);
@@ -69,11 +68,6 @@ void DisplayService::update() {
     if (now - _lastUpdate < _updateInterval) return;
     _lastUpdate = now;
 
-    // ИЗМЕНЕНО: убрана проверка «есть ли изменения» здесь —
-    // теперь это делает drawClientMode() построчно. В статичных
-    // состояниях (AP / SCANNING / CONNECTING / ERROR) периодический
-    // вызов drawScreen() не нужен — там контент не меняется, а
-    // перерисовка была бы полной (fillScreen) и давала бы мерцание.
     if (!_fullRedraw) {
         if (_currentState != AppStateEnum::IDLE &&
             _currentState != AppStateEnum::CONNECTED) {
@@ -86,7 +80,7 @@ void DisplayService::update() {
 
 void DisplayService::handleStateChange(AppStateEnum newState) {
     _currentState = newState;
-    _fullRedraw = true;   // смена состояния → полная перерисовка
+    _fullRedraw = true;
     drawScreen();
 }
 
@@ -116,11 +110,6 @@ void DisplayService::drawScreen() {
     _fullRedraw = false;
 }
 
-// ============================================================
-// Статичные экраны: рисуются только при смене состояния,
-// поэтому fillScreen здесь не даёт мерцания.
-// ============================================================
-
 void DisplayService::drawApMode() {
     _tft.fillScreen(TFT_BLACK);
     _tft.setTextColor(TFT_CYAN, TFT_BLACK);
@@ -129,36 +118,24 @@ void DisplayService::drawApMode() {
     _tft.println("=== AP MODE ===");
     _tft.setTextColor(TFT_WHITE, TFT_BLACK);
     _tft.setTextSize(1);
-    _tft.println("SSID: ESP32-Setup");
+    _tft.println("SSID: " AP_SSID);          // ИЗМЕНЕНО: имя сети из config.h
     _tft.println("IP: 192.168.4.1");
     _tft.println("Configure via");
     _tft.println("web interface");
 }
 
-// ============================================================
-// Клиентский режим — построчное обновление.
-//
-// Полный fillScreen вызывается только когда:
-//   - _fullRedraw = true (пришла смена состояния приложения), или
-//   - изменился сам факт наличия Wi-Fi (был / пропал) — тогда
-//     компоновка блока меняется и старые строки нужно стереть.
-//
-// В остальных случаях каждая строка проверяется отдельно и
-// перерисовывается через маленький fillRect только если её
-// значение действительно поменялось.
-// ============================================================
 void DisplayService::drawClientMode() {
     bool   wifi    = _wifiService.isConnected();
     bool   mqtt    = _mqttService.isConnected();
     bool   hasLamp = _lampStateService.hasData();
     String ssid    = wifi ? _wifiService.getCurrentSSID() : String("");
     String ip      = wifi ? _wifiService.getIP().toString() : String("");
-    int    rssi    = wifi ? (WiFi.RSSI() / 5) * 5 : 0;
+    // ИЗМЕНЕНО: литерал 5 заменён на RSSI_QUANTIZE_STEP
+    int    rssi    = wifi ? (WiFi.RSSI() / RSSI_QUANTIZE_STEP) * RSSI_QUANTIZE_STEP : 0;
     String lamp    = hasLamp ? _lampStateService.getPayload() : String("");
 
     bool needFull = _fullRedraw || (_lastWifi != wifi);
 
-    // --- Полная перерисовка: фон + заголовок + сброс кэшей строк ---
     if (needFull) {
         _tft.fillScreen(TFT_BLACK);
         _tft.setTextColor(TFT_GREEN, TFT_BLACK);
@@ -166,7 +143,6 @@ void DisplayService::drawClientMode() {
         _tft.setCursor(0, 0);
         _tft.println("=== CLIENT ===");
 
-        // Сброс кэшей, чтобы все строки перерисовались ниже
         _lastSSID    = "";
         _lastIP      = "";
         _lastRSSI    = -999;
@@ -175,9 +151,8 @@ void DisplayService::drawClientMode() {
         _lastLamp    = "";
     }
 
-    // --- Строка WiFi ---
     if (needFull || _lastSSID != ssid) {
-        _tft.fillRect(0, LINE_WIFI_Y, 240, LINE_HEIGHT, TFT_BLACK);
+        _tft.fillRect(0, LINE_WIFI_Y, SCREEN_WIDTH, LINE_HEIGHT, TFT_BLACK);
         _tft.setTextColor(TFT_WHITE, TFT_BLACK);
         _tft.setTextSize(1);
         _tft.setCursor(0, LINE_WIFI_Y + 3);
@@ -190,9 +165,8 @@ void DisplayService::drawClientMode() {
         _lastSSID = ssid;
     }
 
-    // --- Строка IP ---
     if (needFull || _lastIP != ip) {
-        _tft.fillRect(0, LINE_IP_Y, 240, LINE_HEIGHT, TFT_BLACK);
+        _tft.fillRect(0, LINE_IP_Y, SCREEN_WIDTH, LINE_HEIGHT, TFT_BLACK);
         _tft.setTextColor(TFT_WHITE, TFT_BLACK);
         _tft.setTextSize(1);
         _tft.setCursor(0, LINE_IP_Y + 3);
@@ -203,9 +177,8 @@ void DisplayService::drawClientMode() {
         _lastIP = ip;
     }
 
-    // --- Строка RSSI ---
     if (needFull || _lastRSSI != rssi) {
-        _tft.fillRect(0, LINE_RSSI_Y, 240, LINE_HEIGHT, TFT_BLACK);
+        _tft.fillRect(0, LINE_RSSI_Y, SCREEN_WIDTH, LINE_HEIGHT, TFT_BLACK);
         _tft.setTextColor(TFT_WHITE, TFT_BLACK);
         _tft.setTextSize(1);
         _tft.setCursor(0, LINE_RSSI_Y + 3);
@@ -217,13 +190,10 @@ void DisplayService::drawClientMode() {
         _lastRSSI = rssi;
     }
 
-    // --- Строка MQTT ---
-    // Запоминаем факт изменения MQTT, чтобы ниже понять,
-    // нужно ли перерисовать строку LAMP (её содержимое зависит от MQTT).
     bool mqttChanged = (needFull || _lastMqtt != mqtt);
 
     if (mqttChanged) {
-        _tft.fillRect(0, LINE_MQTT_Y, 240, LINE_HEIGHT, TFT_BLACK);
+        _tft.fillRect(0, LINE_MQTT_Y, SCREEN_WIDTH, LINE_HEIGHT, TFT_BLACK);
         _tft.setTextSize(1);
         _tft.setCursor(0, LINE_MQTT_Y + 3);
         if (mqtt) {
@@ -236,14 +206,9 @@ void DisplayService::drawClientMode() {
         _lastMqtt = mqtt;
     }
 
-    // --- Строка LAMP ---
-    // Перерисовываем если:
-    //  - сменилось MQTT (тогда меняется и отображение LAMP: "--", "?", значение)
-    //  - сменилось наличие данных
-    //  - сменилось само значение payload
     if (needFull || mqttChanged || _lastHasLamp != hasLamp || _lastLamp != lamp) {
-        _tft.fillRect(0, LINE_LAMP_Y, 240, LINE_HEIGHT, TFT_BLACK);
-        _tft.setTextSize(2);
+        _tft.fillRect(0, LINE_LAMP_Y, SCREEN_WIDTH, LINE_HEIGHT, TFT_BLACK);
+        _tft.setTextSize(1);
         _tft.setCursor(0, LINE_LAMP_Y + 3);
         _tft.setTextColor(TFT_WHITE, TFT_BLACK);
         _tft.print("LAMP: ");

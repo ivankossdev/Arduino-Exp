@@ -1,20 +1,15 @@
 // ============================================================
-// WebService — веб-сервер (адаптация под ESP32)
+// WebService — веб-сервер (ESP32)
 // ============================================================
-// ИЗМЕНЕНО: ESP8266WebServer → WebServer (ESP32 Core)
-// ИЗМЕНЕНО: include <WebServer.h> убран отсюда — он уже подтянут
-//           через AppState.h → DisplayService.h ДО TFT_eSPI.h,
-//           что решает конфликт с FS_NO_GLOBALS
+// ИЗМЕНЕНО: порт и таймаут fallback берутся из config.h
 // ============================================================
 
 #ifndef WEB_SERVICE_H
 #define WEB_SERVICE_H
 
 #include <Arduino.h>
+#include "config.h"             // ИЗМЕНЕНО: константы вынесены сюда
 #include "AppState.h"
-// ИЗМЕНЕНО: убран #include <WebServer.h>
-// Он уже подключён в DisplayService.h до TFT_eSPI.h — это критично
-// для правильного порядка инициализации глобального типа FS.
 
 class WebService {
 public:
@@ -26,11 +21,12 @@ public:
 
 private:
     AppState& _appState;
-    WebServer _server;          // ИЗМЕНЕНО: было ESP8266WebServer
-
+    WebServer _server;
     bool _apMode;
+
     unsigned long _lastWifiOk = 0;
-    static const unsigned long AP_FALLBACK_TIMEOUT_MS = 60000;
+    // ИЗМЕНЕНО: было static const unsigned long AP_FALLBACK_TIMEOUT_MS = 60000;
+    static const unsigned long AP_FALLBACK_TIMEOUT_MS = WEB_AP_FALLBACK_TIMEOUT_MS;
 
     void setupRoutes();
     void startApMode();

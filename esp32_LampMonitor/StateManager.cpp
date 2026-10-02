@@ -3,10 +3,6 @@
 StateManager::StateManager() : _state(AppStateEnum::IDLE), _onChange(nullptr) {}
 
 void StateManager::setState(AppStateEnum newState) {
-    // === ИЗМЕНЕНО: убран лог смены состояния ===
-    // Он срабатывал на каждое изменение и создавал шум в момент
-    // подключения/переключения режимов. Информация о состоянии
-    // доступна через /status и на OLED — в Serial не нужна.
     _state = newState;
     if (_onChange) {
         _onChange(newState);

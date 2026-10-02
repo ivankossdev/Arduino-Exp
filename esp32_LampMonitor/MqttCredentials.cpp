@@ -1,11 +1,21 @@
+// ============================================================
+// MqttCredentials — хранилище MQTT-настроек
+// ============================================================
+// ИЗМЕНЕНО: NAMESPACE и KEY берутся из config.h
+// ИЗМЕНЕНО: дефолтный порт и state-топик берутся из config.h
+// ============================================================
+
 #include "MqttCredentials.h"
+#include "config.h"      // ИЗМЕНЕНО: константы вынесены сюда
 
-const char* MqttCredentials::NAMESPACE = "mqtt";
-const char* MqttCredentials::KEY = "config";
+// ИЗМЕНЕНО: было "mqtt"
+const char* MqttCredentials::NAMESPACE = PREF_NAMESPACE_MQTT;
+// ИЗМЕНЕНО: было "config"
+const char* MqttCredentials::KEY = PREF_KEY_MQTT;
 
-// === ИЗМЕНЕНО: state-топик по умолчанию home/lamp/status, cmdTopic убран ===
+// ИЗМЕНЕНО: было _port(1883), _stateTopic("home/lamp/status")
 MqttCredentials::MqttCredentials()
-    : _port(1883), _stateTopic("home/lamp/status") {}
+    : _port(MQTT_DEFAULT_PORT), _stateTopic(MQTT_DEFAULT_STATE_TOPIC) {}
 
 MqttCredentials::~MqttCredentials() {}
 
@@ -54,10 +64,9 @@ bool MqttCredentials::load() {
   _user = doc["user"].as<String>();
   _password = doc["password"].as<String>();
   _stateTopic = doc["stateTopic"].as<String>();
-  // === УДАЛЕНО: _cmdTopic ===
-  // Если сохранённый stateTopic пуст — оставляем default из конструктора
   if (_stateTopic.length() == 0) {
-    _stateTopic = "home/lamp/status";
+    // ИЗМЕНЕНО: было "home/lamp/status"
+    _stateTopic = MQTT_DEFAULT_STATE_TOPIC;
   }
   return true;
 }
@@ -69,7 +78,6 @@ bool MqttCredentials::save() {
   doc["user"] = _user;
   doc["password"] = _password;
   doc["stateTopic"] = _stateTopic;
-  // === УДАЛЕНО: cmdTopic ===
   String data = serializeData(doc);
   saveData(data);
   return true;
@@ -83,8 +91,6 @@ String MqttCredentials::getUser() const { return _user; }
 void MqttCredentials::setUser(const String& user) { _user = user; }
 String MqttCredentials::getPassword() const { return _password; }
 void MqttCredentials::setPassword(const String& password) { _password = password; }
-
-// === УДАЛЕНО: getCmdTopic / setCmdTopic ===
 
 String MqttCredentials::getStateTopic() const { return _stateTopic; }
 void MqttCredentials::setStateTopic(const String& stateTopic) { _stateTopic = stateTopic; }

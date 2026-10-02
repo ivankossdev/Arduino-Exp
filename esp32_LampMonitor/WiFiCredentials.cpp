@@ -1,10 +1,20 @@
-#include "WiFiCredentials.h"
+// ============================================================
+// WiFiCredentials — хранилище Wi-Fi credentials
+// ============================================================
+// ИЗМЕНЕНО: NAMESPACE и KEY берутся из config.h
+// ИЗМЕНЕНО: размеры DynamicJsonDocument заменены на константы
+// ============================================================
 
-const char* WiFiCredentials::NAMESPACE = "wifi";
-const char* WiFiCredentials::KEY = "creds";
+#include "WiFiCredentials.h"
+#include "config.h"      // ИЗМЕНЕНО: константы вынесены сюда
+
+// ИЗМЕНЕНО: было "wifi"
+const char* WiFiCredentials::NAMESPACE = PREF_NAMESPACE_WIFI;
+// ИЗМЕНЕНО: было "creds"
+const char* WiFiCredentials::KEY = PREF_KEY_WIFI;
 
 WiFiCredentials::WiFiCredentials()
-    : _doc(new DynamicJsonDocument(2048)), _loaded(false) {}
+    : _doc(new DynamicJsonDocument(WIFI_CRED_JSON_SIZE)), _loaded(false) {}
 
 WiFiCredentials::~WiFiCredentials() {
   delete _doc;
@@ -32,7 +42,8 @@ void WiFiCredentials::loadData() {
 
   // Миграция старого формата
   Serial.println("Обнаружен старый формат хранения, выполняю миграцию...");
-  DynamicJsonDocument newDoc(1024);
+  // ИЗМЕНЕНО: было DynamicJsonDocument newDoc(1024)
+  DynamicJsonDocument newDoc(WIFI_CRED_MIGRATION_JSON_SIZE);
   int pos = 0;
   while (pos < data.length()) {
     int colon = data.indexOf(':', pos);

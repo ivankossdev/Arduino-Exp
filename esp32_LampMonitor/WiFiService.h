@@ -1,13 +1,15 @@
 // ============================================================
-// WiFiService — адаптация под ESP32
+// WiFiService — управление Wi-Fi (ESP32)
 // ============================================================
-// ИЗМЕНЕНО: WiFiManager.h теперь тянет WiFi.h (ESP32)
+// ИЗМЕНЕНО: MAX_NETWORKS перенесён в config.h как WIFI_SCAN_MAX_NETWORKS
+// ИЗМЕНЕНО: добавлен #include "config.h"
 // ============================================================
 
 #ifndef WIFI_SERVICE_H
 #define WIFI_SERVICE_H
 
 #include <Arduino.h>
+#include "config.h"             // ИЗМЕНЕНО: константы вынесены сюда
 #include "WiFiManager.h"
 #include "WiFiCredentials.h"
 #include "StateManager.h"
@@ -42,7 +44,9 @@ public:
     void setApCredentials(const String& ssid, const String& password);
 
 private:
-    static const int MAX_NETWORKS = 50;
+    // ИЗМЕНЕНО: было static const int MAX_NETWORKS = 50;
+    // Теперь берём из config.h как WIFI_SCAN_MAX_NETWORKS.
+    static const int MAX_NETWORKS = WIFI_SCAN_MAX_NETWORKS;
 
     StateManager& _stateManager;
     WiFiManager _wifiManager;
