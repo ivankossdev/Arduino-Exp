@@ -1,10 +1,15 @@
+// ============================================================
+// MqttManager — управление MQTT-соединением (ESP32)
+// ============================================================
+// ИЗМЕНЕНО: <ESP8266WiFi.h> → <WiFi.h> (платформа ESP32)
+// ============================================================
+
 #ifndef MQTT_MANAGER_H
 #define MQTT_MANAGER_H
 
 #include <Arduino.h>
 #include <PubSubClient.h>
-// ИЗМЕНЕНО: было #include <ESP8266WiFi.h>
-#include <WiFi.h>
+#include <WiFi.h>                  // ИЗМЕНЕНО: было <ESP8266WiFi.h>
 #include <functional>
 
 typedef std::function<void(const String& topic, const String& payload)> MqttCallback;
@@ -19,7 +24,7 @@ public:
                const String& user, const String& password,
                const String& stateTopic);
 
-
+    // Чистый разрыв соединения — перед повторной инициализацией.
     void disconnect();
 
     static void setCallback(MqttCallback callback);

@@ -243,7 +243,7 @@ void DisplayService::drawClientMode() {
     //  - сменилось само значение payload
     if (needFull || mqttChanged || _lastHasLamp != hasLamp || _lastLamp != lamp) {
         _tft.fillRect(0, LINE_LAMP_Y, 240, LINE_HEIGHT, TFT_BLACK);
-        _tft.setTextSize(1);
+        _tft.setTextSize(2);
         _tft.setCursor(0, LINE_LAMP_Y + 3);
         _tft.setTextColor(TFT_WHITE, TFT_BLACK);
         _tft.print("LAMP: ");
