@@ -1,14 +1,20 @@
 // ============================================================
 // WebService — реализация для ESP32
 // ============================================================
-// ИЗМЕНЕНО: ESP8266WebServer → WebServer
-// ИЗМЕНЕНО: send_P() → send() (PROGMEM на ESP32 не имеет смысла)
+// ИЗМЕНЕНО: GET /mqtt больше не отдаёт реальный пароль MQTT.
+//           Вместо него возвращается пустая строка + флаг passwordSet,
+//           чтобы UI знал, задан ли пароль, но не мог его прочитать.
+// ИЗМЕНЕНО: POST /mqtt с пустым полем пароля сохраняет текущий пароль
+//           (пустое поле = «не менять»). Это позволяет редактировать
+//           сервер/логин/топик, не вводя пароль заново.
+// ИЗМЕНЕНО: на обеих страницах (AP и CLIENT) поле пароля больше
+//           не предзаполняется. В placeholder показывается подсказка.
 // ============================================================
 
 #include "WebService.h"
+#include "config.h"
 
-// ИЗМЕНЕНО: строки страниц оставлены как PROGMEM, но отправляются через send()
-// (на ESP32 PROGMEM не нужен, но не мешает)
+// ======== HTML-страницы (PROGMEM) ========
 
 static const char AP_PAGE[] PROGMEM = R"rawliteral(
 <!DOCTYPE html>
@@ -85,7 +91,13 @@ static const char AP_PAGE[] PROGMEM = R"rawliteral(
                 document.getElementById('mqttServer').value = data.server || '';
                 document.getElementById('mqttPort').value = data.port || '1883';
                 document.getElementById('mqttUser').value = data.user || '';
-                document.getElementById('mqttPass').value = data.password || '';
+                // ИЗМЕНЕНО: пароль не заполняем. Поле всегда пустое.
+                // В placeholder — подсказка, что оно значит.
+                const passField = document.getElementById('mqttPass');
+                passField.value = '';
+                passField.placeholder = data.passwordSet
+                    ? '(задан, оставьте пустым чтобы не менять)'
+                    : 'password';
                 document.getElementById('mqttState').value = data.stateTopic || '';
             });
         }
@@ -145,6 +157,8 @@ static const char AP_PAGE[] PROGMEM = R"rawliteral(
                 server: document.getElementById('mqttServer').value,
                 port: parseInt(document.getElementById('mqttPort').value) || 1883,
                 user: document.getElementById('mqttUser').value,
+                // ИЗМЕНЕНО: пустое поле пароля = «оставить текущий».
+                // Сервер это учтёт и не затрёт сохранённый пароль.
                 password: document.getElementById('mqttPass').value,
                 stateTopic: document.getElementById('mqttState').value
             };
@@ -238,7 +252,13 @@ static const char CLIENT_PAGE[] PROGMEM = R"rawliteral(
                 document.getElementById('mqttServer').value = data.server || '';
                 document.getElementById('mqttPort').value = data.port || '1883';
                 document.getElementById('mqttUser').value = data.user || '';
-                document.getElementById('mqttPass').value = data.password || '';
+                // ИЗМЕНЕНО: пароль не заполняем — поле всегда пустое.
+                // Placeholder подсказывает, что пустое поле сохранит текущий.
+                const passField = document.getElementById('mqttPass');
+                passField.value = '';
+                passField.placeholder = data.passwordSet
+                    ? '(задан, оставьте пустым чтобы не менять)'
+                    : 'password';
                 document.getElementById('mqttState').value = data.stateTopic || '';
             });
         }
@@ -248,6 +268,7 @@ static const char CLIENT_PAGE[] PROGMEM = R"rawliteral(
                 server: document.getElementById('mqttServer').value,
                 port: parseInt(document.getElementById('mqttPort').value) || 1883,
                 user: document.getElementById('mqttUser').value,
+                // ИЗМЕНЕНО: пустое поле = «оставить текущий пароль».
                 password: document.getElementById('mqttPass').value,
                 stateTopic: document.getElementById('mqttState').value
             };
@@ -285,7 +306,6 @@ static const char CLIENT_PAGE[] PROGMEM = R"rawliteral(
 
 
 WebService::WebService(AppState& appState)
-    // ИЗМЕНЕНО: было _server(80)
     : _appState(appState), _server(WEB_SERVER_PORT), _apMode(false)
 {
     setupRoutes();
@@ -309,7 +329,6 @@ void WebService::begin(bool apMode) {
 
 void WebService::startApMode() {
     WiFi.mode(WIFI_AP_STA);
-    // ИЗМЕНЕНО: было String ssid = "ESP32-Setup"; password = "12345678";
     String ssid = AP_SSID;
     String password = AP_PASSWORD;
     WiFi.softAP(ssid.c_str(), password.c_str());
@@ -331,7 +350,6 @@ void WebService::checkWifiLoss() {
 
     if (millis() - _lastWifiOk > AP_FALLBACK_TIMEOUT_MS) {
         Serial.println("[WiFi] Потеря > 60 сек — перезагрузка");
-        // ИЗМЕНЕНО: было delay(100)
         delay(STARTUP_DELAY_MS);
         ESP.restart();
     }
@@ -366,7 +384,6 @@ void WebService::handleRoot() {
 
 void WebService::handleScan() {
     _appState.startScan();
-    // ИЗМЕНЕНО: было delay(100)
     delay(WEB_SCAN_DELAY_MS);
     String json = getScanJson();
     _server.send(200, "application/json", json);
@@ -378,7 +395,6 @@ void WebService::handleConnect() {
         return;
     }
     String body = _server.arg("plain");
-    // ИЗМЕНЕНО: было DynamicJsonDocument doc(256);
     DynamicJsonDocument doc(JSON_DOC_CONNECT_SIZE);
     DeserializationError error = deserializeJson(doc, body);
     if (error) {
@@ -417,7 +433,6 @@ void WebService::handleDelete() {
         return;
     }
     String body = _server.arg("plain");
-    // ИЗМЕНЕНО: было DynamicJsonDocument doc(128);
     DynamicJsonDocument doc(JSON_DOC_DELETE_SIZE);
     DeserializationError error = deserializeJson(doc, body);
     if (error) {
@@ -445,7 +460,6 @@ void WebService::handleMqttPost() {
         return;
     }
     String body = _server.arg("plain");
-    // ИЗМЕНЕНО: было DynamicJsonDocument doc(512);
     DynamicJsonDocument doc(JSON_DOC_MQTT_SIZE);
     DeserializationError error = deserializeJson(doc, body);
     if (error) {
@@ -457,6 +471,14 @@ void WebService::handleMqttPost() {
     String user = doc["user"].as<String>();
     String password = doc["password"].as<String>();
     String stateTopic = doc["stateTopic"].as<String>();
+
+    // === ИЗМЕНЕНО: пустое поле пароля означает «оставить текущий». ===
+    // UI больше не предзаполняет пароль, поэтому при редактировании
+    // сервера/логина/топика пользователь оставляет поле пустым — и
+    // сохранённый пароль не затирается.
+    if (password.length() == 0) {
+        password = _appState.getMqttCredentials().getPassword();
+    }
 
     bool success = _appState.configureMqtt(server, port, user, password, stateTopic);
     if (success) {
@@ -471,17 +493,14 @@ void WebService::handleReset() {
     while (_appState.getSavedCount() > 0) {
         _appState.deleteSavedNetwork(0);
     }
-    // ИЗМЕНЕНО: было "home/lamp/status"
     _appState.configureMqtt("", MQTT_DEFAULT_PORT, "", "", MQTT_DEFAULT_STATE_TOPIC);
     _server.send(200, "application/json", "{\"success\":true}");
-    // ИЗМЕНЕНО: было delay(100)
     delay(WEB_RESTART_DELAY_MS);
     ESP.restart();
 }
 
 void WebService::handleReboot() {
     _server.send(200, "application/json", "{\"success\":true}");
-    // ИЗМЕНЕНО: было delay(100)
     delay(WEB_RESTART_DELAY_MS);
     ESP.restart();
 }
@@ -525,7 +544,12 @@ String WebService::getMqttSettingsJson() {
     json += "\"server\":\"" + creds.getServer() + "\",";
     json += "\"port\":" + String(creds.getPort()) + ",";
     json += "\"user\":\"" + creds.getUser() + "\",";
-    json += "\"password\":\"" + creds.getPassword() + "\",";
+    // === ИЗМЕНЕНО: реальный пароль больше не отдаётся наружу. ===
+    // Возвращаем пустую строку и булев флаг passwordSet, чтобы
+    // клиент понимал, задан ли пароль вообще. При POST пустое
+    // поле трактуется как «не менять» (см. handleMqttPost).
+    json += "\"password\":\"\",";
+    json += "\"passwordSet\":" + String(creds.getPassword().length() > 0 ? "true" : "false") + ",";
     json += "\"stateTopic\":\"" + creds.getStateTopic() + "\"";
     json += "}";
     return json;
