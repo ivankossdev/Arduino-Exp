@@ -1,15 +1,12 @@
 // ============================================================
 // DisplayService — реализация для TFT_eSPI (ST7789V)
 // ============================================================
-// ИЗМЕНЕНО: вместо drawClientMode() два новых вида —
-//   drawLampView()     — крупная иконка ON/OFF, либо "--", либо "?"
-//   drawServiceView()  — IP / MQTT / RSSI с палочками
-// ИЗМЕНЕНО: добавлена работа с правой кнопкой (GPIO35):
-//   одиночное нажатие → SERVICE view на SERVICE_VIEW_TIMEOUT_MS
-//   повторное нажатие в SERVICE view игнорируется
-//   по таймауту — возврат в LAMP view
-// ИЗМЕНЕНО: кэш Lamp view (_lastLampMqtt / _lastLampHasData /
-//   _lastLampPayload), чтобы не перерисовывать иконку зря.
+// ИЗМЕНЕНО: добавлен сброс по удержанию левой кнопки (GPIO0).
+//           Пока идёт удержание — экран занят счётчиком; любые
+//           другие обновления пропускаются.
+//           Смена состояния приложения и приход новых payload'ов
+//           во время удержания игнорируются на экране, но данные
+//           обновляются в сервисах как обычно.
 // ============================================================
 
 #include "DisplayService.h"
@@ -30,8 +27,14 @@ DisplayService::DisplayService(StateManager& stateManager,
       _serviceViewUntil(0),
       _lastButtonState(false),
       _lastButtonChange(0),
+      _lastWifi(false),
       _lastLampMqtt(false),
       _lastLampHasData(false),
+      _resetHoldActive(false),
+      _resetHoldStart(0),
+      _lastResetSecondShown(-1),
+      _resetButtonRaw(false),
+      _resetButtonChange(0),
       _currentState(AppStateEnum::IDLE),
       _fullRedraw(true)
 {
@@ -39,9 +42,9 @@ DisplayService::DisplayService(StateManager& stateManager,
         this->handleStateChange(newState);
     });
 
-    // === ИЗМЕНЕНО: колбэк перерисовывает только если сейчас видна иконка лампы.
-    // Если активен SERVICE view — не трогаем его, лампа обновится при возврате.
     _lampStateService.setOnStateChange([this](const String& /*payload*/) {
+        // Во время удержания левой кнопки экран занят — не трогаем
+        if (_resetHoldActive) return;
         if (_view == DisplayView::LAMP) {
             this->drawLampView();
         }
@@ -52,11 +55,16 @@ bool DisplayService::begin() {
     static bool inited = false;
     if (inited) return true;
 
-    // Инициализация правой кнопки. Внешний pull-up на плате,
-    // поэтому INPUT без INPUT_PULLUP.
+    // === Правая кнопка (GPIO35) — сервисный экран ===
     pinMode(BUTTON_SERVICE_PIN, INPUT);
     _lastButtonState = (digitalRead(BUTTON_SERVICE_PIN) == LOW);
     _lastButtonChange = millis();
+
+    // === НОВОЕ: левая кнопка (GPIO0) — сброс.
+    // Внутренний pull-up, нажатие = LOW.
+    pinMode(BUTTON_RESET_PIN, INPUT_PULLUP);
+    _resetButtonRaw = (digitalRead(BUTTON_RESET_PIN) == LOW);
+    _resetButtonChange = millis();
 
     _tft.init();
     _tft.setRotation(1);
@@ -67,7 +75,6 @@ bool DisplayService::begin() {
     _tft.println("ESP32");
     _tft.println("Load...");
 
-    // Подготовка QR-кода для AP-режима
     String wifiQr = "WIFI:S:" AP_SSID ";T:WPA;P:" AP_PASSWORD ";;";
     qrcode_initText(&_qr, _qrData, AP_QR_VERSION, AP_QR_ECC, wifiQr.c_str());
 
@@ -77,14 +84,14 @@ bool DisplayService::begin() {
 }
 
 void DisplayService::update() {
-    // === НОВОЕ: кнопка опрашивается при каждом вызове update(),
-    // не по таймеру. Это даёт отзывчивость в пределах миллисекунд.
     updateButton();
+
+    // Пока идёт удержание левой кнопки — никаких других обновлений экрана.
+    if (_resetHoldActive) return;
 
     unsigned long now = millis();
 
-    // === НОВОЕ: проверка таймаута SERVICE view ===
-    // Используем (long) для корректной работы при переполнении millis().
+    // Возврат из SERVICE view по таймауту
     if (_view == DisplayView::SERVICE &&
         (long)(now - _serviceViewUntil) >= 0) {
         _view = DisplayView::LAMP;
@@ -97,19 +104,36 @@ void DisplayService::update() {
     if (now - _lastUpdate < _updateInterval) return;
     _lastUpdate = now;
 
-    // Периодические обновления только в рабочих состояниях.
     if (_currentState != AppStateEnum::IDLE &&
         _currentState != AppStateEnum::CONNECTED) {
         return;
     }
 
-    // В SERVICE view обновляем экран каждые 2 секунды — так RSSI остаётся свежим.
     if (_view == DisplayView::SERVICE) {
         drawServiceView();
         return;
     }
 
-    // === LAMP view: перерисовка только при смене данных ===
+    // === НОВОЕ: отслеживаем смену Wi-Fi (AP ↔ клиент).
+    // Без этого при старте в AP-режиме первый update() рисовал
+    // Lamp view с "--", а QR появлялся только после нажатия кнопки.
+    bool wifi = _wifiService.isConnected();
+    if (wifi != _lastWifi) {
+        _lastWifi = wifi;
+        _fullRedraw = true;
+    }
+
+    // Wi-Fi не подключён — значит, мы в AP-режиме. Рисуем QR.
+    // AP статичен, так что перерисовываем только при смене состояния.
+    if (!wifi) {
+        if (_fullRedraw) {
+            drawApMode();
+            _fullRedraw = false;
+        }
+        return;
+    }
+
+    // Wi-Fi подключён — Lamp view с построчным кэшем.
     bool   mqtt    = _mqttService.isConnected();
     bool   hasData = _lampStateService.hasData();
     String payload = hasData ? _lampStateService.getPayload() : String("");
@@ -127,40 +151,38 @@ void DisplayService::update() {
 }
 
 // ============================================================
-// Обработка кнопки
+// Кнопки: сначала левая (сброс), затем правая (сервис)
 // ============================================================
-// Активна только в рабочем клиентском режиме. В AP/SCANNING/
-// CONNECTING/ERROR — игнорируется. Повторное нажатие во время
-// показа SERVICE view — игнорируется.
 void DisplayService::updateButton() {
-    // Не рабочий режим — кнопка неактивна
+    unsigned long now = millis();
+
+    // Левая кнопка — сброс. Активна в любом состоянии.
+    updateResetButton(now);
+
+    // Если идёт удержание — правая кнопка игнорируется.
+    if (_resetHoldActive) return;
+
+    // --- Правая кнопка: логика как была ---
     if (_currentState != AppStateEnum::IDLE &&
         _currentState != AppStateEnum::CONNECTED) {
         _lastButtonState = (digitalRead(BUTTON_SERVICE_PIN) == LOW);
         return;
     }
-    // AP-режим — кнопка неактивна
     if (!_wifiService.isConnected()) {
         _lastButtonState = (digitalRead(BUTTON_SERVICE_PIN) == LOW);
         return;
     }
 
     bool raw = (digitalRead(BUTTON_SERVICE_PIN) == LOW);
-    unsigned long now = millis();
 
-    // Фиксируем изменение состояния кнопки для антидребезга.
     if (raw != _lastButtonState) {
         _lastButtonChange = now;
         _lastButtonState = raw;
         return;
     }
 
-    // Уже показываем SERVICE view — новые нажатия игнорируем.
-    if (_view == DisplayView::SERVICE) {
-        return;
-    }
+    if (_view == DisplayView::SERVICE) return;
 
-    // Стабильное нажатие после антидребезга — переключаемся в SERVICE.
     if (raw && (now - _lastButtonChange) >= BUTTON_DEBOUNCE_MS) {
         _view = DisplayView::SERVICE;
         _serviceViewUntil = now + SERVICE_VIEW_TIMEOUT_MS;
@@ -170,17 +192,138 @@ void DisplayService::updateButton() {
 }
 
 // ============================================================
-// Смена состояния приложения
+// Левая кнопка: конечный автомат удержания для сброса
 // ============================================================
-// При любой смене состояния возвращаемся в LAMP view и сбрасываем
-// таймер сервисного экрана. Так после сбоя/восстановления Wi-Fi
-// всегда попадаем на основной экран.
+// Логика:
+//   1. Ждём стабильного нажатия после антидребезга.
+//   2. Стартуем hold; каждую секунду обновляем счётчик на экране.
+//   3. Если отпустили до BUTTON_RESET_HOLD_MS — отмена, redraw.
+//   4. Если додержали — performFactoryReset().
+void DisplayService::updateResetButton(unsigned long now) {
+    bool raw = (digitalRead(BUTTON_RESET_PIN) == LOW);
+
+    // Антидребезг: фиксируем изменение состояния
+    if (raw != _resetButtonRaw) {
+        _resetButtonChange = now;
+        _resetButtonRaw = raw;
+    }
+
+    if (!_resetHoldActive) {
+        // Проверяем, не пора ли начать удержание
+        if (raw && (now - _resetButtonChange) >= BUTTON_DEBOUNCE_MS) {
+            _resetHoldActive = true;
+            _resetHoldStart = now;
+            _lastResetSecondShown = -1;
+            drawResetHoldScreen(BUTTON_RESET_HOLD_MS / 1000);
+        }
+        return;
+    }
+
+    // Hold активен. Проверяем отпускание.
+    if (!raw && (now - _resetButtonChange) >= BUTTON_DEBOUNCE_MS) {
+        // Отпустили до завершения — отмена
+        _resetHoldActive = false;
+        _fullRedraw = true;
+        drawScreen();
+        return;
+    }
+
+    // Проверяем, не достигли ли порога
+    unsigned long heldMs = now - _resetHoldStart;
+    if (heldMs >= BUTTON_RESET_HOLD_MS) {
+        performFactoryReset();
+        return;
+    }
+
+    // Обновляем счётчик раз в секунду
+    int secLeft = (BUTTON_RESET_HOLD_MS - heldMs + 999) / 1000;
+    if (secLeft != _lastResetSecondShown) {
+        _lastResetSecondShown = secLeft;
+        drawResetHoldScreen(secLeft);
+    }
+}
+
+// ============================================================
+// Экран удержания левой кнопки
+// ============================================================
+void DisplayService::drawResetHoldScreen(int secondsLeft) {
+    _tft.fillScreen(TFT_BLACK);
+    _tft.setTextColor(TFT_RED, TFT_BLACK);
+    _tft.setTextSize(2);
+    _tft.setCursor(0, 15);
+    _tft.println("FACTORY RESET");
+
+    _tft.setTextColor(TFT_WHITE, TFT_BLACK);
+    _tft.setTextSize(3);
+    _tft.setCursor(0, 50);
+    _tft.print("Hold: ");
+    _tft.print(secondsLeft);
+    _tft.print("s");
+
+    _tft.setTextSize(1);
+    _tft.setTextColor(TFT_YELLOW, TFT_BLACK);
+    _tft.setCursor(0, 110);
+    _tft.println("Release to cancel");
+}
+
+// ============================================================
+// Сброс настроек и перезагрузка
+// ============================================================
+// Порядок:
+//   1. Показать "RESETTING" (визуальная отдача).
+//   2. Стереть Wi-Fi credentials (в цикле по одной).
+//   3. Стереть MQTT-настройки (сброс на значения по умолчанию).
+//   4. Дождаться отпускания левой кнопки — иначе после рестарта
+//      плата уйдёт в download mode (GPIO0 strapping).
+//   5. ESP.restart().
+void DisplayService::performFactoryReset() {
+    LOG_LN(LOG_CAT_SYS, "[SYS] Factory reset triggered");
+
+    _tft.fillScreen(TFT_BLACK);
+    _tft.setTextColor(TFT_RED, TFT_BLACK);
+    _tft.setTextSize(3);
+    _tft.setCursor(0, 40);
+    _tft.println("RESETTING");
+    _tft.setTextSize(1);
+    _tft.setTextColor(TFT_WHITE, TFT_BLACK);
+    _tft.setCursor(0, 90);
+    _tft.println("Erasing settings...");
+
+    // Стираем Wi-Fi credentials по одной
+    while (_wifiService.getSavedCount() > 0) {
+        _wifiService.deleteSavedNetwork(0);
+    }
+
+    // Сбрасываем MQTT-настройки на дефолтные
+    _mqttService.configure("", MQTT_DEFAULT_PORT, "", "", MQTT_DEFAULT_STATE_TOPIC);
+
+    // Ждём отпускания левой кнопки, чтобы при рестарте не уйти
+    // в download mode. Таймаут на всякий случай.
+    unsigned long waitStart = millis();
+    while (digitalRead(BUTTON_RESET_PIN) == LOW &&
+           millis() - waitStart < BUTTON_RESET_RELEASE_WAIT_MS) {
+        delay(50);
+    }
+
+    _tft.setCursor(0, 100);
+    _tft.println("Rebooting...");
+
+    delay(300);
+    ESP.restart();
+}
+
 void DisplayService::handleStateChange(AppStateEnum newState) {
     _currentState = newState;
     _fullRedraw = true;
     _view = DisplayView::LAMP;
     _serviceViewUntil = 0;
-    drawScreen();
+
+    // Во время удержания левой кнопки экран занят счётчиком.
+    // Смена состояния будет отрисована при отмене или применена
+    // после перезагрузки.
+    if (!_resetHoldActive) {
+        drawScreen();
+    }
 }
 
 void DisplayService::drawScreen() {
@@ -212,8 +355,11 @@ void DisplayService::drawScreen() {
 }
 
 // ============================================================
-// AP-режим: слева текст, справа QR-код
+// Далее — без изменений: drawApMode, drawQrCode, drawLampView,
+// drawLampIcon, drawLampUnknown, drawServiceView, drawScanning,
+// drawConnecting, drawError. Копируются из предыдущей версии.
 // ============================================================
+
 void DisplayService::drawApMode() {
     _tft.fillScreen(TFT_BLACK);
 
@@ -265,14 +411,6 @@ void DisplayService::drawQrCode() {
     }
 }
 
-// ============================================================
-// LAMP view — основной экран
-// ============================================================
-// Показывает крупную иконку лампы:
-//   MQTT OK + есть данные + payload == "ON"  → жёлтая иконка с лучами
-//   MQTT OK + есть данные + payload != "ON"  → серая иконка без лучей
-//   MQTT OK + данных нет                     → крупный "?"
-//   MQTT потерян                             → серый фон + "--"
 void DisplayService::drawLampView() {
     bool   mqtt    = _mqttService.isConnected();
     bool   hasData = _lampStateService.hasData();
@@ -286,7 +424,6 @@ void DisplayService::drawLampView() {
     }
 
     if (!hasData) {
-        // MQTT есть, но данных ещё не было
         _tft.setTextColor(TFT_WHITE, TFT_BLACK);
         _tft.setTextSize(8);
         _tft.setCursor((SCREEN_WIDTH - 48) / 2, (SCREEN_HEIGHT - 64) / 2);
@@ -294,72 +431,49 @@ void DisplayService::drawLampView() {
         return;
     }
 
-    // Считаем лампу включённой, если payload == "ON".
-    // Всё остальное — выключено (OFF, 0, что угодно).
     bool isOn = (payload == "ON");
     drawLampIcon(isOn);
 }
 
-// ============================================================
-// Иконка лампы
-// ============================================================
-// ON  — жёлтый кружок + 8 лучей вокруг
-// OFF — серый кружок без лучей
 void DisplayService::drawLampIcon(bool isOn) {
-    const int cx = SCREEN_WIDTH  / 2;    // 120
-    const int cy = SCREEN_HEIGHT / 2;    // 67
-    const int r  = 40;                    // радиус кружка
+    const int cx = SCREEN_WIDTH  / 2;
+    const int cy = SCREEN_HEIGHT / 2;
+    const int r  = 40;
 
     uint16_t color = isOn ? TFT_YELLOW : TFT_DARKGREY;
 
     _tft.fillCircle(cx, cy, r, color);
 
-    if (!isOn) {
-        return;  // OFF — просто кружок
-    }
+    if (!isOn) return;
 
-    // ON — 8 лучей вокруг кружка.
-    // Внутренний радиус 48, внешний 62; толщина линии 5.
     const int rIn  = 48;
     const int rOut = 62;
-    const float diagScale = 0.7071f;   // sqrt(2)/2
+    const float diagScale = 0.7071f;
 
-    // 4 ортогональных луча
-    _tft.drawWideLine(cx + rIn,  cy, cx + rOut, cy, 5, color);   // право
-    _tft.drawWideLine(cx - rIn,  cy, cx - rOut, cy, 5, color);   // лево
-    _tft.drawWideLine(cx, cy - rIn, cx, cy - rOut, 5, color);    // верх
-    _tft.drawWideLine(cx, cy + rIn, cx, cy + rOut, 5, color);    // низ
+    _tft.drawWideLine(cx + rIn,  cy, cx + rOut, cy, 5, color);
+    _tft.drawWideLine(cx - rIn,  cy, cx - rOut, cy, 5, color);
+    _tft.drawWideLine(cx, cy - rIn, cx, cy - rOut, 5, color);
+    _tft.drawWideLine(cx, cy + rIn, cx, cy + rOut, 5, color);
 
-    // 4 диагональных луча. Координаты умножаем на 0.707,
-    // чтобы точки лежали на окружности радиусов rIn/rOut.
     int inX  = (int)(rIn  * diagScale);
     int inY  = (int)(rIn  * diagScale);
     int outX = (int)(rOut * diagScale);
     int outY = (int)(rOut * diagScale);
 
-    _tft.drawWideLine(cx + inX, cy - inY, cx + outX, cy - outY, 5, color); // ↖
-    _tft.drawWideLine(cx + inX, cy + inY, cx + outX, cy + outY, 5, color); // ↘
-    _tft.drawWideLine(cx - inX, cy - inY, cx - outX, cy - outY, 5, color); // ↗
-    _tft.drawWideLine(cx - inX, cy + inY, cx - outX, cy + outY, 5, color); // ↙
+    _tft.drawWideLine(cx + inX, cy - inY, cx + outX, cy - outY, 5, color);
+    _tft.drawWideLine(cx + inX, cy + inY, cx + outX, cy + outY, 5, color);
+    _tft.drawWideLine(cx - inX, cy - inY, cx - outX, cy - outY, 5, color);
+    _tft.drawWideLine(cx - inX, cy + inY, cx - outX, cy + outY, 5, color);
 }
 
-// ============================================================
-// Иконка «нет связи с брокером»
-// ============================================================
-// Серый фон + крупное "--" по центру
 void DisplayService::drawLampUnknown() {
     _tft.fillScreen(TFT_DARKGREY);
     _tft.setTextColor(TFT_WHITE, TFT_DARKGREY);
     _tft.setTextSize(8);
-    // "--" = 2 символа × 48 px = 96 px; центрируем
     _tft.setCursor((SCREEN_WIDTH - 96) / 2, (SCREEN_HEIGHT - 64) / 2);
     _tft.print("--");
 }
 
-// ============================================================
-// SERVICE view — служебный экран (по кнопке)
-// ============================================================
-// IP / MQTT: OK|LOST / RSSI: число + палочки
 void DisplayService::drawServiceView() {
     _tft.fillScreen(TFT_BLACK);
 
@@ -368,7 +482,6 @@ void DisplayService::drawServiceView() {
     _tft.setCursor(0, 0);
     _tft.println("=== SERVICE ===");
 
-    // IP
     _tft.setTextColor(TFT_WHITE, TFT_BLACK);
     _tft.setCursor(0, 30);
     if (_wifiService.isConnected()) {
@@ -378,7 +491,6 @@ void DisplayService::drawServiceView() {
         _tft.println("IP: --");
     }
 
-    // MQTT
     _tft.setCursor(0, 58);
     if (_mqttService.isConnected()) {
         _tft.setTextColor(TFT_GREEN, TFT_BLACK);
@@ -388,7 +500,6 @@ void DisplayService::drawServiceView() {
         _tft.println("MQTT: LOST");
     }
 
-    // RSSI + палочки
     _tft.setTextColor(TFT_WHITE, TFT_BLACK);
     _tft.setCursor(0, 88);
     int rssi = WiFi.RSSI();
@@ -396,20 +507,18 @@ void DisplayService::drawServiceView() {
     _tft.print(rssi);
     _tft.print(" dBm");
 
-    // Палочки: 4 столбика, закрашено в зависимости от уровня.
-    // Пороги: -55 / -65 / -75 / -85 dBm
     int bars = 0;
     if (rssi > -55)      bars = 4;
     else if (rssi > -65) bars = 3;
     else if (rssi > -75) bars = 2;
     else if (rssi > -85) bars = 1;
 
-    const int bx   = 200;   // X начала палочек
-    const int by   = 92;    // Y низа палочек
-    const int bw   = 6;     // ширина палочки
-    const int gap  = 3;     // зазор
+    const int bx  = 200;
+    const int by  = 92;
+    const int bw  = 6;
+    const int gap = 3;
     for (int i = 0; i < 4; i++) {
-        int h = 8 + i * 6;              // высота: 8, 14, 20, 26
+        int h = 8 + i * 6;
         int x = bx + i * (bw + gap);
         int y = by - h;
         if (i < bars) {
@@ -419,10 +528,6 @@ void DisplayService::drawServiceView() {
         }
     }
 }
-
-// ============================================================
-// Служебные экраны (без изменений)
-// ============================================================
 
 void DisplayService::drawScanning() {
     _tft.fillScreen(TFT_BLACK);

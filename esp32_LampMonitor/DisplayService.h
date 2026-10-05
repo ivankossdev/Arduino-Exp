@@ -1,12 +1,11 @@
 // ============================================================
 // DisplayService — управление дисплеем ST7789 (TTGO T-Display)
 // ============================================================
-// ИЗМЕНЕНО: добавлены два режима отображения — LAMP (основной)
-//           и SERVICE (по кнопке, на 20 секунд).
-// ИЗМЕНЕНО: drawClientMode() удалён — вместо него drawLampView()
-//           и drawServiceView().
-// ИЗМЕНЕНО: добавлены поля для кнопки (антидребезг) и кэш
-//           состояния Lamp view, чтобы не перерисовывать зря.
+// ИЗМЕНЕНО: добавлена обработка левой кнопки (GPIO0) —
+//           долгое удержание (BUTTON_RESET_HOLD_MS) сбрасывает
+//           все настройки (Wi-Fi + MQTT) и перезагружает плату.
+// ИЗМЕНЕНО: во время удержания на экране показывается счётчик
+//           секунд с предложением отпустить для отмены.
 // ============================================================
 
 #ifndef DISPLAY_SERVICE_H
@@ -25,65 +24,77 @@
 
 class DisplayService {
 public:
-    DisplayService(StateManager& stateManager,
-                   WiFiService& wifiService,
-                   MqttService& mqttService,
-                   LampStateService& lampStateService);
+  DisplayService(StateManager& stateManager,
+                 WiFiService& wifiService,
+                 MqttService& mqttService,
+                 LampStateService& lampStateService);
 
-    bool begin();
-    void update();
+  bool begin();
+  void update();
 
 private:
-    // === НОВОЕ: режим отображения ===
-    // LAMP     — основной, крупная иконка лампы
-    // SERVICE  — служебный, IP / MQTT / RSSI, активируется кнопкой
-    enum class DisplayView {
-        LAMP,
-        SERVICE
-    };
+  enum class DisplayView {
+    LAMP,
+    SERVICE
+  };
 
-    StateManager& _stateManager;
-    WiFiService& _wifiService;
-    MqttService& _mqttService;
-    LampStateService& _lampStateService;
+  StateManager& _stateManager;
+  WiFiService& _wifiService;
+  MqttService& _mqttService;
+  LampStateService& _lampStateService;
 
-    TFT_eSPI _tft;
+  TFT_eSPI _tft;
 
-    QRCode  _qr;
-    uint8_t _qrData[AP_QR_BUFFER_SIZE];
+  QRCode _qr;
+  uint8_t _qrData[AP_QR_BUFFER_SIZE];
 
-    unsigned long _lastUpdate;
-    unsigned long _updateInterval;
+  unsigned long _lastUpdate;
+  unsigned long _updateInterval;
 
-    // === НОВОЕ: состояние режимов и кнопки ===
-    DisplayView   _view;
-    unsigned long _serviceViewUntil;      // millis() до которого держать SERVICE
-    bool          _lastButtonState;       // для антидребезга
-    unsigned long _lastButtonChange;      // момент последнего изменения кнопки
+  // --- Состояние видов (правая кнопка) ---
+  DisplayView _view;
+  unsigned long _serviceViewUntil;
+  bool _lastButtonState;
+  unsigned long _lastButtonChange;
 
-    // === НОВОЕ: кэш Lamp view, чтобы не мигало ===
-    bool   _lastLampMqtt;
-    bool   _lastLampHasData;
-    String _lastLampPayload;
+  // === НОВОЕ: кэш состояния Wi-Fi для переключения AP ↔ Client
+  // в update(). Без этого при старте в AP-режиме первый update()
+  // рисовал Lamp view, а QR появлялся только после нажатия кнопки.
+  bool _lastWifi;
 
-    void drawScreen();
-    void drawApMode();
-    void drawLampView();
-    void drawServiceView();
-    void drawLampIcon(bool isOn);
-    void drawLampUnknown();
-    void drawError();
-    void drawConnecting();
-    void drawScanning();
-    void drawQrCode();
+  bool _lastLampMqtt;
+  bool _lastLampHasData;
+  String _lastLampPayload;
 
-    void updateButton();
+  // === НОВОЕ: сброс по левой кнопке ===
+  bool _resetHoldActive;             // идёт удержание
+  unsigned long _resetHoldStart;     // millis() начала удержания
+  int _lastResetSecondShown;         // для обновления счётчика раз в секунду
+  bool _resetButtonRaw;              // для антидребезга
+  unsigned long _resetButtonChange;  // момент последнего изменения кнопки
 
-    void handleStateChange(AppStateEnum newState);
+  void drawScreen();
+  void drawApMode();
+  void drawLampView();
+  void drawServiceView();
+  void drawLampIcon(bool isOn);
+  void drawLampUnknown();
+  void drawError();
+  void drawConnecting();
+  void drawScanning();
+  void drawQrCode();
 
-    AppStateEnum _currentState;
+  // === НОВОЕ: обработка кнопок и сброс ===
+  void updateButton();
+  void updateResetButton(unsigned long now);
+  void drawResetHoldScreen(int secondsLeft);
+  void performFactoryReset();
 
-    bool _fullRedraw;
+  void handleStateChange(AppStateEnum newState);
+
+  AppStateEnum _currentState;
+
+  bool _fullRedraw;
 };
 
 #endif
