@@ -1,3 +1,12 @@
+// ============================================================
+// AppState — координатор сервисов
+// ============================================================
+// ИЗМЕНЕНО: добавлен ButtonService в список сервисов.
+// ИЗМЕНЕНО: добавлен публичный метод performFactoryReset() —
+//           сюда переехала логика стирания настроек и перезагрузки,
+//           которая раньше жила в DisplayService.
+// ============================================================
+
 #ifndef APP_STATE_H
 #define APP_STATE_H
 
@@ -5,7 +14,8 @@
 #include "StateManager.h"
 #include "WiFiService.h"
 #include "MqttService.h"
-#include "LampStateService.h"   // === ИЗМЕНЕНО: заменяет LedService.h ===
+#include "LampStateService.h"
+#include "ButtonService.h"       // === НОВОЕ
 #include "DisplayService.h"
 #include "StatusBuilder.h"
 
@@ -44,8 +54,6 @@ public:
         return _wifiService.getEncryptionType(encType);
     }
 
-    // === УДАЛЕНО: весь LED-API (beginLed/updateLed/setLed/getLedState) ===
-
     // --- MQTT (делегирует MqttService) ---
     bool beginMqtt() { return _mqttService.begin(); }
     bool beginMqtt(const String& server, int port,
@@ -69,7 +77,8 @@ public:
     StateManager& getStateManager() { return _stateManager; }
     WiFiService& getWiFiService() { return _wifiService; }
     MqttService& getMqttService() { return _mqttService; }
-    LampStateService& getLampStateService() { return _lampStateService; } // === НОВОЕ ===
+    LampStateService& getLampStateService() { return _lampStateService; }
+    ButtonService& getButtonService() { return _buttonService; }   // === НОВОЕ
     DisplayService& getDisplayService() { return _displayService; }
 
     String getStatusJson();
@@ -78,11 +87,18 @@ private:
     StateManager _stateManager;
     WiFiService _wifiService;
     MqttService _mqttService;
-    LampStateService _lampStateService;  // === ИЗМЕНЕНО: заменяет LedService ===
+    LampStateService _lampStateService;
+    ButtonService _buttonService;      // === НОВОЕ
     DisplayService _displayService;
     StatusBuilder _statusBuilder;
 
     void handleMqttMessage(const String& topic, const String& payload);
+
+    // === НОВОЕ: фабричный сброс ===
+    // Вызывается по событию onResetConfirmed от ButtonService.
+    // Стирает настройки Wi-Fi и MQTT, показывает экран "RESETTING",
+    // ждёт отпускания левой кнопки и делает ESP.restart().
+    void performFactoryReset();
 };
 
 #endif
