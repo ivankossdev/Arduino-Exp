@@ -1,9 +1,12 @@
 // ============================================================
 // DisplayService — управление дисплеем ST7789 (TTGO T-Display)
 // ============================================================
-// ИЗМЕНЕНО: буфер QR-кода объявлен через AP_QR_BUFFER_SIZE
-//           из config.h, а не через qrcode_getBufferSize() —
-//           она не является constexpr и не годится для размера массива.
+// ИЗМЕНЕНО: добавлены два режима отображения — LAMP (основной)
+//           и SERVICE (по кнопке, на 20 секунд).
+// ИЗМЕНЕНО: drawClientMode() удалён — вместо него drawLampView()
+//           и drawServiceView().
+// ИЗМЕНЕНО: добавлены поля для кнопки (антидребезг) и кэш
+//           состояния Lamp view, чтобы не перерисовывать зря.
 // ============================================================
 
 #ifndef DISPLAY_SERVICE_H
@@ -12,7 +15,7 @@
 #include <Arduino.h>
 #include <WebServer.h>
 #include <TFT_eSPI.h>
-#include "qrcode.h"             // локальная копия ricmoo в корне проекта
+#include "qrcode.h"
 
 #include "config.h"
 #include "StateManager.h"
@@ -31,6 +34,14 @@ public:
     void update();
 
 private:
+    // === НОВОЕ: режим отображения ===
+    // LAMP     — основной, крупная иконка лампы
+    // SERVICE  — служебный, IP / MQTT / RSSI, активируется кнопкой
+    enum class DisplayView {
+        LAMP,
+        SERVICE
+    };
+
     StateManager& _stateManager;
     WiFiService& _wifiService;
     MqttService& _mqttService;
@@ -39,34 +50,40 @@ private:
     TFT_eSPI _tft;
 
     QRCode  _qr;
-    // ИЗМЕНЕНО: было qrcode_getBufferSize(AP_QR_VERSION) —
-    // функция не constexpr, компилятор C++ её не принимает.
     uint8_t _qrData[AP_QR_BUFFER_SIZE];
 
     unsigned long _lastUpdate;
     unsigned long _updateInterval;
 
+    // === НОВОЕ: состояние режимов и кнопки ===
+    DisplayView   _view;
+    unsigned long _serviceViewUntil;      // millis() до которого держать SERVICE
+    bool          _lastButtonState;       // для антидребезга
+    unsigned long _lastButtonChange;      // момент последнего изменения кнопки
+
+    // === НОВОЕ: кэш Lamp view, чтобы не мигало ===
+    bool   _lastLampMqtt;
+    bool   _lastLampHasData;
+    String _lastLampPayload;
+
     void drawScreen();
     void drawApMode();
-    void drawClientMode();
+    void drawLampView();
+    void drawServiceView();
+    void drawLampIcon(bool isOn);
+    void drawLampUnknown();
     void drawError();
     void drawConnecting();
     void drawScanning();
-
     void drawQrCode();
+
+    void updateButton();
 
     void handleStateChange(AppStateEnum newState);
 
     AppStateEnum _currentState;
 
-    bool   _fullRedraw;
-    bool   _lastWifi;
-    String _lastSSID;
-    String _lastIP;
-    int    _lastRSSI;
-    bool   _lastMqtt;
-    bool   _lastHasLamp;
-    String _lastLamp;
+    bool _fullRedraw;
 };
 
 #endif
