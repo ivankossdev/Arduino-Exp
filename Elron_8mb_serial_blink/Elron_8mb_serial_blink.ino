@@ -1,39 +1,27 @@
 #include "EventTimer.h"
 
-unsigned long previousBlink = 0;
-unsigned long previousTick  = 0;
-const unsigned long BLINK_INTERVAL = 1000;
-const unsigned long TICK_INTERVAL  = 250;
 
-bool ledLevel = false;
-int count = 0;
+const unsigned long BLINK_INTERVAL = 1000;
+
+EventTimer timer(BLINK_INTERVAL, 10);
+
+void handlerLed(bool newState, int currentCount) {
+  digitalWrite(LED_BUILTIN, newState ? HIGH : LOW);
+
+  Serial.print("Count ");
+  Serial.println(currentCount);
+
+  if (currentCount == 9) {
+    Serial.println();  // Отступ после 10 итераций
+  }
+}
 
 void setup() {
   Serial.begin(9600);
   pinMode(LED_BUILTIN, OUTPUT);
+  timer.setCallback(handlerLed);
 }
 
 void loop() {
-  unsigned long now = millis();
-
-  // Задача 1: мигание + счёт
-  if (now - previousBlink >= BLINK_INTERVAL) {
-    previousBlink = now;
-    ledLevel = !ledLevel;
-    digitalWrite(LED_BUILTIN, ledLevel ? HIGH : LOW);
-
-    Serial.print("Count ");
-    Serial.println(count);
-
-    if (++count >= 10) {
-      count = 0;
-      Serial.println();
-    }
-  }
-
-  // Задача 2: «тик» каждые 250 мс — не мешает миганию
-  if (now - previousTick >= TICK_INTERVAL) {
-    previousTick = now;
-    Serial.print(".");          // точки сыплются в 4 раза чаще, чем Count
-  }
+  timer.tick();
 }
