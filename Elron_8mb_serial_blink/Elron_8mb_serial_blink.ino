@@ -1,25 +1,37 @@
+unsigned long previousBlink = 0;
+unsigned long previousTick  = 0;
+const unsigned long BLINK_INTERVAL = 1000;
+const unsigned long TICK_INTERVAL  = 250;
+
+bool ledLevel = false;
+int count = 0;
+
 void setup() {
   Serial.begin(9600);
   pinMode(LED_BUILTIN, OUTPUT);
 }
 
 void loop() {
-  static bool state = true; // static сохраняет значение между вызовами loop()
+  unsigned long now = millis();
 
-  for (int i = 0; i < 10; i++) {
-    // 1. Применяем состояние к светодиоду
-    digitalWrite(LED_BUILTIN, state ? HIGH : LOW); // или просто state
-    
-    // 2. Инвертируем флаг для следующего шага (true -> false -> true)
-    state = !state;
+  // Задача 1: мигание + счёт
+  if (now - previousBlink >= BLINK_INTERVAL) {
+    previousBlink = now;
+    ledLevel = !ledLevel;
+    digitalWrite(LED_BUILTIN, ledLevel ? HIGH : LOW);
 
-    // 3. Выводим инфо в порт
     Serial.print("Count ");
-    Serial.println(i);
+    Serial.println(count);
 
-    // 4. Пауза 1 секунда (одна для всех)
-    delay(1000);
+    if (++count >= 10) {
+      count = 0;
+      Serial.println();
+    }
   }
-  
-  Serial.println();
+
+  // Задача 2: «тик» каждые 250 мс — не мешает миганию
+  if (now - previousTick >= TICK_INTERVAL) {
+    previousTick = now;
+    Serial.print(".");          // точки сыплются в 4 раза чаще, чем Count
+  }
 }
