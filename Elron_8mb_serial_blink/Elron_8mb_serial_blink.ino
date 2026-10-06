@@ -1,3 +1,5 @@
+#include "EventTimer.h"
+
 unsigned long previousBlink = 0;
 unsigned long previousTick  = 0;
 const unsigned long BLINK_INTERVAL = 1000;
