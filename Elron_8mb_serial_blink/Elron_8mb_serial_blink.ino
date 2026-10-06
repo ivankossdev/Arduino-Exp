@@ -1,27 +1,31 @@
 #include "EventTimer.h"
 
+const unsigned long BLINK_INTERVAL = 500;
+const int           BLINK_COUNT    = 10;
 
-const unsigned long BLINK_INTERVAL = 1000;
+EventTimer blinkTimer(BLINK_INTERVAL, BLINK_COUNT);
 
-EventTimer timer(BLINK_INTERVAL, 10);
-
-void handlerLed(bool newState, int currentCount) {
-  digitalWrite(LED_BUILTIN, newState ? HIGH : LOW);
-
+// Вызывается на каждом тике: новое состояние + номер цикла 0..9
+void onBlink(bool state, int count) {
+  digitalWrite(LED_BUILTIN, state ? HIGH : LOW);
   Serial.print("Count ");
-  Serial.println(currentCount);
+  Serial.println(count);
+}
 
-  if (currentCount == 9) {
-    Serial.println();  // Отступ после 10 итераций
-  }
+// Вызывается один раз между сериями — раньше это был хардкод "== 9"
+void onBlinkSeriesComplete() {
+  Serial.println();
 }
 
 void setup() {
   Serial.begin(9600);
   pinMode(LED_BUILTIN, OUTPUT);
-  timer.setCallback(handlerLed);
+
+  blinkTimer.setCallback(onBlink);
+  blinkTimer.setSeriesCompleteCallback(onBlinkSeriesComplete);
+  // blinkTimer уже запущен конструктором; start() не обязателен
 }
 
 void loop() {
-  timer.tick();
+  blinkTimer.tick();
 }
