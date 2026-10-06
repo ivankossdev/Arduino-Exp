@@ -1,31 +1,50 @@
 #include "EventTimer.h"
 
-const unsigned long BLINK_INTERVAL = 500;
+// --- Параметры задач ---
+const unsigned long BLINK_INTERVAL = 1000;
 const int           BLINK_COUNT    = 10;
+const unsigned long TICK_INTERVAL  = 250;
 
-EventTimer blinkTimer(BLINK_INTERVAL, BLINK_COUNT);
+// --- Таймеры ---
+EventTimer blinkTimer(BLINK_INTERVAL, BLINK_COUNT);  // мигание + счёт
+EventTimer tickTimer (TICK_INTERVAL, 1);             // «тик» — каждая серия из одного вызова
 
-// Вызывается на каждом тике: новое состояние + номер цикла 0..9
+// --- Колбэки ---
+
+// Мигание: раз в секунду
 void onBlink(bool state, int count) {
   digitalWrite(LED_BUILTIN, state ? HIGH : LOW);
   Serial.print("Count ");
   Serial.println(count);
 }
 
-// Вызывается один раз между сериями — раньше это был хардкод "== 9"
+// Конец серии мигания: пустая строка
 void onBlinkSeriesComplete() {
   Serial.println();
+}
+
+// «Тик»: раз в 250 мс
+void onTick(bool state, int count) {
+  (void)state;   // не используется
+  (void)count;   // не используется
+  Serial.print(".");
 }
 
 void setup() {
   Serial.begin(9600);
   pinMode(LED_BUILTIN, OUTPUT);
 
+  // Мигание
   blinkTimer.setCallback(onBlink);
   blinkTimer.setSeriesCompleteCallback(onBlinkSeriesComplete);
-  // blinkTimer уже запущен конструктором; start() не обязателен
+
+  // Тик
+  tickTimer.setCallback(onTick);
+
+  // Оба таймера уже запущены конструктором — start() не нужен
 }
 
 void loop() {
   blinkTimer.tick();
+  tickTimer.tick();
 }
