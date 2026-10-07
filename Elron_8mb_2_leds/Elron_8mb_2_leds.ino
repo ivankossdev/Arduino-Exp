@@ -6,10 +6,12 @@
 // ==================== КОНСТАНТЫ ====================
 const uint8_t BTN_ACTIVE = HIGH;
 const uint8_t LED2_PIN   = 4;    // Новый светодиод
+const unsigned long HEARTBEAT_MS = 10000;
 
 // ==================== ОБЪЕКТЫ ====================
 EventTimer blinkTimer(1000, 10);
 EventTimer led2Timer(500, 1); 
+EventTimer heartbeatTimer(HEARTBEAT_MS, 1);
 Button button(BTN_BUILTIN, BTN_ACTIVE, 50);
 Console console;
 
@@ -29,6 +31,32 @@ void onLed2Blink(bool state, int count) {
 
 void onSeriesComplete() {
   Serial.println();
+}
+
+void onHeartbeat(bool state, int count) {
+  (void)state;
+  (void)count;
+
+  unsigned long ms  = millis();
+  unsigned long sec = ms / 1000;
+  unsigned long min = sec / 60;
+  unsigned long hrs = min / 60;
+
+  Serial.print("[HB] up=");
+  Serial.print(hrs);        Serial.print("h");
+  Serial.print(min % 60);   Serial.print("m");
+  Serial.print(sec % 60);   Serial.print("s");
+
+  Serial.print(" boot=");   Serial.print(settings.bootCount);
+  Serial.print(" btn=");    Serial.print(settings.buttonCount);
+
+  Serial.print(" mode=");
+  Serial.print(settings.mode == SLOW ? "SLOW" :
+               settings.mode == FAST ? "FAST" : "OFF");
+
+  Serial.print(" led2=");
+  if (settings.led2Interval == 0) Serial.println("off");
+  else { Serial.print(settings.led2Interval); Serial.println("ms"); }
 }
 
 // ==================== ПРИМЕНЕНИЕ НАСТРОЕК ====================
@@ -121,6 +149,7 @@ void setup() {
   blinkTimer.setCallback(onBlink);
   blinkTimer.setSeriesCompleteCallback(onSeriesComplete);
   led2Timer.setCallback(onLed2Blink);
+  heartbeatTimer.setCallback(onHeartbeat);
 
   // Кнопка
   button.setPressStartCallback(settingsIncButtonCount);
@@ -143,6 +172,7 @@ void setup() {
 void loop() {
   blinkTimer.tick();
   led2Timer.tick(); 
+  heartbeatTimer.tick();
   button.tick();
   console.tick();
 }
