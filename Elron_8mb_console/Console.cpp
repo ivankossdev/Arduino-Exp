@@ -105,6 +105,7 @@ void Console::handleLine(char* line) {
   else if (strEquals(cmd, "dump")) cmdDump();
   else if (strEquals(cmd, "peek")) cmdPeek(cursor);
   else if (strEquals(cmd, "poke")) cmdPoke(cursor);
+  else if (strEquals(cmd, "stats")) cmdStats();
   else {
     Serial.print("Unknown command: ");
     Serial.println(cmd);
@@ -126,6 +127,7 @@ void Console::cmdHelp() {
   Serial.println("  dump                 - hex dump of EEPROM (first 32 bytes)");
   Serial.println("  peek <addr>          - read byte at address (0..1023)");
   Serial.println("  poke <addr> <val>    - write byte at address (val 0..255)");
+  Serial.println("  stats                - show boot/button counters and uptime");
 }
 
 void Console::cmdShow() {
@@ -371,4 +373,25 @@ void Console::cmdPoke(char* args) {
   Serial.print("Mode -> ");
   Serial.println(settings.mode == SLOW ? "SLOW" : settings.mode == FAST ? "FAST"
                                                                         : "OFF");
+}
+
+void Console::cmdStats() {
+  unsigned long ms = millis();
+  unsigned long sec = ms / 1000;
+  unsigned long min = sec / 60;
+  unsigned long hrs = min / 60;
+
+  Serial.println("--- Device stats ---");
+  Serial.print("uptime       = ");
+  Serial.print(hrs);          Serial.print("h ");
+  Serial.print(min % 60);     Serial.print("m ");
+  Serial.print(sec % 60);     Serial.print("s (");
+  Serial.print(ms);           Serial.println(" ms)");
+
+  Serial.print("bootCount    = "); Serial.println(settings.bootCount);
+  Serial.print("buttonCount  = "); Serial.println(settings.buttonCount);
+
+  Serial.print("sizeof(Settings) = ");
+  Serial.print(sizeof(Settings));
+  Serial.println(" bytes");
 }

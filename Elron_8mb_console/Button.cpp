@@ -11,7 +11,8 @@ Button::Button(uint8_t pin, uint8_t activeLevel, unsigned long debounceMs)
       pressStart(0),
       longPressFired(false),
       onShortPress(nullptr),
-      onLongPress(nullptr) {}
+      onLongPress(nullptr), 
+      onPressStart(nullptr) {}
 
 void Button::setShortPressCallback(ButtonCallback cb) { onShortPress = cb; }
 void Button::setLongPressCallback(ButtonCallback cb)  { onLongPress  = cb; }
@@ -34,6 +35,7 @@ void Button::tick() {
     if (stableReading == activeLevel) {
       pressStart     = now;
       longPressFired = false;
+      if (onPressStart != nullptr) onPressStart();
       Serial.println("[BTN] down");
     } else {
       unsigned long held = now - pressStart;
@@ -51,3 +53,7 @@ void Button::tick() {
     if (onLongPress != nullptr) onLongPress();
   }
 }
+
+void Button::setPressStartCallback(ButtonCallback cb) { onPressStart = cb; }
+
+

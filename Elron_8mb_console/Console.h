@@ -36,6 +36,7 @@ private:
   void cmdDump();
   void cmdPeek(char* args); 
   void cmdPoke(char* args);
+  void cmdStats();
 };
 
 #endif // CONSOLE_H

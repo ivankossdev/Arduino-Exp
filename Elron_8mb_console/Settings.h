@@ -14,6 +14,8 @@ struct __attribute__((packed)) Settings {
   uint16_t blinkCount;      // тиков в серии
   uint16_t longPressMs;     // порог длинного нажатия
   uint8_t  version;         // версия структуры
+  uint32_t bootCount;      // сколько раз включалась плата
+  uint32_t buttonCount;    // сколько раз нажимали кнопку
 };
 
 extern Settings settings;   // глобальный объект настроек
@@ -22,5 +24,7 @@ void settingsInit();        // EEPROM.begin() + загрузка + валида�
 void settingsSave();        // записать структуру в EEPROM
 void settingsLoad();        // прочитать + проверить + применить
 void settingsFactoryReset();// сброс к дефолтам
+void settingsIncBootCount();
+void settingsIncButtonCount();
 
 #endif // SETTINGS_H

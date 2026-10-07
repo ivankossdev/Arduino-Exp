@@ -15,6 +15,7 @@ public:
   void setShortPressCallback(ButtonCallback cb);
   void setLongPressCallback(ButtonCallback cb);
   void setLongPressMs(unsigned long ms);
+  void setPressStartCallback(ButtonCallback cb);
 
   void tick();   // вызывать из loop()
 
@@ -32,6 +33,7 @@ private:
 
   ButtonCallback onShortPress;
   ButtonCallback onLongPress;
+  ButtonCallback onPressStart;
 };
 
 #endif // BUTTON_H

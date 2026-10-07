@@ -2,21 +2,21 @@
 #include <EEPROM.h>
 
 const int     EEPROM_ADDR_SETTINGS = 0;
-const uint8_t SETTINGS_VERSION     = 1;
+const uint8_t SETTINGS_VERSION     = 2;
 
-// Значения по умолчанию — в одном месте, используются и при init, и при reset
 static const Settings DEFAULTS = {
   SLOW,    // mode
   1000,    // intervalSlow
   250,     // intervalFast
   10,      // blinkCount
   2000,    // longPressMs
-  SETTINGS_VERSION
+  SETTINGS_VERSION,
+  0,       // bootCount
+  0        // buttonCount
 };
 
-// Стартовый объект — копия DEFAULTS
 Settings settings = {
-  SLOW, 1000, 250, 10, 2000, SETTINGS_VERSION
+  SLOW, 1000, 250, 10, 2000, SETTINGS_VERSION, 0, 0
 };
 
 void settingsInit() {
@@ -54,4 +54,14 @@ void settingsFactoryReset() {
   settings = DEFAULTS;
   settingsSave();
   Serial.println("[EEPROM] Factory reset");
+}
+
+void settingsIncBootCount() {
+  settings.bootCount++;
+  settingsSave();
+}
+
+void settingsIncButtonCount() {
+  settings.buttonCount++;
+  settingsSave();
 }

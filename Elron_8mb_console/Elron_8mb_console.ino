@@ -8,8 +8,8 @@ const uint8_t BTN_ACTIVE = HIGH;
 
 // ==================== ОБЪЕКТЫ ====================
 EventTimer blinkTimer(1000, 10);
-Button     button(BTN_BUILTIN, BTN_ACTIVE, 50);
-Console    console;
+Button button(BTN_BUILTIN, BTN_ACTIVE, 50);
+Console console;
 
 // ==================== КОЛБЭКИ ТАЙМЕРА ====================
 
@@ -56,22 +56,22 @@ void applySettings() {
 void switchMode() {
   switch (settings.mode) {
     case SLOW: settings.mode = FAST; break;
-    case FAST: settings.mode = OFF;  break;
-    case OFF:  settings.mode = SLOW; break;
+    case FAST: settings.mode = OFF; break;
+    case OFF: settings.mode = SLOW; break;
   }
 
   settingsSave();
   applySettings();
 
   Serial.print("Mode -> ");
-  Serial.println(settings.mode == SLOW ? "SLOW" :
-                 settings.mode == FAST ? "FAST" : "OFF");
+  Serial.println(settings.mode == SLOW ? "SLOW" : settings.mode == FAST ? "FAST"
+                                                                        : "OFF");
 }
 
 void resetMode() {
   settings.mode = SLOW;
   applySettings();
-  blinkTimer.reset();               // count = 0, state = false
+  blinkTimer.reset();  // count = 0, state = false
   digitalWrite(LED_BUILTIN, LOW);
   settingsSave();
 
@@ -90,7 +90,10 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(BTN_BUILTIN, INPUT);
 
-  settingsInit();                   // EEPROM.begin() + load + validate
+  settingsInit();  // EEPROM.begin() + load + validate
+  settingsIncBootCount();
+  Serial.print("Boot #");
+  Serial.println(settings.bootCount);
 
   delay(50);
   Serial.print("BTN idle reading: ");
@@ -101,6 +104,7 @@ void setup() {
   blinkTimer.setSeriesCompleteCallback(onSeriesComplete);
 
   // Кнопка
+  button.setPressStartCallback(settingsIncButtonCount);
   button.setShortPressCallback(switchMode);
   button.setLongPressCallback(resetMode);
 
@@ -111,8 +115,8 @@ void setup() {
   applySettings();
 
   Serial.print("Mode -> ");
-  Serial.println(settings.mode == SLOW ? "SLOW" :
-                 settings.mode == FAST ? "FAST" : "OFF");
+  Serial.println(settings.mode == SLOW ? "SLOW" : settings.mode == FAST ? "FAST"
+                                                                        : "OFF");
 
   console.printPrompt();
 }
