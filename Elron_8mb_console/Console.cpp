@@ -11,7 +11,8 @@ static bool strEquals(const char* a, const char* b) {
     if (ca >= 'A' && ca <= 'Z') ca += 32;
     if (cb >= 'A' && cb <= 'Z') cb += 32;
     if (ca != cb) return false;
-    a++; b++;
+    a++;
+    b++;
   }
   return *a == '\0' && *b == '\0';
 }
@@ -22,12 +23,18 @@ static char* parseToken(char** cursor) {
   char* p = *cursor;
   if (p == nullptr) return nullptr;
 
-  while (*p == ' ') p++;                 // пропускаем ведущие пробелы
-  if (*p == '\0') { *cursor = p; return nullptr; }
+  while (*p == ' ') p++;  // пропускаем ведущие пробелы
+  if (*p == '\0') {
+    *cursor = p;
+    return nullptr;
+  }
 
   char* start = p;
-  while (*p != ' ' && *p != '\0') p++;   // ищем конец токена
-  if (*p == ' ') { *p = '\0'; p++; }     // затираем пробел нулём
+  while (*p != ' ' && *p != '\0') p++;  // ищем конец токена
+  if (*p == ' ') {
+    *p = '\0';
+    p++;
+  }  // затираем пробел нулём
 
   *cursor = p;
   return start;
@@ -35,7 +42,8 @@ static char* parseToken(char** cursor) {
 
 // ==================== PUBLIC ====================
 
-Console::Console() : pos(0), onSettingsChanged(nullptr) {
+Console::Console()
+  : pos(0), onSettingsChanged(nullptr) {
   buf[0] = '\0';
 }
 
@@ -88,13 +96,15 @@ void Console::handleLine(char* line) {
   char* cmd = parseToken(&cursor);
   if (cmd == nullptr) return;
 
-  if      (strEquals(cmd, "help"))  cmdHelp();
-  else if (strEquals(cmd, "show"))  cmdShow();
-  else if (strEquals(cmd, "set"))   cmdSet(cursor);
-  else if (strEquals(cmd, "mode"))  cmdMode(cursor);
-  else if (strEquals(cmd, "save"))  cmdSave();
+  if (strEquals(cmd, "help")) cmdHelp();
+  else if (strEquals(cmd, "show")) cmdShow();
+  else if (strEquals(cmd, "set")) cmdSet(cursor);
+  else if (strEquals(cmd, "mode")) cmdMode(cursor);
+  else if (strEquals(cmd, "save")) cmdSave();
   else if (strEquals(cmd, "reset")) cmdReset();
-  else if (strEquals(cmd, "dump"))  cmdDump();
+  else if (strEquals(cmd, "dump")) cmdDump();
+  else if (strEquals(cmd, "peek")) cmdPeek(cursor);
+  else if (strEquals(cmd, "poke")) cmdPoke(cursor);
   else {
     Serial.print("Unknown command: ");
     Serial.println(cmd);
@@ -113,19 +123,26 @@ void Console::cmdHelp() {
   Serial.println("  set longpress <ms>   - long press threshold (200..10000)");
   Serial.println("  save                 - write settings to EEPROM");
   Serial.println("  reset                - factory reset (ALL settings to defaults)");
-  Serial.println("  dump                 - hex dump of EEPROM (first 32 bytes)"); 
+  Serial.println("  dump                 - hex dump of EEPROM (first 32 bytes)");
+  Serial.println("  peek <addr>          - read byte at address (0..1023)");
+  Serial.println("  poke <addr> <val>    - write byte at address (val 0..255)");
 }
 
 void Console::cmdShow() {
   Serial.println("--- Current settings ---");
   Serial.print("mode         = ");
-  Serial.println(settings.mode == SLOW ? "SLOW" :
-                 settings.mode == FAST ? "FAST" : "OFF");
-  Serial.print("intervalSlow = "); Serial.println(settings.intervalSlow);
-  Serial.print("intervalFast = "); Serial.println(settings.intervalFast);
-  Serial.print("blinkCount   = "); Serial.println(settings.blinkCount);
-  Serial.print("longPressMs  = "); Serial.println(settings.longPressMs);
-  Serial.print("version      = "); Serial.println(settings.version);
+  Serial.println(settings.mode == SLOW ? "SLOW" : settings.mode == FAST ? "FAST"
+                                                                        : "OFF");
+  Serial.print("intervalSlow = ");
+  Serial.println(settings.intervalSlow);
+  Serial.print("intervalFast = ");
+  Serial.println(settings.intervalFast);
+  Serial.print("blinkCount   = ");
+  Serial.println(settings.blinkCount);
+  Serial.print("longPressMs  = ");
+  Serial.println(settings.longPressMs);
+  Serial.print("version      = ");
+  Serial.println(settings.version);
 }
 
 void Console::cmdSet(char* args) {
@@ -143,23 +160,44 @@ void Console::cmdSet(char* args) {
   bool ok = true;
 
   if (strEquals(key, "slow")) {
-    if (v < 50 || v > 60000) { Serial.println("Range: 50..60000"); ok = false; }
-    else { settings.intervalSlow = v; Serial.print("intervalSlow = "); Serial.println(v); }
-  }
-  else if (strEquals(key, "fast")) {
-    if (v < 50 || v > 60000) { Serial.println("Range: 50..60000"); ok = false; }
-    else { settings.intervalFast = v; Serial.print("intervalFast = "); Serial.println(v); }
-  }
-  else if (strEquals(key, "count")) {
-    if (v < 1 || v > 255) { Serial.println("Range: 1..255"); ok = false; }
-    else { settings.blinkCount = v; Serial.print("blinkCount = "); Serial.println(v); }
-  }
-  else if (strEquals(key, "longpress")) {
-    if (v < 200 || v > 10000) { Serial.println("Range: 200..10000"); ok = false; }
-    else { settings.longPressMs = v; Serial.print("longPressMs = "); Serial.println(v); }
-  }
-  else {
-    Serial.print("Unknown param: "); Serial.println(key);
+    if (v < 50 || v > 60000) {
+      Serial.println("Range: 50..60000");
+      ok = false;
+    } else {
+      settings.intervalSlow = v;
+      Serial.print("intervalSlow = ");
+      Serial.println(v);
+    }
+  } else if (strEquals(key, "fast")) {
+    if (v < 50 || v > 60000) {
+      Serial.println("Range: 50..60000");
+      ok = false;
+    } else {
+      settings.intervalFast = v;
+      Serial.print("intervalFast = ");
+      Serial.println(v);
+    }
+  } else if (strEquals(key, "count")) {
+    if (v < 1 || v > 255) {
+      Serial.println("Range: 1..255");
+      ok = false;
+    } else {
+      settings.blinkCount = v;
+      Serial.print("blinkCount = ");
+      Serial.println(v);
+    }
+  } else if (strEquals(key, "longpress")) {
+    if (v < 200 || v > 10000) {
+      Serial.println("Range: 200..10000");
+      ok = false;
+    } else {
+      settings.longPressMs = v;
+      Serial.print("longPressMs = ");
+      Serial.println(v);
+    }
+  } else {
+    Serial.print("Unknown param: ");
+    Serial.println(key);
     ok = false;
   }
 
@@ -179,9 +217,9 @@ void Console::cmdMode(char* args) {
     return;
   }
 
-  if      (strEquals(arg, "slow")) settings.mode = SLOW;
+  if (strEquals(arg, "slow")) settings.mode = SLOW;
   else if (strEquals(arg, "fast")) settings.mode = FAST;
-  else if (strEquals(arg, "off"))  settings.mode = OFF;
+  else if (strEquals(arg, "off")) settings.mode = OFF;
   else {
     Serial.println("Unknown mode. Use: slow | fast | off");
     return;
@@ -191,8 +229,8 @@ void Console::cmdMode(char* args) {
   if (onSettingsChanged) onSettingsChanged();
 
   Serial.print("Mode -> ");
-  Serial.println(settings.mode == SLOW ? "SLOW" :
-                 settings.mode == FAST ? "FAST" : "OFF");
+  Serial.println(settings.mode == SLOW ? "SLOW" : settings.mode == FAST ? "FAST"
+                                                                        : "OFF");
 }
 
 void Console::cmdSave() {
@@ -221,16 +259,16 @@ void Console::cmdDump() {
   for (int base = 0; base < DUMP_LEN; base += 16) {
     // Адрес
     Serial.print(HEX_[(base >> 12) & 0xF]);
-    Serial.print(HEX_[(base >>  8) & 0xF]);
-    Serial.print(HEX_[(base >>  4) & 0xF]);
-    Serial.print(HEX_[ base        & 0xF]);
+    Serial.print(HEX_[(base >> 8) & 0xF]);
+    Serial.print(HEX_[(base >> 4) & 0xF]);
+    Serial.print(HEX_[base & 0xF]);
     Serial.print(": ");
 
     // Hex-байты с разделителем между 8-м и 9-м
     for (int i = 0; i < 16; i++) {
       uint8_t b = data[base + i];
       Serial.print(HEX_[(b >> 4) & 0xF]);
-      Serial.print(HEX_[ b       & 0xF]);
+      Serial.print(HEX_[b & 0xF]);
       Serial.print(' ');
       if (i == 7) Serial.print(' ');
     }
@@ -247,11 +285,90 @@ void Console::cmdDump() {
   // Расшифровка структуры
   Serial.println();
   Serial.println("Field map (packed Settings):");
-  Serial.print("  byte  0       : mode         = "); Serial.println(settings.mode);
-  Serial.print("  bytes 1..4    : intervalSlow = "); Serial.println(settings.intervalSlow);
-  Serial.print("  bytes 5..8    : intervalFast = "); Serial.println(settings.intervalFast);
-  Serial.print("  bytes 9..10   : blinkCount   = "); Serial.println(settings.blinkCount);
-  Serial.print("  bytes 11..12  : longPressMs  = "); Serial.println(settings.longPressMs);
-  Serial.print("  byte  13      : version      = "); Serial.println(settings.version);
-  Serial.print("  sizeof(Settings) = ");           Serial.println(sizeof(Settings));
+  Serial.print("  byte  0       : mode         = ");
+  Serial.println(settings.mode);
+  Serial.print("  bytes 1..4    : intervalSlow = ");
+  Serial.println(settings.intervalSlow);
+  Serial.print("  bytes 5..8    : intervalFast = ");
+  Serial.println(settings.intervalFast);
+  Serial.print("  bytes 9..10   : blinkCount   = ");
+  Serial.println(settings.blinkCount);
+  Serial.print("  bytes 11..12  : longPressMs  = ");
+  Serial.println(settings.longPressMs);
+  Serial.print("  byte  13      : version      = ");
+  Serial.println(settings.version);
+  Serial.print("  sizeof(Settings) = ");
+  Serial.println(sizeof(Settings));
+}
+
+void Console::cmdPeek(char* args) {
+  char* cursor = args;
+  char* addrStr = parseToken(&cursor);
+
+  if (addrStr == nullptr) {
+    Serial.println("Usage: peek <addr>");
+    return;
+  }
+
+  long addr = atol(addrStr);
+  if (addr < 0 || addr > 1023) {
+    Serial.println("Address out of range (0..1023)");
+    return;
+  }
+
+  uint8_t val = EEPROM.read(addr);
+
+  Serial.print("EEPROM[");
+  Serial.print(addr);
+  Serial.print("] = 0x");
+  if (val < 16) Serial.print('0');
+  Serial.print(val, HEX);
+  Serial.print(" (");
+  Serial.print(val);
+  Serial.println(")");
+}
+
+void Console::cmdPoke(char* args) {
+  char* cursor = args;
+  char* addrStr = parseToken(&cursor);
+  char* valStr = parseToken(&cursor);
+
+  if (addrStr == nullptr || valStr == nullptr) {
+    Serial.println("Usage: poke <addr> <val>");
+    return;
+  }
+
+  long addr = atol(addrStr);
+  long val = atol(valStr);
+
+  if (addr < 0 || addr > 1023) {
+    Serial.println("Address out of range (0..1023)");
+    return;
+  }
+  if (val < 0 || val > 255) {
+    Serial.println("Value out of range (0..255)");
+    return;
+  }
+
+  uint8_t oldVal = EEPROM.read(addr);
+  EEPROM.write(addr, (uint8_t)val);
+
+  Serial.print("EEPROM[");
+  Serial.print(addr);
+  Serial.print("]: 0x");
+  if (oldVal < 16) Serial.print('0');
+  Serial.print(oldVal, HEX);
+  Serial.print(" -> 0x");
+  if (val < 16) Serial.print('0');
+  Serial.print(val, HEX);
+  Serial.println();
+
+  // Перечитываем settings — вдруг мы поменяли байт внутри структуры.
+  // settingsLoad() сам проверит версию и валидирует поля.
+  settingsLoad();
+  if (onSettingsChanged) onSettingsChanged();
+  // после settingsLoad() и onSettingsChanged()
+  Serial.print("Mode -> ");
+  Serial.println(settings.mode == SLOW ? "SLOW" : settings.mode == FAST ? "FAST"
+                                                                        : "OFF");
 }

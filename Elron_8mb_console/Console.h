@@ -34,6 +34,8 @@ private:
   void cmdSave();
   void cmdReset();
   void cmdDump();
+  void cmdPeek(char* args); 
+  void cmdPoke(char* args);
 };
 
 #endif // CONSOLE_H
