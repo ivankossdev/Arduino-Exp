@@ -1,22 +1,39 @@
 #include "Button.h"
 
 Button::Button(uint8_t pin, uint8_t activeLevel, unsigned long debounceMs)
-    : pin(pin),
-      activeLevel(activeLevel),
-      debounceMs(debounceMs),
-      longPressMs(2000),                              // дефолт, переопределяется
-      rawReading(activeLevel == HIGH ? LOW : HIGH),   // «отпущено» = не activeLevel
-      stableReading(activeLevel == HIGH ? LOW : HIGH),
-      lastRawChange(0),
-      pressStart(0),
-      longPressFired(false),
-      onShortPress(nullptr),
-      onLongPress(nullptr), 
-      onPressStart(nullptr) {}
+  : pin(pin),
+    activeLevel(activeLevel),
+    debounceMs(debounceMs),
+    longPressMs(2000),                             // дефолт, переопределяется
+    rawReading(activeLevel == HIGH ? LOW : HIGH),  // «отпущено» = не activeLevel
+    stableReading(activeLevel == HIGH ? LOW : HIGH),
+    lastRawChange(0),
+    pressStart(0),
+    longPressFired(false),
+    veryLongPressFired(false),
+    onShortPress(nullptr),
+    onLongPress(nullptr),
+    onVeryLongPress(nullptr),
+    onPressStart(nullptr) {}
 
-void Button::setShortPressCallback(ButtonCallback cb) { onShortPress = cb; }
-void Button::setLongPressCallback(ButtonCallback cb)  { onLongPress  = cb; }
-void Button::setLongPressMs(unsigned long ms)         { longPressMs  = ms; }
+void Button::setShortPressCallback(ButtonCallback cb) {
+  onShortPress = cb;
+}
+void Button::setLongPressCallback(ButtonCallback cb) {
+  onLongPress = cb;
+}
+void Button::setVeryLongPressCallback(ButtonCallback cb) {
+  onVeryLongPress = cb;
+}
+void Button::setLongPressMs(unsigned long ms) {
+  longPressMs = ms;
+}
+void Button::setVeryLongPressMs(unsigned long ms) {
+  veryLongPressMs = ms;
+}
+void Button::setPressStartCallback(ButtonCallback cb) {
+  onPressStart = cb;
+}
 
 void Button::tick() {
   unsigned long now = millis();
@@ -33,8 +50,9 @@ void Button::tick() {
     stableReading = reading;
 
     if (stableReading == activeLevel) {
-      pressStart     = now;
+      pressStart = now;
       longPressFired = false;
+      veryLongPressFired = false;
       if (onPressStart != nullptr) onPressStart();
       Serial.println("[BTN] down");
     } else {
@@ -46,14 +64,17 @@ void Button::tick() {
     }
   }
 
-  // 3. Длинное удержание — ровно на пороге, пока палец на кнопке
+  // 3. Длинное удержание
   if (stableReading == activeLevel && !longPressFired && pressStart != 0
       && (now - pressStart) >= longPressMs) {
     longPressFired = true;
     if (onLongPress != nullptr) onLongPress();
   }
+
+  // 4. Сверхдлинное удержание
+  if (stableReading == activeLevel && !veryLongPressFired && pressStart != 0
+      && (now - pressStart) >= veryLongPressMs) {
+    veryLongPressFired = true;
+    if (onVeryLongPress != nullptr) onVeryLongPress();
+  }
 }
-
-void Button::setPressStartCallback(ButtonCallback cb) { onPressStart = cb; }
-
-

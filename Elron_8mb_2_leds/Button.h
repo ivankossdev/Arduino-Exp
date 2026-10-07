@@ -14,7 +14,10 @@ public:
 
   void setShortPressCallback(ButtonCallback cb);
   void setLongPressCallback(ButtonCallback cb);
+  void setVeryLongPressCallback(ButtonCallback cb);
+
   void setLongPressMs(unsigned long ms);
+  void setVeryLongPressMs(unsigned long ms);
   void setPressStartCallback(ButtonCallback cb);
 
   void tick();   // вызывать из loop()
@@ -30,10 +33,14 @@ private:
   unsigned long lastRawChange;
   unsigned long pressStart;
   bool          longPressFired;
+  
+  unsigned long veryLongPressMs;
+  bool          veryLongPressFired;
 
   ButtonCallback onShortPress;
   ButtonCallback onLongPress;
   ButtonCallback onPressStart;
+  ButtonCallback onVeryLongPress;
 };
 
 #endif // BUTTON_H

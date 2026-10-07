@@ -5,12 +5,13 @@
 
 // ==================== КОНСТАНТЫ ====================
 const uint8_t BTN_ACTIVE = HIGH;
-const uint8_t LED2_PIN   = 4;    // Новый светодиод
+const uint8_t LED2_PIN = 4;
 const unsigned long HEARTBEAT_MS = 10000;
+const unsigned long VERY_LONG_PRESS_MS = 5000;
 
 // ==================== ОБЪЕКТЫ ====================
 EventTimer blinkTimer(1000, 10);
-EventTimer led2Timer(500, 1); 
+EventTimer led2Timer(500, 1);
 EventTimer heartbeatTimer(HEARTBEAT_MS, 1);
 Button button(BTN_BUILTIN, BTN_ACTIVE, 50);
 Console console;
@@ -37,26 +38,34 @@ void onHeartbeat(bool state, int count) {
   (void)state;
   (void)count;
 
-  unsigned long ms  = millis();
+  unsigned long ms = millis();
   unsigned long sec = ms / 1000;
   unsigned long min = sec / 60;
   unsigned long hrs = min / 60;
 
   Serial.print("[HB] up=");
-  Serial.print(hrs);        Serial.print("h");
-  Serial.print(min % 60);   Serial.print("m");
-  Serial.print(sec % 60);   Serial.print("s");
+  Serial.print(hrs);
+  Serial.print("h");
+  Serial.print(min % 60);
+  Serial.print("m");
+  Serial.print(sec % 60);
+  Serial.print("s");
 
-  Serial.print(" boot=");   Serial.print(settings.bootCount);
-  Serial.print(" btn=");    Serial.print(settings.buttonCount);
+  Serial.print(" boot=");
+  Serial.print(settings.bootCount);
+  Serial.print(" btn=");
+  Serial.print(settings.buttonCount);
 
   Serial.print(" mode=");
-  Serial.print(settings.mode == SLOW ? "SLOW" :
-               settings.mode == FAST ? "FAST" : "OFF");
+  Serial.print(settings.mode == SLOW ? "SLOW" : settings.mode == FAST ? "FAST"
+                                                                      : "OFF");
 
   Serial.print(" led2=");
   if (settings.led2Interval == 0) Serial.println("off");
-  else { Serial.print(settings.led2Interval); Serial.println("ms"); }
+  else {
+    Serial.print(settings.led2Interval);
+    Serial.println("ms");
+  }
 }
 
 // ==================== ПРИМЕНЕНИЕ НАСТРОЕК ====================
@@ -123,6 +132,14 @@ void resetMode() {
   Serial.println("Mode -> RESET");
 }
 
+void factoryReset() {
+  settingsFactoryReset();  // всё к дефолтам + save в EEPROM
+  applySettings();         // применить к железу
+  blinkTimer.reset();
+  digitalWrite(LED_BUILTIN, LOW);
+  Serial.println("Mode -> FACTORY RESET");
+}
+
 // Колбэк для Console: настройки изменены — надо применить к железу
 void onSettingsChanged() {
   applySettings();
@@ -155,6 +172,8 @@ void setup() {
   button.setPressStartCallback(settingsIncButtonCount);
   button.setShortPressCallback(switchMode);
   button.setLongPressCallback(resetMode);
+  button.setVeryLongPressCallback(factoryReset);  
+  button.setVeryLongPressMs(VERY_LONG_PRESS_MS);
 
   // Консоль
   console.setOnSettingsChanged(onSettingsChanged);
@@ -171,7 +190,7 @@ void setup() {
 
 void loop() {
   blinkTimer.tick();
-  led2Timer.tick(); 
+  led2Timer.tick();
   heartbeatTimer.tick();
   button.tick();
   console.tick();
