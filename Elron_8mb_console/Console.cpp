@@ -1,5 +1,6 @@
 #include "Console.h"
 #include "Settings.h"
+#include <EEPROM.h>
 
 // ==================== ВСПОМОГАТЕЛЬНОЕ ====================
 
@@ -93,6 +94,7 @@ void Console::handleLine(char* line) {
   else if (strEquals(cmd, "mode"))  cmdMode(cursor);
   else if (strEquals(cmd, "save"))  cmdSave();
   else if (strEquals(cmd, "reset")) cmdReset();
+  else if (strEquals(cmd, "dump"))  cmdDump();
   else {
     Serial.print("Unknown command: ");
     Serial.println(cmd);
@@ -111,6 +113,7 @@ void Console::cmdHelp() {
   Serial.println("  set longpress <ms>   - long press threshold (200..10000)");
   Serial.println("  save                 - write settings to EEPROM");
   Serial.println("  reset                - factory reset (ALL settings to defaults)");
+  Serial.println("  dump                 - hex dump of EEPROM (first 32 bytes)"); 
 }
 
 void Console::cmdShow() {
@@ -200,4 +203,55 @@ void Console::cmdSave() {
 void Console::cmdReset() {
   settingsFactoryReset();
   if (onSettingsChanged) onSettingsChanged();
+}
+
+void Console::cmdDump() {
+  const int DUMP_LEN = 32;
+
+  // Сначала читаем всё в буфер, чтобы не дёргать EEPROM дважды на каждую строку
+  uint8_t data[DUMP_LEN];
+  for (int i = 0; i < DUMP_LEN; i++) {
+    data[i] = EEPROM.read(i);
+  }
+
+  Serial.println("--- EEPROM hex dump (first 32 bytes) ---");
+
+  const char* HEX_ = "0123456789ABCDEF";
+
+  for (int base = 0; base < DUMP_LEN; base += 16) {
+    // Адрес
+    Serial.print(HEX_[(base >> 12) & 0xF]);
+    Serial.print(HEX_[(base >>  8) & 0xF]);
+    Serial.print(HEX_[(base >>  4) & 0xF]);
+    Serial.print(HEX_[ base        & 0xF]);
+    Serial.print(": ");
+
+    // Hex-байты с разделителем между 8-м и 9-м
+    for (int i = 0; i < 16; i++) {
+      uint8_t b = data[base + i];
+      Serial.print(HEX_[(b >> 4) & 0xF]);
+      Serial.print(HEX_[ b       & 0xF]);
+      Serial.print(' ');
+      if (i == 7) Serial.print(' ');
+    }
+
+    // ASCII-представление
+    Serial.print(" |");
+    for (int i = 0; i < 16; i++) {
+      uint8_t b = data[base + i];
+      Serial.print((b >= 32 && b < 127) ? (char)b : '.');
+    }
+    Serial.println('|');
+  }
+
+  // Расшифровка структуры
+  Serial.println();
+  Serial.println("Field map (packed Settings):");
+  Serial.print("  byte  0       : mode         = "); Serial.println(settings.mode);
+  Serial.print("  bytes 1..4    : intervalSlow = "); Serial.println(settings.intervalSlow);
+  Serial.print("  bytes 5..8    : intervalFast = "); Serial.println(settings.intervalFast);
+  Serial.print("  bytes 9..10   : blinkCount   = "); Serial.println(settings.blinkCount);
+  Serial.print("  bytes 11..12  : longPressMs  = "); Serial.println(settings.longPressMs);
+  Serial.print("  byte  13      : version      = "); Serial.println(settings.version);
+  Serial.print("  sizeof(Settings) = ");           Serial.println(sizeof(Settings));
 }

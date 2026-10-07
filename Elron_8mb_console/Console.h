@@ -33,6 +33,7 @@ private:
   void cmdMode(char* args);
   void cmdSave();
   void cmdReset();
+  void cmdDump();
 };
 
 #endif // CONSOLE_H
