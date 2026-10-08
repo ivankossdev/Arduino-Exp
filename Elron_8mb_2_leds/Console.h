@@ -66,6 +66,7 @@ private:
   // Прикладное (ConsoleApp.cpp)
   void cmdStats();
   void cmdLed2(char* args);
+  void cmdClearStats(); 
 };
 
 #endif // CONSOLE_H
