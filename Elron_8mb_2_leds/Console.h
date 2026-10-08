@@ -3,20 +3,43 @@
 
 #include <Arduino.h>
 
-// Колбэк, который дергается после успешного изменения настроек.
-// Его задача — применить новые settings к таймеру, кнопке и т.д.
 typedef void (*SettingsChangedCallback)();
+
+// Хелперы парсинга. inline, чтобы каждый .cpp видел их без дублирования.
+namespace console_impl {
+
+// Регистро-независимое сравнение строк
+inline bool strEquals(const char* a, const char* b) {
+  while (*a && *b) {
+    char ca = *a, cb = *b;
+    if (ca >= 'A' && ca <= 'Z') ca += 32;
+    if (cb >= 'A' && cb <= 'Z') cb += 32;
+    if (ca != cb) return false;
+    a++; b++;
+  }
+  return *a == '\0' && *b == '\0';
+}
+
+// Разбор строки по пробелам. *cursor сдвигается на следующий токен.
+inline char* parseToken(char** cursor) {
+  char* p = *cursor;
+  if (p == nullptr) return nullptr;
+  while (*p == ' ') p++;
+  if (*p == '\0') { *cursor = p; return nullptr; }
+  char* start = p;
+  while (*p != ' ' && *p != '\0') p++;
+  if (*p == ' ') { *p = '\0'; p++; }
+  *cursor = p;
+  return start;
+}
+
+}  // namespace console_impl
 
 class Console {
 public:
   Console();
-
   void setOnSettingsChanged(SettingsChangedCallback cb);
-
-  // Вызывать из loop(). Не блокирует: читает только то, что уже пришло.
   void tick();
-
-  // Напечатать приглашение "> "
   void printPrompt();
 
 private:
@@ -26,6 +49,7 @@ private:
   uint8_t  pos;
   SettingsChangedCallback onSettingsChanged;
 
+  // Ядро (Console.cpp)
   void handleLine(char* line);
   void cmdHelp();
   void cmdShow();
@@ -33,9 +57,13 @@ private:
   void cmdMode(char* args);
   void cmdSave();
   void cmdReset();
+
+  // EEPROM-отладка (ConsoleEeprom.cpp)
   void cmdDump();
-  void cmdPeek(char* args); 
+  void cmdPeek(char* args);
   void cmdPoke(char* args);
+
+  // Прикладное (ConsoleApp.cpp)
   void cmdStats();
   void cmdLed2(char* args);
 };
