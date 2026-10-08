@@ -1,5 +1,6 @@
 #include "Console.h"
 #include "Settings.h"
+#include "ConsoleImpl.h"
 
 using namespace console_impl;
 

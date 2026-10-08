@@ -1,5 +1,6 @@
 #include "Settings.h"
 #include <EEPROM.h>
+#include "ConsoleImpl.h"
 
 const int     EEPROM_ADDR_SETTINGS = 0;
 const uint8_t SETTINGS_VERSION     = 3;

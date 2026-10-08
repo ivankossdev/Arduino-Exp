@@ -1,6 +1,7 @@
 #include "Console.h"
 #include "Settings.h"
 #include <EEPROM.h>
+#include "ConsoleImpl.h"
 
 using namespace console_impl;
 

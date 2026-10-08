@@ -2,38 +2,9 @@
 #define CONSOLE_H
 
 #include <Arduino.h>
+#include "ConsoleImpl.h"      // ← хелперы парсинга
 
 typedef void (*SettingsChangedCallback)();
-
-// Хелперы парсинга. inline, чтобы каждый .cpp видел их без дублирования.
-namespace console_impl {
-
-// Регистро-независимое сравнение строк
-inline bool strEquals(const char* a, const char* b) {
-  while (*a && *b) {
-    char ca = *a, cb = *b;
-    if (ca >= 'A' && ca <= 'Z') ca += 32;
-    if (cb >= 'A' && cb <= 'Z') cb += 32;
-    if (ca != cb) return false;
-    a++; b++;
-  }
-  return *a == '\0' && *b == '\0';
-}
-
-// Разбор строки по пробелам. *cursor сдвигается на следующий токен.
-inline char* parseToken(char** cursor) {
-  char* p = *cursor;
-  if (p == nullptr) return nullptr;
-  while (*p == ' ') p++;
-  if (*p == '\0') { *cursor = p; return nullptr; }
-  char* start = p;
-  while (*p != ' ' && *p != '\0') p++;
-  if (*p == ' ') { *p = '\0'; p++; }
-  *cursor = p;
-  return start;
-}
-
-}  // namespace console_impl
 
 class Console {
 public:
@@ -66,7 +37,7 @@ private:
   // Прикладное (ConsoleApp.cpp)
   void cmdStats();
   void cmdLed2(char* args);
-  void cmdClearStats(); 
+  void cmdClearStats();
 };
 
 #endif // CONSOLE_H
