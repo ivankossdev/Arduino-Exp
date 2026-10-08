@@ -3,6 +3,7 @@
 
 const int     EEPROM_ADDR_SETTINGS = 0;
 const uint8_t SETTINGS_VERSION     = 3;
+static bool dirty = false;              // Грязный флаг: true = в RAM есть несохранённые изменения
 
 static const Settings DEFAULTS = {
   SLOW,    // mode
@@ -27,6 +28,7 @@ void settingsInit() {
 
 void settingsSave() {
   EEPROM.put(EEPROM_ADDR_SETTINGS, settings);
+  dirty = false;
 }
 
 void settingsLoad() {
@@ -65,5 +67,19 @@ void settingsIncBootCount() {
 
 void settingsIncButtonCount() {
   settings.buttonCount++;
-  settingsSave();
+  dirty = true;
+}
+
+void settingsMarkDirty() {
+  dirty = true;
+}
+
+void settingsFlushIfDirty() {
+  if (dirty) {
+    settingsSave();
+  }
+}
+
+bool settingsIsDirty() {
+  return dirty;
 }

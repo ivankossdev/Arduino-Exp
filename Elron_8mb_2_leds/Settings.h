@@ -27,5 +27,8 @@ void settingsLoad();        // прочитать + проверить + при�
 void settingsFactoryReset();// сброс к дефолтам
 void settingsIncBootCount();
 void settingsIncButtonCount();
+void settingsMarkDirty();
+void settingsFlushIfDirty();
+bool settingsIsDirty();
 
 #endif // SETTINGS_H

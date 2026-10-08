@@ -7,17 +7,19 @@
 // ==================== ВНУТРЕННИЕ КОНСТАНТЫ ====================
 namespace {
 
-const uint8_t       BTN_ACTIVE        = HIGH;
-const uint8_t       LED2_PIN          = 4;
-const unsigned long HEARTBEAT_MS      = 10000;
+const uint8_t BTN_ACTIVE = HIGH;
+const uint8_t LED2_PIN = 4;
+const unsigned long HEARTBEAT_MS = 10000;
 const unsigned long VERY_LONG_PRESS_MS = 5000;
+const unsigned long SAVE_INTERVAL_MS = 60000;
 
 // ==================== ОБЪЕКТЫ ====================
 EventTimer blinkTimer(1000, 10);
 EventTimer led2Timer(500, 1);
 EventTimer heartbeatTimer(HEARTBEAT_MS, 1);
-Button     button(BTN_BUILTIN, BTN_ACTIVE, 50);
-Console    console;
+EventTimer saveTimer(SAVE_INTERVAL_MS, 1);
+Button button(BTN_BUILTIN, BTN_ACTIVE, 50);
+Console console;
 
 // ==================== КОЛБЭКИ ТАЙМЕРОВ ====================
 
@@ -41,26 +43,50 @@ void onHeartbeat(bool state, int count) {
   (void)state;
   (void)count;
 
-  unsigned long ms  = millis();
+  unsigned long ms = millis();
   unsigned long sec = ms / 1000;
   unsigned long min = sec / 60;
   unsigned long hrs = min / 60;
 
   Serial.print("[HB] up=");
-  Serial.print(hrs);        Serial.print("h");
-  Serial.print(min % 60);   Serial.print("m");
-  Serial.print(sec % 60);   Serial.print("s");
+  Serial.print(hrs);
+  Serial.print("h");
+  Serial.print(min % 60);
+  Serial.print("m");
+  Serial.print(sec % 60);
+  Serial.print("s");
 
-  Serial.print(" boot=");   Serial.print(settings.bootCount);
-  Serial.print(" btn=");    Serial.print(settings.buttonCount);
+  Serial.print(" boot=");
+  Serial.print(settings.bootCount);
+  Serial.print(" btn=");
+  Serial.print(settings.buttonCount);
 
   Serial.print(" mode=");
-  Serial.print(settings.mode == SLOW ? "SLOW" :
-               settings.mode == FAST ? "FAST" : "OFF");
+  Serial.print(settings.mode == SLOW ? "SLOW" : settings.mode == FAST ? "FAST"
+                                                                      : "OFF");
+
+  // Serial.print(" led2=");
+  // if (settings.led2Interval == 0) Serial.println("off");
+  // else {
+  //   Serial.print(settings.led2Interval);
+  //   Serial.println("ms");
+  // }
 
   Serial.print(" led2=");
-  if (settings.led2Interval == 0) Serial.println("off");
-  else { Serial.print(settings.led2Interval); Serial.println("ms"); }
+  if (settings.led2Interval == 0) Serial.print("off");
+  else {
+    Serial.print(settings.led2Interval);
+    Serial.print("ms");
+  }
+
+  Serial.print(" dirty=");
+  Serial.println(settingsIsDirty() ? "Y" : "N");
+}
+
+void onSaveTick(bool state, int count) {
+  (void)state;
+  (void)count;
+  settingsFlushIfDirty();  // тихо: пишет только если есть изменения
 }
 
 // ==================== ПРИМЕНЕНИЕ НАСТРОЕК ====================
@@ -98,16 +124,16 @@ void applySettings() {
 void switchMode() {
   switch (settings.mode) {
     case SLOW: settings.mode = FAST; break;
-    case FAST: settings.mode = OFF;  break;
-    case OFF:  settings.mode = SLOW; break;
+    case FAST: settings.mode = OFF; break;
+    case OFF: settings.mode = SLOW; break;
   }
 
-  settingsSave();
+  settingsMarkDirty();
   applySettings();
 
   Serial.print("Mode -> ");
-  Serial.println(settings.mode == SLOW ? "SLOW" :
-                 settings.mode == FAST ? "FAST" : "OFF");
+  Serial.println(settings.mode == SLOW ? "SLOW" : settings.mode == FAST ? "FAST"
+                                                                        : "OFF");
 }
 
 void resetMode() {
@@ -157,6 +183,7 @@ void appSetup() {
   blinkTimer.setSeriesCompleteCallback(onSeriesComplete);
   led2Timer.setCallback(onLed2Blink);
   heartbeatTimer.setCallback(onHeartbeat);
+  saveTimer.setCallback(onSaveTick);
 
   // Кнопка
   button.setPressStartCallback(settingsIncButtonCount);
@@ -172,8 +199,8 @@ void appSetup() {
   applySettings();
 
   Serial.print("Mode -> ");
-  Serial.println(settings.mode == SLOW ? "SLOW" :
-                 settings.mode == FAST ? "FAST" : "OFF");
+  Serial.println(settings.mode == SLOW ? "SLOW" : settings.mode == FAST ? "FAST"
+                                                                        : "OFF");
 
   console.printPrompt();
 }
@@ -182,6 +209,7 @@ void appLoop() {
   blinkTimer.tick();
   led2Timer.tick();
   heartbeatTimer.tick();
+  saveTimer.tick();
   button.tick();
   console.tick();
 }
