@@ -54,7 +54,6 @@ void Button::tick() {
       longPressFired = false;
       veryLongPressFired = false;
       if (onPressStart != nullptr) onPressStart();
-      Serial.println("[BTN] down");
     } else {
       unsigned long held = now - pressStart;
       if (!longPressFired && held < longPressMs) {
