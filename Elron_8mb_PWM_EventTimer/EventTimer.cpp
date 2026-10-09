@@ -1,14 +1,23 @@
 #include "EventTimer.h"
 
-EventTimer::EventTimer(unsigned long intervalMs)
-    : previousMillis(millis()),
-      interval(intervalMs == 0 ? 1 : intervalMs),   // защита от 0
-      state(false),
-      running(true),
-      onStateChange(nullptr) {}
+// ---- Конструкторы ----
 
-void EventTimer::setCallback(StateChangeCallback cb) {
-    onStateChange = cb;
+EventTimer::EventTimer()
+    : previousMillis(0),
+      interval(1),
+      running(true),
+      onTick(nullptr) {}
+
+EventTimer::EventTimer(unsigned long intervalMs)
+    : previousMillis(0),
+      interval(intervalMs == 0 ? 1 : intervalMs),   // защита от 0
+      running(true),
+      onTick(nullptr) {}
+
+// ---- Настройка ----
+
+void EventTimer::setCallback(TimerCallback cb) {
+    onTick = cb;
 }
 
 void EventTimer::setInterval(unsigned long intervalMs) {
@@ -16,6 +25,7 @@ void EventTimer::setInterval(unsigned long intervalMs) {
     previousMillis = millis();   // перезапустить сетку с новым периодом
 }
 
+// ---- Управление ----
 
 void EventTimer::start() {
     running = true;
@@ -26,10 +36,7 @@ void EventTimer::stop() {
     running = false;
 }
 
-void EventTimer::reset() {
-    state = false;
-    previousMillis = millis();
-}
+// ---- Тик ----
 
 void EventTimer::tick() {
     if (!running) return;
@@ -41,17 +48,13 @@ void EventTimer::tick() {
     // чтобы не накапливать дрейф от задержек loop().
     previousMillis += interval;
 
-    // Если мы отстали больше чем на один период — ресинхронизируемся,
+    // Если отстали больше чем на период — ресинхронизируемся,
     // чтобы не выдать пачку срабатываний подряд.
     if (now - previousMillis >= interval) {
         previousMillis = now;
     }
 
-    // Переход состояния
-    state = !state;
-
-    // Колбэк с новым state и индексом завершённого цикла (0-based)
-    if (onStateChange != nullptr) {
-        onStateChange(state);
+    if (onTick != nullptr) {
+        onTick();
     }
 }

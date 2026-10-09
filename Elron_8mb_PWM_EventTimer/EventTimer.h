@@ -3,41 +3,41 @@
 
 #include <Arduino.h>
 
-// Колбэк на каждое срабатывание таймера.
-//   state — новое состояние пина (после инверсии)
-typedef void (*StateChangeCallback)(bool state);
+// Колбэк, который таймер вызывает на каждом срабатывании.
+// Никаких аргументов: таймер не знает, что делает потребитель —
+// мигает он, дышит или шлёт пакет по Serial. Просто «тикает».
+typedef void (*TimerCallback)();
 
 class EventTimer {
 public:
-    // intervalMs    — период срабатывания, мс
-    // maxIterations — количество тиков в одной серии (>= 1)
-    // По умолчанию таймер запущен сразу после создания.
-    EventTimer(unsigned long intervalMs);
+    // Интервал по умолчанию 1 мс, таймер сразу запущен.
+    // Реальный интервал задать через setInterval().
+    EventTimer();
+
+    // Явный интервал, таймер сразу запущен.
+    explicit EventTimer(unsigned long intervalMs);
 
     // --- Настройка ---
-    void setCallback(StateChangeCallback cb);
-    void setInterval(unsigned long intervalMs);
+    void setCallback(TimerCallback cb);
+    void setInterval(unsigned long intervalMs);   // перезапускает сетку
 
     // --- Управление ---
-    void start();                          // сбросить сетку и запустить
-    void stop();                           // остановить, сохранив состояние
-    void reset();                          // вернуть всё в исходное
+    void start();   // сбросить сетку и запустить
+    void stop();    // остановить, интервал сохраняется
 
     // --- Основной вызов: дергать из loop() ---
     void tick();
 
-    // --- Чтение состояния ---
-    bool isRunning() const { return running; }
-    bool getState()  const { return state; }
+    // --- Чтение ---
+    bool          isRunning()   const { return running; }
     unsigned long getInterval() const { return interval; }
 
 private:
     unsigned long previousMillis;
     unsigned long interval;
-    bool state;
-    bool running;
+    bool          running;
 
-    StateChangeCallback   onStateChange;
+    TimerCallback onTick;
 };
 
-#endif // EVENT_TIMER_H
+#endif // EVENT_TIMER_H 

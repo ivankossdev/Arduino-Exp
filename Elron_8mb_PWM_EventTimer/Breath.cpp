@@ -11,14 +11,10 @@ int     gBrightness = 0;          // Текущая яркость 0..255
 int     gDirection  = 1;          // +1 — разгорается, -1 — гаснет
 uint8_t gGammaLut[256];           // Таблица гамма-коррекции
 
-// Тикер «дыхания». Реальный интервал выставим в breathBegin().
-// Конструктор требует аргумент, поэтому временно ставим 1 мс.
-EventTimer gTicker(1);
+EventTimer gTicker;               // дефолтный конструктор
 
-// Один шаг «дыхания». Вызывается таймером каждые gInterval мс.
-// Аргумент state нам не нужен — таймер инвертирует его для «мигалок»,
-// а здесь мы просто используем факт срабатывания.
-void onBreathTick(bool /*state*/) {
+// Один шаг «дыхания». Таймер сообщает «пора», мы делаем шаг.
+void onBreathTick() {
   analogWrite(ledPin, gGammaLut[gBrightness]);
 
   gBrightness += kFadeAmount * gDirection;
@@ -49,7 +45,6 @@ void breathBegin() {
   }
 
   // Скорость 0..100 -> миллисекунды на шаг (0 -> медленно, 100 -> быстро).
-  // setInterval() сам перезапускает сетку от текущего millis().
   gTicker.setInterval(map(kBreathSpeed, 0, 100, 50, 3));
   gTicker.setCallback(onBreathTick);
   gTicker.start();

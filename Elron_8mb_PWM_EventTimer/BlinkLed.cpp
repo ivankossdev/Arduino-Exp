@@ -7,13 +7,13 @@
 // ============================================================
 namespace {
 
-// Тикер мигалки. Реальный интервал выставим в blinkBegin().
-EventTimer gTicker(1);
+bool      gBlinkState = false;   // текущее состояние пина
+EventTimer gTicker;              // дефолтный конструктор — наконец-то!
 
-// Один тик мигалки. Таймер уже инвертировал своё состояние —
-// используем его как целевое состояние пина.
-void onBlinkTick(bool state) {
-  digitalWrite(kBlinkPin, state ? HIGH : LOW);
+// Один тик мигалки: инвертируем состояние и выводим на пин.
+void onBlinkTick() {
+  gBlinkState = !gBlinkState;
+  digitalWrite(kBlinkPin, gBlinkState ? HIGH : LOW);
 }
 
 }  // namespace
@@ -24,6 +24,7 @@ void onBlinkTick(bool state) {
 
 void blinkBegin() {
   pinMode(kBlinkPin, OUTPUT);
+  gBlinkState = false;
   digitalWrite(kBlinkPin, LOW);   // стартуем с погашенного светодиода
 
   gTicker.setInterval(kBlinkInterval);
