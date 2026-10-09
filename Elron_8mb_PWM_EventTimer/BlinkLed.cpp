@@ -8,7 +8,7 @@
 namespace {
 
 bool      gBlinkState = false;   // текущее состояние пина
-EventTimer gTicker;              // дефолтный конструктор — наконец-то!
+EventTimer gTicker;              // дефолтный конструктор
 
 // Один тик мигалки: инвертируем состояние и выводим на пин.
 void onBlinkTick() {

@@ -26,4 +26,9 @@ const float kGamma = 2.2f;            // 1.0 — линейно, 2.2 — ест�
 const int           kBlinkPin      = LED_BUILTIN;  // на Elbear Ace-UNO это D22
 const unsigned long kBlinkInterval = 1000;         // период мигания, мс
 
+// ============================================================
+//  Heartbeat — неблокирующий «пульс» в Serial
+// ============================================================
+const unsigned long kHeartbeatInterval = 10000; // Сообщение каждые 10 сек.
+
 #endif // SETTINGS_H

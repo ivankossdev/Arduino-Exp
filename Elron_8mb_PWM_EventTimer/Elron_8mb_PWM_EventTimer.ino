@@ -3,27 +3,28 @@
 #include "Settings.h"
 #include "Breath.h"
 #include "BlinkLed.h"
+#include "Heartbeat.h"
 
 /***********************************************************
   Elbear Ace-UNO:
     - плавное «дыхание» внешнего светодиода на D9 (ШИМ);
-    - неблокирующая мигалка встроенного светодиода.
+    - неблокирующая мигалка встроенного светодиода;
+    - Heartbeat: раз в 2 с печатает аптайм в Serial.
 
-  Вся логика — в модулях Breath и BlinkLed.
+  Вся логика — в модулях Breath, BlinkLed, Heartbeat.
   Настройки — в Settings.h.
-  loop() не блокируется: обе задачи работают параллельно.
+  loop() не блокируется: три задачи работают параллельно.
  ***********************************************************/
 
 void setup() {
   Serial.begin(9600);
-  Serial.println();
-  Serial.println("Start program!");
-
   breathBegin();
   blinkBegin();
+  heartbeatBegin();
 }
 
 void loop() {
   breathUpdate();
   blinkUpdate();
+  heartbeatUpdate();
 }
