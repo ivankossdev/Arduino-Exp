@@ -1,40 +1,29 @@
+#include <Arduino.h>
+
+#include "Settings.h"
 #include "Breath.h"
-#include "EventTimer.h"
+#include "BlinkLed.h"
 
 /***********************************************************
-  Тестовый  дерьмокод:
-    - Проверка работы класса EventTimer 
-    - Проверка вывода сообщения 
-    - Шаг в будующее Сделать Класс LedManager
-  Далее перепишем на архитектурное решение. 
+  Elbear Ace-UNO:
+    - плавное «дыхание» внешнего светодиода на D9 (ШИМ);
+    - неблокирующая мигалка встроенного светодиода.
+
+  Вся логика — в модулях Breath и BlinkLed.
+  Настройки — в Settings.h.
+  loop() не блокируется: обе задачи работают параллельно.
  ***********************************************************/
 
-// Экземпляр мигалки LED_BUILTIN
-EventTimer ledBlink(1000); 
-
-//  Колбэк функция для неблокирующей мигалки LED_BUILTIN
-void onBlink(bool state) {
-  digitalWrite(LED_BUILTIN, state ? HIGH : LOW);
-}
-
 void setup() {
-
-  // Инициализация серийного прота
   Serial.begin(9600);
   Serial.println();
   Serial.println("Start program!");
 
-  // Инициализация порта мигалки
-  pinMode(LED_BUILTIN, OUTPUT);
-
-  // Регистрируем колбэк функцию
-  ledBlink.setCallback(onBlink);
-
-  // Инициализация PWM мигалки
   breathBegin();
+  blinkBegin();
 }
 
 void loop() {
   breathUpdate();
-  ledBlink.tick(); 
+  blinkUpdate();
 }
