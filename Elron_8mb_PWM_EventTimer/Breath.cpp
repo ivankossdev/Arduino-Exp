@@ -1,44 +1,25 @@
 #include "Breath.h"
 #include "Settings.h"
+#include "EventTimer.h"
 
 // ============================================================
 //  Приватное состояние модуля (видно только внутри этого файла)
 // ============================================================
 namespace {
 
-int           gBrightness     = 0;   // Текущая яркость 0..255
-int           gDirection      = 1;   // +1 — разгорается, -1 — гаснет
-unsigned long gPreviousMillis = 0;   // Момент последнего шага
-unsigned long gInterval       = 30;  // мс между шагами (из kBreathSpeed)
-uint8_t       gGammaLut[256];        // Таблица гамма-коррекции
+int     gBrightness = 0;          // Текущая яркость 0..255
+int     gDirection  = 1;          // +1 — разгорается, -1 — гаснет
+uint8_t gGammaLut[256];           // Таблица гамма-коррекции
 
-}  // namespace
+// Тикер «дыхания». Реальный интервал выставим в breathBegin().
+// Конструктор требует аргумент, поэтому временно ставим 1 мс.
+EventTimer gTicker(1);
 
-// ============================================================
-//  Публичный интерфейс
-// ============================================================
-
-void breathBegin() {
-  pinMode(ledPin, OUTPUT);
-
-  // Таблицу гамма-коррекции строим один раз при старте.
-  for (int i = 0; i < 256; i++) {
-    float v = i / 255.0f;
-    v = pow(v, kGamma);
-    gGammaLut[i] = (uint8_t)(v * 255.0f + 0.5f);
-  }
-
-  // «Человеческую» скорость 0..100 переводим в миллисекунды на шаг.
-  // 0 -> медленно (50 мс),  100 -> быстро (3 мс)
-  gInterval = map(kBreathSpeed, 0, 100, 50, 3);
-}
-
-void breathUpdate() {
-  unsigned long now = millis();
-  if (now - gPreviousMillis < gInterval) return;  // ещё не время
-  gPreviousMillis = now;
-
-  analogWrite(ledPin, gGammaLut[gBrightness]);    // вывести с гамма-коррекцией
+// Один шаг «дыхания». Вызывается таймером каждые gInterval мс.
+// Аргумент state нам не нужен — таймер инвертирует его для «мигалок»,
+// а здесь мы просто используем факт срабатывания.
+void onBreathTick(bool /*state*/) {
+  analogWrite(ledPin, gGammaLut[gBrightness]);
 
   gBrightness += kFadeAmount * gDirection;
 
@@ -49,4 +30,31 @@ void breathUpdate() {
     gBrightness = kBrightnessMin;
     gDirection  = 1;
   }
+}
+
+}  // namespace
+
+// ============================================================
+//  Публичный интерфейс
+// ============================================================
+
+void breathBegin() {
+  pinMode(ledPin, OUTPUT);
+
+  // Таблица гамма-коррекции — один раз при старте.
+  for (int i = 0; i < 256; i++) {
+    float v = i / 255.0f;
+    v = pow(v, kGamma);
+    gGammaLut[i] = (uint8_t)(v * 255.0f + 0.5f);
+  }
+
+  // Скорость 0..100 -> миллисекунды на шаг (0 -> медленно, 100 -> быстро).
+  // setInterval() сам перезапускает сетку от текущего millis().
+  gTicker.setInterval(map(kBreathSpeed, 0, 100, 50, 3));
+  gTicker.setCallback(onBreathTick);
+  gTicker.start();
+}
+
+void breathUpdate() {
+  gTicker.tick();
 }

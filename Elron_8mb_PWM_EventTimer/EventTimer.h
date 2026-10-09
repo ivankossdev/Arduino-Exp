@@ -5,7 +5,6 @@
 
 // Колбэк на каждое срабатывание таймера.
 //   state — новое состояние пина (после инверсии)
-//   count — номер завершённого цикла, 0-based (0 .. maxIterations-1)
 typedef void (*StateChangeCallback)(bool state);
 
 class EventTimer {
