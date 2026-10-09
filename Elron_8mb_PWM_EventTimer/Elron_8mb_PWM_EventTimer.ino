@@ -23,7 +23,7 @@ void setup() {
   heartbeatBegin();
 
   breathSetSpeed(10);        
-  blinkSetInterval(2000);
+  blinkSetInterval(1000);
 }
 
 void loop() {
