@@ -3,10 +3,16 @@
 
 #include <Arduino.h>
 
-// Инициализация модуля. Вызвать один раз в setup().
-void heartbeatBegin();
+// --- Жизненный цикл ---
+void heartbeatBegin();     // Вызвать один раз в setup()
+void heartbeatUpdate();    // Вызывать в loop() как можно чаще
 
-// Выводим событие
-void heartbeatUpdate(); 
+// --- Управление на лету ---
+void          heartbeatSetInterval(unsigned long intervalMs);
+unsigned long heartbeatGetInterval();
+
+void heartbeatStart();
+void heartbeatStop();
+bool heartbeatIsRunning();
 
 #endif // HEARTBEAT_H

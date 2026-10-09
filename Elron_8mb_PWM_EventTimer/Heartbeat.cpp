@@ -2,9 +2,13 @@
 #include "EventTimer.h"
 #include "Settings.h"
 
-
+// ============================================================
+//  Приватное состояние модуля (видно только внутри этого файла)
+// ============================================================
 namespace {
-  EventTimer hBTicker;
+
+unsigned long gInterval = kHeartbeatInterval;
+EventTimer    gTicker;
 
 void onHeartbeat() {
   unsigned long ms  = millis();
@@ -20,14 +24,37 @@ void onHeartbeat() {
   Serial.print(sec % 60);
   Serial.println('s');
 }
-} // namespace
 
-void heartbeatBegin(){
-  hBTicker.setInterval(kHeartbeatInterval); 
-  hBTicker.setCallback(onHeartbeat);
-  hBTicker.start();
+}  // namespace
+
+// ============================================================
+//  Публичный интерфейс
+// ============================================================
+
+void heartbeatBegin() {
+  gInterval = kHeartbeatInterval;
+  gTicker.setInterval(gInterval);
+  gTicker.setCallback(onHeartbeat);
+  gTicker.start();
 }
 
-void heartbeatUpdate(){
-  hBTicker.tick();
+void heartbeatUpdate() {
+  gTicker.tick();
 }
+
+// ------------------------------------------------------------
+//  Управление на лету
+// ------------------------------------------------------------
+
+void heartbeatSetInterval(unsigned long intervalMs) {
+  gInterval = (intervalMs == 0) ? 1 : intervalMs;
+  gTicker.setInterval(gInterval);
+}
+
+unsigned long heartbeatGetInterval() {
+  return gInterval;
+}
+
+void heartbeatStart() { gTicker.start(); }
+void heartbeatStop()  { gTicker.stop();  }
+bool heartbeatIsRunning() { return gTicker.isRunning(); }

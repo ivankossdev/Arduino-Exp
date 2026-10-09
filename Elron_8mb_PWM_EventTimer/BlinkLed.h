@@ -3,11 +3,16 @@
 
 #include <Arduino.h>
 
-// Инициализация модуля. Вызвать один раз в setup().
-void blinkBegin();
+// --- Жизненный цикл ---
+void blinkBegin();     // Вызвать один раз в setup()
+void blinkUpdate();    // Вызывать в loop() как можно чаще
 
-// Обновление состояния. Вызывать в loop() как можно чаще.
-// Функция неблокирующая — возвращает управление сразу.
-void blinkUpdate();
+// --- Управление на лету ---
+void          blinkSetInterval(unsigned long intervalMs);   // минимум 1 мс
+unsigned long blinkGetInterval();
+
+void blinkStart();
+void blinkStop();
+bool blinkIsRunning();
 
 #endif // BLINK_LED_H

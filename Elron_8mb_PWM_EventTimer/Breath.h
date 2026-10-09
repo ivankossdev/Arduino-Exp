@@ -3,11 +3,16 @@
 
 #include <Arduino.h>
 
-// Инициализация модуля. Вызвать один раз в setup().
-void breathBegin();
+// --- Жизненный цикл ---
+void breathBegin();    // Вызвать один раз в setup()
+void breathUpdate();   // Вызывать в loop() как можно чаще
 
-// Обновление состояния. Вызывать в loop() как можно чаще.
-// Функция неблокирующая — возвращает управление сразу.
-void breathUpdate();
+// --- Управление на лету ---
+void    breathSetSpeed(uint8_t speed);     // 0..100 (обрезается по границам)
+uint8_t breathGetSpeed();                  // текущее значение
+
+void breathStart();
+void breathStop();
+bool breathIsRunning();
 
 #endif // BREATH_H

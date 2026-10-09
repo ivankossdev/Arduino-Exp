@@ -21,6 +21,9 @@ void setup() {
   breathBegin();
   blinkBegin();
   heartbeatBegin();
+
+  breathSetSpeed(10);        
+  blinkSetInterval(2000);
 }
 
 void loop() {

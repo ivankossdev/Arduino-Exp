@@ -7,11 +7,18 @@
 // ============================================================
 namespace {
 
-int     gBrightness = 0;          // Текущая яркость 0..255
-int     gDirection  = 1;          // +1 — разгорается, -1 — гаснет
-uint8_t gGammaLut[256];           // Таблица гамма-коррекции
+int     gBrightness = 0;                 // Текущая яркость 0..255
+int     gDirection  = 1;                 // +1 — разгорается, -1 — гаснет
+uint8_t gGammaLut[256];                  // Таблица гамма-коррекции
 
-EventTimer gTicker;               // дефолтный конструктор
+uint8_t gSpeed = kBreathSpeed;           // Текущая скорость (0..100)
+EventTimer gTicker;
+
+// Пересчитать интервал тикера из текущей скорости.
+void applySpeed() {
+  // 0 -> медленно (50 мс),  100 -> быстро (3 мс)
+  gTicker.setInterval(map(gSpeed, 0, 100, 50, 3));
+}
 
 // Один шаг «дыхания». Таймер сообщает «пора», мы делаем шаг.
 void onBreathTick() {
@@ -44,8 +51,8 @@ void breathBegin() {
     gGammaLut[i] = (uint8_t)(v * 255.0f + 0.5f);
   }
 
-  // Скорость 0..100 -> миллисекунды на шаг (0 -> медленно, 100 -> быстро).
-  gTicker.setInterval(map(kBreathSpeed, 0, 100, 50, 3));
+  gSpeed = kBreathSpeed;
+  applySpeed();
   gTicker.setCallback(onBreathTick);
   gTicker.start();
 }
@@ -53,3 +60,21 @@ void breathBegin() {
 void breathUpdate() {
   gTicker.tick();
 }
+
+// ------------------------------------------------------------
+//  Управление на лету
+// ------------------------------------------------------------
+
+void breathSetSpeed(uint8_t speed) {
+  if (speed > 100) speed = 100;
+  gSpeed = speed;
+  applySpeed();   // setInterval() сам перезапустит сетку
+}
+
+uint8_t breathGetSpeed() {
+  return gSpeed;
+}
+
+void breathStart() { gTicker.start(); }
+void breathStop()  { gTicker.stop();  }
+bool breathIsRunning() { return gTicker.isRunning(); }
