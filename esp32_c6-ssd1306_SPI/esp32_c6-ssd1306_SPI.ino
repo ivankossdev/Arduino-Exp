@@ -1,98 +1,127 @@
 /*
-  OLED SSD1306 (SPI) + ESP32 Super Mini C6
-  Выводит на дисплей приветствие и счётчик циклов.
-  
-  Подключение (Software SPI):
-  OLED VCC  -> 3.3V
-  OLED GND  -> GND
-  OLED D0   -> GPIO7 (CLK)
-  OLED D1   -> GPIO5 (MOSI)
-  OLED RES  -> GPIO4
-  OLED DC   -> GPIO2
-  OLED CS   -> GPIO3
+  TFT ST7789 240x240 (SPI) + ESP32 Super Mini C6
+  Аппаратный SPI + управление подсветкой через ШИМ.
+
+  Подключение:
+  TFT VCC  -> 3.3V
+  TFT GND  -> GND
+  TFT SCL  -> GPIO7 (CLK)
+  TFT SDA  -> GPIO6 (MOSI)
+  TFT RES  -> GPIO4
+  TFT DC   -> GPIO15
+  TFT BLK  -> GPIO0
+  TFT CS   -> не используется (подключите к GND, если есть)
 */
 
-#include <SPI.h>
-#include <Wire.h>
 #include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
+#include <Adafruit_ST7789.h>
+#include <SPI.h>
 
-// Размеры дисплея
-#define SCREEN_WIDTH 128
-#define SCREEN_HEIGHT 64
+// Пины TFT
+#define TFT_MOSI   6
+#define TFT_SCLK   7
+#define TFT_DC     15
+#define TFT_RST    4
+#define TFT_CS     -1     // -1, если на модуле нет вывода CS
 
-// Определение пинов для программного SPI
-#define OLED_MOSI   5
-#define OLED_CLK    7
-#define OLED_DC     2
-#define OLED_CS     3
-#define OLED_RESET  4
+// Пин подсветки
+#define TFT_BLK    0
 
-// Инициализация дисплея (программный SPI)
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT,
-                         OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS);
+// Частота ШИМ и разрешение
+#define BLK_FREQ    5000
+#define BLK_RES     8
 
-// Переменная для счётчика
+// --- Создаём объект SPIClass для аппаратного SPI ---
+SPIClass* hspi = new SPIClass(SPI);
+
+// --- ПРАВИЛЬНЫЙ конструктор для аппаратного SPI ---
+// Порядок аргументов: (SPIClass*, CS, DC, RST)
+Adafruit_ST7789 tft = Adafruit_ST7789(hspi, TFT_CS, TFT_DC, TFT_RST);
+
 int counter = 0;
+
+void backlightSet(uint8_t level) {
+  ledcWrite(TFT_BLK, level);
+}
 
 void setup() {
   Serial.begin(115200);
   delay(1000);
 
-  Serial.println("Инициализация OLED SSD1306 (SPI)...");
+  Serial.println("================================");
+  Serial.println("ESP32 Super Mini C6 запущена!");
+  Serial.println("Инициализация TFT ST7789 240x240 (аппаратный SPI)...");
+  Serial.println("================================");
 
-  // Инициализация дисплея
-  if (!display.begin(SSD1306_SWITCHCAPVCC)) {
-    Serial.println("Ошибка: Не удалось найти SSD1306!");
-    for (;;); // Остановка, если дисплей не найден
-  }
+  // --- Настройка ШИМ для подсветки ---
+  ledcAttach(TFT_BLK, BLK_FREQ, BLK_RES);
+  backlightSet(255);
 
-  Serial.println("Дисплей найден. Начинаю работу...");
+  // --- Инициализация аппаратного SPI с нашими пинами ---
+  // Параметры: SCK, MISO, MOSI, SS
+  hspi->begin(TFT_SCLK, -1, TFT_MOSI, -1);
 
-  // Очистка буфера
-  display.clearDisplay();
-  
-  // Настройка текста
-  display.setTextSize(1);
-  display.setTextColor(SSD1306_WHITE);
-  display.setCursor(0, 0);
+  // --- Инициализация дисплея ---
+  tft.init(240, 240, SPI_MODE3);
+  tft.setSPISpeed(40000000);
 
-  // Первый вывод
-  display.println("ESP32-C6 Super Mini");
-  display.println("OLED SSD1306 (SPI)");
-  display.println("---------------------");
-  display.println("Status: OK");
-  display.println("Counter: 0");
-  display.display();
-  
+  Serial.println("Дисплей инициализирован.");
+
+  tft.setRotation(0);
+  tft.fillScreen(ST77XX_BLACK);
+
+  // Приветственный экран
+  tft.setTextSize(2);
+  tft.setTextColor(ST77XX_WHITE);
+  tft.setCursor(10, 20);
+  tft.println("ESP32-C6");
+  tft.setCursor(10, 50);
+  tft.println("ST7789");
+  tft.setCursor(10, 80);
+  tft.println("240x240");
+  tft.setCursor(10, 120);
+  tft.setTextColor(ST77XX_GREEN);
+  tft.println("STATUS: OK");
+  tft.setCursor(10, 150);
+  tft.setTextColor(ST77XX_CYAN);
+  tft.print("COUNT: ");
+  tft.println(counter);
+
+  Serial.println("Первый вывод на экран завершён.");
   delay(2000);
 }
 
 void loop() {
-  // Очищаем экран
-  display.clearDisplay();
-  
-  // Устанавливаем курсор
-  display.setCursor(0, 0);
-  
-  // Выводим статичный заголовок
-  display.println("ESP32-C6 Super Mini");
-  display.println("OLED SSD1306 (SPI)");
-  display.println("---------------------");
-  
-  // Выводим статус и счётчик
-  display.print("Status: ");
-  display.println("OK");
-  display.print("Counter: ");
-  display.println(counter);
+  for (int b = 255; b >= 0; b -= 15) {
+    backlightSet(b);
+    delay(30);
+  }
+  for (int b = 0; b <= 255; b += 15) {
+    backlightSet(b);
+    delay(30);
+  }
 
-  // Отправляем буфер на дисплей
-  display.display();
+  tft.fillScreen(ST77XX_BLACK);
 
-  // Вывод в консоль
+  tft.setTextSize(2);
+  tft.setTextColor(ST77XX_WHITE);
+  tft.setCursor(10, 20);
+  tft.println("ESP32-C6");
+  tft.setCursor(10, 50);
+  tft.println("ST7789");
+  tft.setCursor(10, 80);
+  tft.println("240x240");
+
+  tft.setCursor(10, 120);
+  tft.setTextColor(ST77XX_GREEN);
+  tft.println("STATUS: OK");
+
+  tft.setCursor(10, 150);
+  tft.setTextColor(ST77XX_CYAN);
+  tft.print("COUNT: ");
+  tft.println(counter);
+
   Serial.print("Цикл #");
   Serial.println(counter);
-
   counter++;
-  delay(1000); // Обновление раз в секунду
 }
