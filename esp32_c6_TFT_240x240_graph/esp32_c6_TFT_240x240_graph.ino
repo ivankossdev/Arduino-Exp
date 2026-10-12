@@ -124,10 +124,10 @@ void loop() {
   // Периодически обновляем счётчик в заголовке
   if (sampleCount % 25 == 0) {
     drawGraphHeader();
-    Serial.print("Точек: ");
-    Serial.print(sampleCount);
-    Serial.print(", значение: ");
-    Serial.println(newVal);
+    // Serial.print("Точек: ");
+    // Serial.print(sampleCount);
+    // Serial.print(", значение: ");
+    // Serial.println(newVal);
   }
 }
 
