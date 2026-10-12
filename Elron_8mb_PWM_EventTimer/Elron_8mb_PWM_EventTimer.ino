@@ -4,30 +4,32 @@
 #include "Breath.h"
 #include "BlinkLed.h"
 #include "Heartbeat.h"
+#include "SerialConsole.h"
 
 /***********************************************************
   Elbear Ace-UNO:
     - плавное «дыхание» внешнего светодиода на D9 (ШИМ);
     - неблокирующая мигалка встроенного светодиода;
-    - Heartbeat: раз в 2 с печатает аптайм в Serial.
+    - Heartbeat: печатает аптайм в Serial;
+    - SerialConsole: управление параметрами с клавиатуры.
 
-  Вся логика — в модулях Breath, BlinkLed, Heartbeat.
-  Настройки — в Settings.h.
-  loop() не блокируется: три задачи работают параллельно.
+  Вся логика — в модулях Breath / BlinkLed / Heartbeat,
+  дирижёр команд — SerialConsole, настройки — Settings.h.
+  loop() не блокируется: все задачи работают параллельно.
  ***********************************************************/
 
 void setup() {
   Serial.begin(9600);
+
   breathBegin();
   blinkBegin();
   heartbeatBegin();
-
-  breathSetSpeed(10);        
-  blinkSetInterval(1000);
+  consoleBegin();
 }
 
 void loop() {
   breathUpdate();
   blinkUpdate();
   heartbeatUpdate();
+  consoleUpdate();
 }
