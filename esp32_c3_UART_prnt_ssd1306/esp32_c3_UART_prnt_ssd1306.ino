@@ -9,8 +9,7 @@
  *   GND общий обязательно!
  *
  * Arduino IDE (плата "ESP32C3 Dev Module"):
- *   Tools -> USB CDC On Boot -> Enabled   <-- критично!
- *   Serial Monitor baud -> 115200
+ *   Tools -> USB CDC On Boot -> Enabled
  */
 
 #include <Wire.h>
@@ -33,14 +32,14 @@
 #define UART_BAUD 9600
 
 // ---------- Лог на дисплее ----------
-#define MAX_LINES           8                       // 64 / 8
+#define MAX_LINES           8
 #define LINE_HEIGHT         8
 #define CHAR_WIDTH          6
 #define MAX_CHARS_PER_LINE  (SCREEN_WIDTH / CHAR_WIDTH)   // = 21
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
-String lines[MAX_LINES];   // кольцевой буфер строк
+String lines[MAX_LINES];
 int    lineCount = 0;
 
 String uartBuffer = "";
@@ -63,13 +62,11 @@ void addDisplayLine(const String &s) {
   if (lineCount < MAX_LINES) {
     lines[lineCount++] = s;
   } else {
-    // сдвигаем вверх, новая — в конец
     for (int i = 1; i < MAX_LINES; i++) lines[i - 1] = lines[i];
     lines[MAX_LINES - 1] = s;
   }
 }
 
-// Разбиваем длинную строку на куски по ширине дисплея
 void appendLog(const String &s) {
   if (s.length() <= MAX_CHARS_PER_LINE) {
     addDisplayLine(s);
@@ -83,27 +80,30 @@ void appendLog(const String &s) {
   redraw();
 }
 
-// Единая точка логирования: и в Serial, и на экран
+// Единая точка логирования (только на экран)
 void logLine(const String &s) {
-  Serial.println(s);
+  // Serial.println(s);   // <-- отладка отключена
   appendLog(s);
 }
 
 // ---------------- Setup / Loop ----------------
 void setup() {
-  Serial.begin(115200);
-  unsigned long t0 = millis();
-  while (!Serial && millis() - t0 < 3000) delay(10);
-  Serial.println();
-  Serial.println("=== BOOT ===");
+  // --- Отладка через USB (отключена) ---
+  // Serial.begin(115200);
+  // unsigned long t0 = millis();
+  // while (!Serial && millis() - t0 < 3000) delay(10);
+  // Serial.println();
+  // Serial.println("=== BOOT ===");
 
+  // --- UART для приёма ---
   Serial1.begin(UART_BAUD, SERIAL_8N1, UART_RX, UART_TX);
-  Serial.printf("Serial1 started @ %d baud (RX=%d, TX=%d)\n",
-                UART_BAUD, UART_RX, UART_TX);
+  // Serial.printf("Serial1 started @ %d baud (RX=%d, TX=%d)\n",
+  //               UART_BAUD, UART_RX, UART_TX);
 
+  // --- I2C + OLED ---
   Wire.begin(I2C_SDA, I2C_SCL);
   if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
-    Serial.println("SSD1306 not found!");
+    // Serial.println("SSD1306 not found!");
     while (true) delay(1000);
   }
 
@@ -111,7 +111,7 @@ void setup() {
 }
 
 void loop() {
-  // Приём с UART
+  // --- Приём с UART ---
   while (Serial1.available()) {
     char c = (char)Serial1.read();
     lastCharTime = millis();
@@ -121,7 +121,7 @@ void loop() {
       uartBuffer = "";
     } else if (c != '\r') {
       uartBuffer += c;
-      if (uartBuffer.length() > 200) {   // защита от переполнения
+      if (uartBuffer.length() > 200) {
         logLine("[UART] " + uartBuffer);
         uartBuffer = "";
       }
@@ -134,13 +134,13 @@ void loop() {
     uartBuffer = "";
   }
 
-  // Периодический tick — тоже в общий лог
-  static unsigned long lastTick = 0;
-  if (millis() - lastTick > 5000) {
-    lastTick = millis();
-    char buf[64];
-    snprintf(buf, sizeof(buf), "[tick] uptime=%lu ms, free heap=%u",
-             millis(), (unsigned)ESP.getFreeHeap());
-    logLine(String(buf));
-  }
+  // --- Периодический tick (отключён) ---
+  // static unsigned long lastTick = 0;
+  // if (millis() - lastTick > 5000) {
+  //   lastTick = millis();
+  //   char buf[64];
+  //   snprintf(buf, sizeof(buf), "[tick] uptime=%lu ms, free heap=%u",
+  //            millis(), (unsigned)ESP.getFreeHeap());
+  //   logLine(String(buf));
+  // }
 }
