@@ -1,6 +1,9 @@
 /*
  * ESP32-C3 Super Mini + SSD1306 (I2C) + UART -> OLED (лог в столбик)
  *
+ * Без String: фиксированные буферы + кольцевой индекс.
+ * В loop() нет ни одного malloc/free — фрагментация кучи невозможна.
+ *
  * Подключение:
  *   SSD1306 SDA -> GPIO8
  *   SSD1306 SCL -> GPIO9
@@ -31,83 +34,90 @@
 #define UART_TX   21
 #define UART_BAUD 9600
 
-// ---------- Лог на дисплее ----------
-#define MAX_LINES           8
-#define LINE_HEIGHT         8
-#define CHAR_WIDTH          6
-#define MAX_CHARS_PER_LINE  (SCREEN_WIDTH / CHAR_WIDTH)   // = 21
+// ---------- Лог ----------
+#define MAX_LINES           8                              // строк на экране
+#define LINE_HEIGHT         8                              // пикселей на строку
+#define CHAR_WIDTH          6                              // ширина символа (TextSize=1)
+#define MAX_CHARS_PER_LINE  (SCREEN_WIDTH / CHAR_WIDTH)    // = 21
+#define MAX_LINE_LEN        (MAX_CHARS_PER_LINE + 1)       // + '\0' = 22
+
+#define UART_BUF_LEN        128                            // буфер приёма UART
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
-String lines[MAX_LINES];
-int    lineCount = 0;
+// Кольцевой буфер строк
+char lines[MAX_LINES][MAX_LINE_LEN];
+int  head  = 0;      // куда писать следующую строку
+int  count = 0;      // сколько строк реально занято (0..MAX_LINES)
 
-String uartBuffer = "";
+// Буфер приёма UART
+char uartBuf[UART_BUF_LEN];
+int  uartLen = 0;
 unsigned long lastCharTime = 0;
 const unsigned long IDLE_TIMEOUT = 150;
 
 // ---------------- Дисплей ----------------
+void addDisplayLine(const char *s) {
+  strncpy(lines[head], s, MAX_CHARS_PER_LINE);
+  lines[head][MAX_CHARS_PER_LINE] = '\0';
+  head = (head + 1) % MAX_LINES;
+  if (count < MAX_LINES) count++;
+}
+
 void redraw() {
   display.clearDisplay();
   display.setTextSize(1);
   display.setTextColor(SSD1306_WHITE);
-  for (int i = 0; i < lineCount; i++) {
+
+  int start = (head - count + MAX_LINES) % MAX_LINES;  // самая старая строка
+  for (int i = 0; i < count; i++) {
+    int idx = (start + i) % MAX_LINES;
     display.setCursor(0, i * LINE_HEIGHT);
-    display.print(lines[i]);
+    display.print(lines[idx]);
   }
   display.display();
 }
 
-void addDisplayLine(const String &s) {
-  if (lineCount < MAX_LINES) {
-    lines[lineCount++] = s;
-  } else {
-    for (int i = 1; i < MAX_LINES; i++) lines[i - 1] = lines[i];
-    lines[MAX_LINES - 1] = s;
-  }
-}
-
-void appendLog(const String &s) {
-  if (s.length() <= MAX_CHARS_PER_LINE) {
-    addDisplayLine(s);
+// Пишет одну логическую строку: режет на куски по 21 символу и кладёт в буфер
+void logLine(const char *s) {
+  int len = (int)strlen(s);
+  if (len == 0) {
+    addDisplayLine("");
   } else {
     int pos = 0;
-    while (pos < (int)s.length()) {
-      addDisplayLine(s.substring(pos, pos + MAX_CHARS_PER_LINE));
-      pos += MAX_CHARS_PER_LINE;
+    while (pos < len) {
+      char chunk[MAX_LINE_LEN];
+      int n = (len - pos > MAX_CHARS_PER_LINE) ? MAX_CHARS_PER_LINE : (len - pos);
+      memcpy(chunk, s + pos, n);
+      chunk[n] = '\0';
+      addDisplayLine(chunk);
+      pos += n;
     }
   }
   redraw();
 }
 
-// Единая точка логирования (только на экран)
-void logLine(const String &s) {
-  // Serial.println(s);   // <-- отладка отключена
-  appendLog(s);
-}
-
 // ---------------- Setup / Loop ----------------
 void setup() {
-  // --- Отладка через USB (отключена) ---
-  // Serial.begin(115200);
-  // unsigned long t0 = millis();
-  // while (!Serial && millis() - t0 < 3000) delay(10);
-  // Serial.println();
-  // Serial.println("=== BOOT ===");
-
-  // --- UART для приёма ---
   Serial1.begin(UART_BAUD, SERIAL_8N1, UART_RX, UART_TX);
-  // Serial.printf("Serial1 started @ %d baud (RX=%d, TX=%d)\n",
-  //               UART_BAUD, UART_RX, UART_TX);
 
-  // --- I2C + OLED ---
   Wire.begin(I2C_SDA, I2C_SCL);
   if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
-    // Serial.println("SSD1306 not found!");
     while (true) delay(1000);
   }
 
   logLine("System ready");
+}
+
+// Завершение приёма сообщения: добавляем префикс и логируем
+void flushUartMessage() {
+  uartBuf[uartLen] = '\0';
+
+  char msg[UART_BUF_LEN + 8];
+  snprintf(msg, sizeof(msg), "[UART] %s", uartBuf);
+  logLine(msg);
+
+  uartLen = 0;
 }
 
 void loop() {
@@ -117,30 +127,18 @@ void loop() {
     lastCharTime = millis();
 
     if (c == '\n') {
-      logLine("[UART] " + uartBuffer);
-      uartBuffer = "";
+      flushUartMessage();
     } else if (c != '\r') {
-      uartBuffer += c;
-      if (uartBuffer.length() > 200) {
-        logLine("[UART] " + uartBuffer);
-        uartBuffer = "";
+      // если буфер переполнен — сбрасываем как отдельное сообщение
+      if (uartLen >= UART_BUF_LEN - 1) {
+        flushUartMessage();
       }
+      uartBuf[uartLen++] = c;
     }
   }
 
-  // Если строка пришла без '\n' — выводим по паузе
-  if (uartBuffer.length() > 0 && (millis() - lastCharTime > IDLE_TIMEOUT)) {
-    logLine("[UART] " + uartBuffer);
-    uartBuffer = "";
+  // Сообщение без '\n' — по паузе
+  if (uartLen > 0 && (millis() - lastCharTime > IDLE_TIMEOUT)) {
+    flushUartMessage();
   }
-
-  // --- Периодический tick (отключён) ---
-  // static unsigned long lastTick = 0;
-  // if (millis() - lastTick > 5000) {
-  //   lastTick = millis();
-  //   char buf[64];
-  //   snprintf(buf, sizeof(buf), "[tick] uptime=%lu ms, free heap=%u",
-  //            millis(), (unsigned)ESP.getFreeHeap());
-  //   logLine(String(buf));
-  // }
 }
