@@ -1,8 +1,8 @@
 /*
- * ESP32-C3 Super Mini + SSD1306 (I2C) + UART -> OLED (лог в столбик)
+ * ESP32-C3 Super Mini + SSD1306 (I2C) + UART -> OLED
+ * + heartbeat с состоянием памяти
  *
- * Без String: фиксированные буферы + кольцевой индекс.
- * В loop() нет ни одного malloc/free — фрагментация кучи невозможна.
+ * Без String: фиксированные буферы, кольцевой индекс.
  *
  * Подключение:
  *   SSD1306 SDA -> GPIO8
@@ -11,13 +11,15 @@
  *   UART TX     -> GPIO21   (можно не подключать)
  *   GND общий обязательно!
  *
- * Arduino IDE (плата "ESP32C3 Dev Module"):
- *   Tools -> USB CDC On Boot -> Enabled
+ * Arduino IDE:
+ *   Board: ESP32C3 Dev Module
+ *   USB CDC On Boot: Enabled
  */
 
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <esp_heap_caps.h>
 
 // ---------- OLED ----------
 #define SCREEN_WIDTH   128
@@ -35,26 +37,32 @@
 #define UART_BAUD 9600
 
 // ---------- Лог ----------
-#define MAX_LINES           8                              // строк на экране
-#define LINE_HEIGHT         8                              // пикселей на строку
-#define CHAR_WIDTH          6                              // ширина символа (TextSize=1)
+#define MAX_LINES           8
+#define LINE_HEIGHT         8
+#define CHAR_WIDTH          6
 #define MAX_CHARS_PER_LINE  (SCREEN_WIDTH / CHAR_WIDTH)    // = 21
-#define MAX_LINE_LEN        (MAX_CHARS_PER_LINE + 1)       // + '\0' = 22
+#define MAX_LINE_LEN        (MAX_CHARS_PER_LINE + 1)       // = 22
 
-#define UART_BUF_LEN        128                            // буфер приёма UART
+#define UART_BUF_LEN        128
+
+// ---------- Heartbeat ----------
+#define HB_PERIOD_MS        10000UL    // раз в 10 секунд
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 // Кольцевой буфер строк
 char lines[MAX_LINES][MAX_LINE_LEN];
-int  head  = 0;      // куда писать следующую строку
-int  count = 0;      // сколько строк реально занято (0..MAX_LINES)
+int  head  = 0;
+int  count = 0;
 
 // Буфер приёма UART
 char uartBuf[UART_BUF_LEN];
 int  uartLen = 0;
 unsigned long lastCharTime = 0;
 const unsigned long IDLE_TIMEOUT = 150;
+
+// Heartbeat
+unsigned long lastHB = 0;
 
 // ---------------- Дисплей ----------------
 void addDisplayLine(const char *s) {
@@ -69,7 +77,7 @@ void redraw() {
   display.setTextSize(1);
   display.setTextColor(SSD1306_WHITE);
 
-  int start = (head - count + MAX_LINES) % MAX_LINES;  // самая старая строка
+  int start = (head - count + MAX_LINES) % MAX_LINES;
   for (int i = 0; i < count; i++) {
     int idx = (start + i) % MAX_LINES;
     display.setCursor(0, i * LINE_HEIGHT);
@@ -78,7 +86,6 @@ void redraw() {
   display.display();
 }
 
-// Пишет одну логическую строку: режет на куски по 21 символу и кладёт в буфер
 void logLine(const char *s) {
   int len = (int)strlen(s);
   if (len == 0) {
@@ -107,9 +114,10 @@ void setup() {
   }
 
   logLine("System ready");
+
+  lastHB = millis();
 }
 
-// Завершение приёма сообщения: добавляем префикс и логируем
 void flushUartMessage() {
   uartBuf[uartLen] = '\0';
 
@@ -118,6 +126,19 @@ void flushUartMessage() {
   logLine(msg);
 
   uartLen = 0;
+}
+
+void heartbeat() {
+  unsigned long up_s   = millis() / 1000UL;
+  unsigned long hfree  = ESP.getFreeHeap() / 1024UL;
+  unsigned long hlarge = heap_caps_get_largest_free_block(MALLOC_CAP_DEFAULT) / 1024UL;
+
+  char l1[24];
+  char l2[24];
+  snprintf(l1, sizeof(l1), "[HB] up=%lus", up_s);
+  snprintf(l2, sizeof(l2), "h=%luk lg=%luk", hfree, hlarge);
+  logLine(l1);
+  logLine(l2);
 }
 
 void loop() {
@@ -129,7 +150,6 @@ void loop() {
     if (c == '\n') {
       flushUartMessage();
     } else if (c != '\r') {
-      // если буфер переполнен — сбрасываем как отдельное сообщение
       if (uartLen >= UART_BUF_LEN - 1) {
         flushUartMessage();
       }
@@ -137,8 +157,13 @@ void loop() {
     }
   }
 
-  // Сообщение без '\n' — по паузе
   if (uartLen > 0 && (millis() - lastCharTime > IDLE_TIMEOUT)) {
     flushUartMessage();
+  }
+
+  // --- Heartbeat ---
+  if (millis() - lastHB >= HB_PERIOD_MS) {
+    lastHB = millis();
+    heartbeat();
   }
 }
