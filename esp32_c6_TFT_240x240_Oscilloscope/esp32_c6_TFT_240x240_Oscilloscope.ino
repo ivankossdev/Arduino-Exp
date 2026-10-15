@@ -1,12 +1,14 @@
 /*
-  Oscilloscope-style display для ZMPT101B на ST7789 240x240
+  Oscilloscope-style display для ESP32-C6 + ST7789 240x240
+  Работает и с реальным сигналом (ZMPT101B), и с "плавающим" входом.
 
   Особенности:
-  - Триггер по фронту через DC-центр — картинка стабильна
-  - Автомасштаб по вертикали
-  - Сетка 10x6 делений, центральные оси
-  - Метка уровня триггера слева
-  - Заголовок: Vpp и развёртка (ms/div)
+  - Триггер по переднему фронту через DC-центр
+  - Гистерезис в измерении частоты
+  - Медианный фильтр частоты
+  - Детектор отсутствия сигнала (только в заголовке и Serial)
+  - centerAvg обновляется только по валидным кадрам
+  - Двойная буферизация через GFXcanvas16
 */
 
 #include <Adafruit_GFX.h>
@@ -21,7 +23,7 @@
 #define TFT_BLK    0
 #define TFT_CS     -1
 
-// --- Датчик ---
+// --- Датчик / вход ---
 #define ZMPT_PIN   1
 
 // --- Разметка ---
@@ -30,12 +32,17 @@
 #define GRAPH_TOP     40
 
 // --- Захват ---
-#define SAMPLE_INTERVAL_US 200          // 5 kHz
-#define SAMPLE_COUNT       240          // 48 мс = ~2.4 периода при 50 Гц
+#define SAMPLE_INTERVAL_US 200       // 5 кГц
+#define SAMPLE_COUNT       240       // 48 мс окно
 
 // --- Сетка ---
 #define GRID_DIV_X  10
 #define GRID_DIV_Y  6
+
+// --- Пороги детектора сигнала ---
+#define MIN_VPP_FOR_SIGNAL   250
+#define CLIP_LOW_THRESHOLD   30
+#define CLIP_HIGH_THRESHOLD  4065
 
 SPIClass* hspi = new SPIClass(SPI);
 Adafruit_ST7789 tft = Adafruit_ST7789(hspi, TFT_CS, TFT_DC, TFT_RST);
@@ -44,16 +51,25 @@ GFXcanvas16* canvas = nullptr;
 int16_t rawData[SAMPLE_COUNT];
 int16_t graphData[SAMPLE_COUNT];
 
-float centerAvg = 2048.0;      // медленно следящий DC-центр
+float centerAvg = 2048.0;
 unsigned long lastStats = 0;
 uint32_t frameCount = 0;
 
+// --- Медианный фильтр частоты (окно 5) ---
+float freqHistory[5] = {0, 0, 0, 0, 0};
+int   freqIdx = 0;
+
+// --- Состояние сигнала ---
+bool  signalPresent = false;
+bool  prevSignalPresent = false;
+
 // --- Прототипы ---
-void drawHeader();
-void updateHeader(int vpp, float freq);
-void drawOscilloscope(int vpp);
-bool waitForTrigger(unsigned long timeout_ms);
+void  drawHeader();
+void  updateHeader(int vpp, float freq, bool hasSignal);
+void  drawOscilloscope();
+bool  waitForTrigger(unsigned long timeout_ms);
 float measureFrequency(int16_t* data, int n, float center);
+float filterFreq(float newFreq);
 
 // ============================================================
 void setup() {
@@ -82,7 +98,7 @@ void setup() {
   }
   Serial.println("Canvas OK");
 
-  // Калибровка DC-центра
+  // Первичная оценка DC-центра
   long sum = 0;
   for (int i = 0; i < 500; i++) {
     sum += analogRead(ZMPT_PIN);
@@ -97,7 +113,7 @@ void setup() {
 
 // ============================================================
 void loop() {
-  // 1. Ждём триггер (передний фронт через центр)
+  // 1. Ожидание триггера
   waitForTrigger(150);
 
   // 2. Захват выборки
@@ -107,51 +123,76 @@ void loop() {
     while (micros() - t < SAMPLE_INTERVAL_US);
   }
 
-  // 3. Медленно обновляем DC-центр
-  for (int i = 0; i < SAMPLE_COUNT; i++) {
-    centerAvg = centerAvg * 0.995 + rawData[i] * 0.005;
-  }
-
-  // 4. Мин/макс текущего кадра
+  // 3. min/max текущего кадра
   int16_t minV = 4095, maxV = 0;
   for (int i = 0; i < SAMPLE_COUNT; i++) {
     if (rawData[i] < minV) minV = rawData[i];
     if (rawData[i] > maxV) maxV = rawData[i];
   }
   int center = (minV + maxV) / 2;
-  int amp = (maxV - minV) / 2;
+  int amp    = (maxV - minV) / 2;
   if (amp < 5) amp = 5;
   int vpp = maxV - minV;
 
-  // 5. Масштабируем в пиксели
+  // 4. Определение наличия сигнала
+  bool clippedLow  = (minV < CLIP_LOW_THRESHOLD);
+  bool clippedHigh = (maxV > CLIP_HIGH_THRESHOLD);
+  bool clippedBoth = clippedLow && clippedHigh;
+  bool tooSmall    = (vpp < MIN_VPP_FOR_SIGNAL);
+  bool lowAnchored = (minV <= 1);
+
+  signalPresent = !tooSmall && !lowAnchored && !clippedBoth;
+
+  // 5. Обновляем DC-центр только по валидным кадрам
+  if (signalPresent) {
+    float frameMid = (minV + maxV) / 2.0;
+    centerAvg = centerAvg * 0.9 + frameMid * 0.1;
+  }
+
+  // 6. Масштабирование в пиксели
   for (int i = 0; i < SAMPLE_COUNT; i++) {
-    float norm = (float)(rawData[i] - center) / amp;   // [-1, 1]
+    float norm = (float)(rawData[i] - center) / amp;
     int y = (GRAPH_HEIGHT / 2) - (int)(norm * (GRAPH_HEIGHT / 2 - 3));
     if (y < 0) y = 0;
     if (y > GRAPH_HEIGHT - 1) y = GRAPH_HEIGHT - 1;
     graphData[i] = y;
   }
 
-  // 6. Рисуем и отправляем
-  drawOscilloscope(vpp);
+  // 7. Отрисовка + отправка
+  drawOscilloscope();
 
-  // 7. Статистика раз в секунду
+  // 8. Статистика раз в секунду
   frameCount++;
   if (millis() - lastStats > 1000) {
     lastStats = millis();
-    float freq = measureFrequency(rawData, SAMPLE_COUNT, center);
-    updateHeader(vpp, freq);
-    Serial.print("Frame "); Serial.print(frameCount);
-    Serial.print("  min="); Serial.print(minV);
-    Serial.print("  max="); Serial.print(maxV);
-    Serial.print("  Vpp(ADC)="); Serial.print(vpp);
-    Serial.print("  F="); Serial.print(freq, 1);
-    Serial.println(" Hz");
+
+    float freqRaw = 0;
+    if (signalPresent) {
+      freqRaw = measureFrequency(rawData, SAMPLE_COUNT, center);
+    }
+    float freq = filterFreq(freqRaw);
+
+    updateHeader(vpp, freq, signalPresent);
+
+    Serial.print("Frame ");    Serial.print(frameCount);
+    Serial.print("  min=");    Serial.print(minV);
+    Serial.print("  max=");    Serial.print(maxV);
+    Serial.print("  Vpp=");    Serial.print(vpp);
+    Serial.print("  F=");      Serial.print(freq, 1);
+    Serial.print(" Hz  ");
+    Serial.println(signalPresent ? "SIG" : "NO-SIGNAL");
+  }
+
+  // Сообщение о смене состояния сигнала
+  if (signalPresent != prevSignalPresent) {
+    Serial.println(signalPresent ? ">> Signal detected"
+                                 : ">> Signal lost");
+    prevSignalPresent = signalPresent;
   }
 }
 
 // ============================================================
-// Ожидание триггера: передний фронт через центр
+// Триггер: передний фронт через DC-центр с гистерезисом
 // ============================================================
 bool waitForTrigger(unsigned long timeout_ms) {
   unsigned long start = millis();
@@ -163,35 +204,63 @@ bool waitForTrigger(unsigned long timeout_ms) {
     if (curr < centerAvg - hyst) armed = true;
     if (armed && curr >= centerAvg) return true;
   }
-  return false;   // таймаут — захватим без синхронизации
+  return false;
 }
 
 // ============================================================
-// Частота: считаем передние фронты
+// Измерение частоты с гистерезисом
 // ============================================================
 float measureFrequency(int16_t* data, int n, float center) {
-  int firstCross = -1, lastCross = -1, crossings = 0;
-  for (int i = 1; i < n; i++) {
-    if (data[i - 1] < center && data[i] >= center) {
-      if (firstCross < 0) firstCross = i;
-      lastCross = i;
-      crossings++;
+  const int hyst = 40;
+  bool below = false;
+  int firstRise = -1, lastRise = -1, count = 0;
+
+  for (int i = 0; i < n; i++) {
+    if (data[i] < center - hyst) below = true;
+    if (below && data[i] > center + hyst) {
+      if (firstRise < 0) firstRise = i;
+      lastRise = i;
+      count++;
+      below = false;
     }
   }
-  if (crossings < 2) return 0;
+  if (count < 2) return 0;
 
-  float dt = (lastCross - firstCross) * (SAMPLE_INTERVAL_US / 1000000.0);
-  float periods = crossings - 1;
-  return periods / dt;
+  float dt = (lastRise - firstRise) * (SAMPLE_INTERVAL_US / 1000000.0);
+  return (count - 1) / dt;
 }
 
 // ============================================================
-// Отрисовка осциллограммы в canvas
+// Медианный фильтр частоты (окно 5)
 // ============================================================
-void drawOscilloscope(int vpp) {
+float filterFreq(float newFreq) {
+  if (newFreq < 20.0 || newFreq > 200.0) {
+    float s[5];
+    memcpy(s, freqHistory, sizeof(s));
+    for (int i = 0; i < 4; i++)
+      for (int j = 0; j < 4 - i; j++)
+        if (s[j] > s[j + 1]) { float t = s[j]; s[j] = s[j + 1]; s[j + 1] = t; }
+    return s[2];
+  }
+
+  freqHistory[freqIdx] = newFreq;
+  freqIdx = (freqIdx + 1) % 5;
+
+  float s[5];
+  memcpy(s, freqHistory, sizeof(s));
+  for (int i = 0; i < 4; i++)
+    for (int j = 0; j < 4 - i; j++)
+      if (s[j] > s[j + 1]) { float t = s[j]; s[j] = s[j + 1]; s[j + 1] = t; }
+  return s[2];
+}
+
+// ============================================================
+// Отрисовка осциллограммы
+// ============================================================
+void drawOscilloscope() {
   canvas->fillScreen(ST77XX_BLACK);
 
-  // --- Пунктирная сетка ---
+  // Пунктирная сетка
   for (int i = 1; i < GRID_DIV_X; i++) {
     int x = (i * GRAPH_WIDTH) / GRID_DIV_X;
     for (int y = 0; y < GRAPH_HEIGHT; y += 4)
@@ -203,7 +272,7 @@ void drawOscilloscope(int vpp) {
       canvas->drawPixel(x, y, 0x2104);
   }
 
-  // --- Центральные оси (ярче) ---
+  // Центральные оси
   int midY = GRAPH_HEIGHT / 2;
   int midX = GRAPH_WIDTH / 2;
   for (int x = 0; x < GRAPH_WIDTH; x += 2)
@@ -211,20 +280,20 @@ void drawOscilloscope(int vpp) {
   for (int y = 0; y < GRAPH_HEIGHT; y += 2)
     canvas->drawPixel(midX, y, 0x4208);
 
-  // --- Рамка ---
+  // Рамка
   canvas->drawRect(0, 0, GRAPH_WIDTH, GRAPH_HEIGHT, ST77XX_WHITE);
 
-  // --- Луч (кривая) ---
+  // Луч (кривая)
   for (int x = 0; x < SAMPLE_COUNT - 1; x++) {
     int x1 = (x * GRAPH_WIDTH) / SAMPLE_COUNT;
     int x2 = ((x + 1) * GRAPH_WIDTH) / SAMPLE_COUNT;
     canvas->drawLine(x1, graphData[x], x2, graphData[x + 1], ST77XX_GREEN);
   }
 
-  // --- Метка уровня триггера слева ---
+  // Метка уровня триггера
   canvas->fillTriangle(0, midY - 5, 0, midY + 5, 7, midY, ST77XX_YELLOW);
 
-  // --- Отправка на дисплей ---
+  // Отправка кадра
   tft.drawRGBBitmap(0, GRAPH_TOP, canvas->getBuffer(),
                     GRAPH_WIDTH, GRAPH_HEIGHT);
 }
@@ -239,21 +308,22 @@ void drawHeader() {
   tft.setTextColor(ST77XX_WHITE);
   tft.setCursor(5, 2);
   tft.print("OSC AUTO");
-
-  tft.setTextSize(1);
-  tft.setTextColor(ST77XX_CYAN);
-  tft.setCursor(5, 24);
-  tft.print("Vpp=--.--V  --.-Hz");
 }
 
-void updateHeader(int vpp, float freq) {
-  // Переводим ADC-отсчёты в вольты (грубо: 3.3 В / 4095)
-  float vppVolts = vpp / 4095.0 * 3.3;
-
+void updateHeader(int vpp, float freq, bool hasSignal) {
   tft.fillRect(0, 22, 240, 16, ST77XX_BLACK);
   tft.setTextSize(1);
-  tft.setTextColor(ST77XX_CYAN);
   tft.setCursor(5, 24);
+
+  if (!hasSignal) {
+    tft.setTextColor(ST77XX_RED);
+    tft.print("--- no signal ---");
+    return;
+  }
+
+  float vppVolts = vpp / 4095.0 * 3.3;
+
+  tft.setTextColor(ST77XX_CYAN);
   tft.print("Vpp=");
   tft.print(vppVolts, 2);
   tft.print("V  ");
