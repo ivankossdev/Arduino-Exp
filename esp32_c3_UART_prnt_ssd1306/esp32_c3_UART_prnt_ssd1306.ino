@@ -1,14 +1,15 @@
 /*
- * ESP32-C3 Super Mini + SSD1306 (I2C) + UART -> OLED
- * + heartbeat с состоянием памяти
- *
- * Без String: фиксированные буферы, кольцевой индекс.
+ * ESP32-C3 Super Mini + SSD1306 + UART -> OLED
+ * + heartbeat + 2 кнопки (внешняя подтяжка резистором 10k)
  *
  * Подключение:
  *   SSD1306 SDA -> GPIO8
  *   SSD1306 SCL -> GPIO9
  *   UART RX     -> GPIO20
  *   UART TX     -> GPIO21   (можно не подключать)
+ *
+ *   BTN1: 3.3V --[10k]--+-- GPIO4 --[кнопка]-- GND
+ *   BTN2: 3.3V --[10k]--+-- GPIO5 --[кнопка]-- GND
  *   GND общий обязательно!
  *
  * Arduino IDE:
@@ -36,6 +37,15 @@
 #define UART_TX   21
 #define UART_BAUD 9600
 
+// ---------- Кнопки ----------
+#define BTN1_PIN   4
+#define BTN2_PIN   5
+#define BTN_DEBOUNCE_MS 30
+
+// true  -> кнопка к GND, подтяжка к 3.3V (нажатие = LOW)   <-- по умолчанию
+// false -> кнопка к 3.3V, подтяжка к GND  (нажатие = HIGH)
+#define BTN_ACTIVE_LOW  true
+
 // ---------- Лог ----------
 #define MAX_LINES           8
 #define LINE_HEIGHT         8
@@ -46,7 +56,7 @@
 #define UART_BUF_LEN        128
 
 // ---------- Heartbeat ----------
-#define HB_PERIOD_MS        10000UL    // раз в 10 секунд
+#define HB_PERIOD_MS        10000UL
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
@@ -63,6 +73,17 @@ const unsigned long IDLE_TIMEOUT = 150;
 
 // Heartbeat
 unsigned long lastHB = 0;
+
+// Кнопки
+struct Button {
+  uint8_t  pin;
+  bool     stable;       // стабильное состояние (true = нажата)
+  bool     lastRead;     // последнее логическое чтение
+  unsigned long lastChange;
+};
+
+Button btn1 = { BTN1_PIN, false, false, 0 };
+Button btn2 = { BTN2_PIN, false, false, 0 };
 
 // ---------------- Дисплей ----------------
 void addDisplayLine(const char *s) {
@@ -104,28 +125,11 @@ void logLine(const char *s) {
   redraw();
 }
 
-// ---------------- Setup / Loop ----------------
-void setup() {
-  Serial1.begin(UART_BAUD, SERIAL_8N1, UART_RX, UART_TX);
-
-  Wire.begin(I2C_SDA, I2C_SCL);
-  if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
-    while (true) delay(1000);
-  }
-
-  logLine("System ready");
-
-  lastHB = millis();
-}
-
-void flushUartMessage() {
-  uartBuf[uartLen] = '\0';
-
-  char msg[UART_BUF_LEN + 8];
-  snprintf(msg, sizeof(msg), "[UART] %s", uartBuf);
-  logLine(msg);
-
-  uartLen = 0;
+// ---------------- Действия кнопок ----------------
+void clearDisplay() {
+  head = 0;
+  count = 0;
+  redraw();
 }
 
 void heartbeat() {
@@ -141,8 +145,63 @@ void heartbeat() {
   logLine(l2);
 }
 
+// ---------------- Кнопки ----------------
+bool buttonPressed(Button &b) {
+#if BTN_ACTIVE_LOW
+  bool pressed = (digitalRead(b.pin) == LOW);
+#else
+  bool pressed = (digitalRead(b.pin) == HIGH);
+#endif
+
+  if (pressed != b.lastRead) {
+    b.lastRead = pressed;
+    b.lastChange = millis();
+  }
+
+  if (millis() - b.lastChange >= BTN_DEBOUNCE_MS) {
+    if (pressed != b.stable) {
+      b.stable = pressed;
+      if (b.stable) return true;
+    }
+  }
+  return false;
+}
+
+void pollButtons() {
+  if (buttonPressed(btn1)) clearDisplay();
+  if (buttonPressed(btn2)) heartbeat();
+}
+
+// ---------------- Setup / Loop ----------------
+void setup() {
+  // Внешняя подтяжка — INPUT, не INPUT_PULLUP
+  pinMode(BTN1_PIN, INPUT);
+  pinMode(BTN2_PIN, INPUT);
+
+  Serial1.begin(UART_BAUD, SERIAL_8N1, UART_RX, UART_TX);
+
+  Wire.begin(I2C_SDA, I2C_SCL);
+  if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+    while (true) delay(1000);
+  }
+
+  logLine("System ready");
+  lastHB = millis();
+}
+
+void flushUartMessage() {
+  uartBuf[uartLen] = '\0';
+
+  char msg[UART_BUF_LEN + 8];
+  snprintf(msg, sizeof(msg), "[UART] %s", uartBuf);
+  logLine(msg);
+
+  uartLen = 0;
+}
+
 void loop() {
-  // --- Приём с UART ---
+  pollButtons();
+
   while (Serial1.available()) {
     char c = (char)Serial1.read();
     lastCharTime = millis();
@@ -161,7 +220,6 @@ void loop() {
     flushUartMessage();
   }
 
-  // --- Heartbeat ---
   if (millis() - lastHB >= HB_PERIOD_MS) {
     lastHB = millis();
     heartbeat();

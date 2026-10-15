@@ -1,14 +1,19 @@
 /*
-  Oscilloscope-style display для ESP32-C6 + ST7789 240x240
-  Работает и с реальным сигналом (ZMPT101B), и с "плавающим" входом.
+  Oscilloscope + PWM-генератор тестового сигнала.
+  ESP32-C6 + ST7789 240x240
 
-  Особенности:
-  - Триггер по переднему фронту через DC-центр
-  - Гистерезис в измерении частоты
-  - Медианный фильтр частоты
-  - Детектор отсутствия сигнала (только в заголовке и Serial)
-  - centerAvg обновляется только по валидным кадрам
-  - Двойная буферизация через GFXcanvas16
+  --- Подключение ---
+  PWM выход:   GPIO2
+  ADC вход:    GPIO1 (через RC-фильтр: 1кΩ + 100нФ на GND)
+
+  --- Управление по Serial (115200) ---
+  '1' → 50 Гц
+  '2' → 100 Гц
+  '3' → 200 Гц
+  '4' → 500 Гц
+  '5' → 1000 Гц
+  '+' → увеличить частоту
+  '-' → уменьшить частоту
 */
 
 #include <Adafruit_GFX.h>
@@ -25,6 +30,11 @@
 
 // --- Датчик / вход ---
 #define ZMPT_PIN   1
+
+// --- Выход ШИМ-генератора ---
+#define PWM_PIN    2
+#define PWM_FREQ   100000    // 100 кГц несущая
+#define PWM_RES    10        // 10 бит (0..1023)
 
 // --- Разметка ---
 #define GRAPH_WIDTH   240
@@ -55,13 +65,18 @@ float centerAvg = 2048.0;
 unsigned long lastStats = 0;
 uint32_t frameCount = 0;
 
-// --- Медианный фильтр частоты (окно 5) ---
+// --- Медианный фильтр частоты ---
 float freqHistory[5] = {0, 0, 0, 0, 0};
 int   freqIdx = 0;
 
 // --- Состояние сигнала ---
 bool  signalPresent = false;
 bool  prevSignalPresent = false;
+
+// --- Генератор тестового сигнала ---
+float testFreq = 50.0;          // Гц
+float testPhase = 0.0;
+const float TEST_AMPLITUDE = 400.0;   // ±400 от центра 512 → 0.8В пик-пик после RC
 
 // --- Прототипы ---
 void  drawHeader();
@@ -70,17 +85,27 @@ void  drawOscilloscope();
 bool  waitForTrigger(unsigned long timeout_ms);
 float measureFrequency(int16_t* data, int n, float center);
 float filterFreq(float newFreq);
+void  updateTestSignal();
+void  processSerialCommands();
 
 // ============================================================
 void setup() {
   Serial.begin(115200);
   delay(1000);
-  Serial.println("=== Oscilloscope mode ===");
+  Serial.println("=== Oscilloscope + PWM generator ===");
+  Serial.println("Commands: 1=50Hz  2=100Hz  3=200Hz  4=500Hz  5=1kHz");
+  Serial.println("          +/- = adjust frequency");
+  Serial.println("PWM: GPIO2   ADC: GPIO1 (connect via RC 1k+100nF)");
 
   analogReadResolution(12);
   analogSetAttenuation(ADC_11db);
   delay(10);
 
+  // PWM генератор
+  ledcAttach(PWM_PIN, PWM_FREQ, PWM_RES);
+  ledcWrite(PWM_PIN, 512);   // середина = 50% duty
+
+  // Подсветка TFT
   ledcAttach(TFT_BLK, 5000, 8);
   ledcWrite(TFT_BLK, 180);
 
@@ -113,17 +138,21 @@ void setup() {
 
 // ============================================================
 void loop() {
+  // 0. Обработка Serial-команд
+  processSerialCommands();
+
   // 1. Ожидание триггера
   waitForTrigger(150);
 
-  // 2. Захват выборки
+  // 2. Захват выборки + параллельно обновляем ШИМ
   for (int i = 0; i < SAMPLE_COUNT; i++) {
     unsigned long t = micros();
     rawData[i] = analogRead(ZMPT_PIN);
+    updateTestSignal();   // генерируем следующую точку синусоиды
     while (micros() - t < SAMPLE_INTERVAL_US);
   }
 
-  // 3. min/max текущего кадра
+  // 3. min/max
   int16_t minV = 4095, maxV = 0;
   for (int i = 0; i < SAMPLE_COUNT; i++) {
     if (rawData[i] < minV) minV = rawData[i];
@@ -134,7 +163,7 @@ void loop() {
   if (amp < 5) amp = 5;
   int vpp = maxV - minV;
 
-  // 4. Определение наличия сигнала
+  // 4. Детектор сигнала
   bool clippedLow  = (minV < CLIP_LOW_THRESHOLD);
   bool clippedHigh = (maxV > CLIP_HIGH_THRESHOLD);
   bool clippedBoth = clippedLow && clippedHigh;
@@ -143,13 +172,12 @@ void loop() {
 
   signalPresent = !tooSmall && !lowAnchored && !clippedBoth;
 
-  // 5. Обновляем DC-центр только по валидным кадрам
   if (signalPresent) {
     float frameMid = (minV + maxV) / 2.0;
     centerAvg = centerAvg * 0.9 + frameMid * 0.1;
   }
 
-  // 6. Масштабирование в пиксели
+  // 5. Масштабирование
   for (int i = 0; i < SAMPLE_COUNT; i++) {
     float norm = (float)(rawData[i] - center) / amp;
     int y = (GRAPH_HEIGHT / 2) - (int)(norm * (GRAPH_HEIGHT / 2 - 3));
@@ -158,10 +186,10 @@ void loop() {
     graphData[i] = y;
   }
 
-  // 7. Отрисовка + отправка
+  // 6. Отрисовка
   drawOscilloscope();
 
-  // 8. Статистика раз в секунду
+  // 7. Статистика
   frameCount++;
   if (millis() - lastStats > 1000) {
     lastStats = millis();
@@ -180,19 +208,66 @@ void loop() {
     Serial.print("  Vpp=");    Serial.print(vpp);
     Serial.print("  F=");      Serial.print(freq, 1);
     Serial.print(" Hz  ");
+    Serial.print("  PWM set="); Serial.print(testFreq, 1);
+    Serial.print(" Hz  ");
     Serial.println(signalPresent ? "SIG" : "NO-SIGNAL");
   }
 
-  // Сообщение о смене состояния сигнала
   if (signalPresent != prevSignalPresent) {
-    Serial.println(signalPresent ? ">> Signal detected"
-                                 : ">> Signal lost");
+    Serial.println(signalPresent ? ">> Signal detected" : ">> Signal lost");
     prevSignalPresent = signalPresent;
   }
 }
 
 // ============================================================
-// Триггер: передний фронт через DC-центр с гистерезисом
+// Генерация синусоиды через ШИМ
+// ============================================================
+void updateTestSignal() {
+  // Шаг фазы за один интервал семплирования
+  testPhase += 2.0 * PI * testFreq * (SAMPLE_INTERVAL_US / 1000000.0);
+  if (testPhase >= 2.0 * PI) testPhase -= 2.0 * PI;
+
+  float s = sin(testPhase);
+  int duty = 512 + (int)(s * TEST_AMPLITUDE);
+  if (duty < 0)    duty = 0;
+  if (duty > 1023) duty = 1023;
+  ledcWrite(PWM_PIN, duty);
+}
+
+// ============================================================
+// Обработка команд из Serial
+// ============================================================
+void processSerialCommands() {
+  while (Serial.available()) {
+    char c = Serial.read();
+    float newFreq = testFreq;
+
+    switch (c) {
+      case '1': newFreq = 50.0;   break;
+      case '2': newFreq = 100.0;  break;
+      case '3': newFreq = 200.0;  break;
+      case '4': newFreq = 500.0;  break;
+      case '5': newFreq = 1000.0; break;
+      case '+': newFreq = testFreq + 10.0; break;
+      case '-': newFreq = testFreq - 10.0; break;
+      default: continue;
+    }
+
+    if (newFreq < 1.0)    newFreq = 1.0;
+    if (newFreq > 1500.0) newFreq = 1500.0;
+
+    if (newFreq != testFreq) {
+      testFreq = newFreq;
+      testPhase = 0.0;   // сброс фазы при смене частоты
+      Serial.print(">> PWM frequency set to ");
+      Serial.print(testFreq, 1);
+      Serial.println(" Hz");
+    }
+  }
+}
+
+// ============================================================
+// Триггер
 // ============================================================
 bool waitForTrigger(unsigned long timeout_ms) {
   unsigned long start = millis();
@@ -208,7 +283,7 @@ bool waitForTrigger(unsigned long timeout_ms) {
 }
 
 // ============================================================
-// Измерение частоты с гистерезисом
+// Измерение частоты
 // ============================================================
 float measureFrequency(int16_t* data, int n, float center) {
   const int hyst = 40;
@@ -231,7 +306,7 @@ float measureFrequency(int16_t* data, int n, float center) {
 }
 
 // ============================================================
-// Медианный фильтр частоты (окно 5)
+// Медианный фильтр частоты
 // ============================================================
 float filterFreq(float newFreq) {
   if (newFreq < 20.0 || newFreq > 200.0) {
@@ -255,12 +330,11 @@ float filterFreq(float newFreq) {
 }
 
 // ============================================================
-// Отрисовка осциллограммы
+// Отрисовка
 // ============================================================
 void drawOscilloscope() {
   canvas->fillScreen(ST77XX_BLACK);
 
-  // Пунктирная сетка
   for (int i = 1; i < GRID_DIV_X; i++) {
     int x = (i * GRAPH_WIDTH) / GRID_DIV_X;
     for (int y = 0; y < GRAPH_HEIGHT; y += 4)
@@ -272,7 +346,6 @@ void drawOscilloscope() {
       canvas->drawPixel(x, y, 0x2104);
   }
 
-  // Центральные оси
   int midY = GRAPH_HEIGHT / 2;
   int midX = GRAPH_WIDTH / 2;
   for (int x = 0; x < GRAPH_WIDTH; x += 2)
@@ -280,20 +353,16 @@ void drawOscilloscope() {
   for (int y = 0; y < GRAPH_HEIGHT; y += 2)
     canvas->drawPixel(midX, y, 0x4208);
 
-  // Рамка
   canvas->drawRect(0, 0, GRAPH_WIDTH, GRAPH_HEIGHT, ST77XX_WHITE);
 
-  // Луч (кривая)
   for (int x = 0; x < SAMPLE_COUNT - 1; x++) {
     int x1 = (x * GRAPH_WIDTH) / SAMPLE_COUNT;
     int x2 = ((x + 1) * GRAPH_WIDTH) / SAMPLE_COUNT;
     canvas->drawLine(x1, graphData[x], x2, graphData[x + 1], ST77XX_GREEN);
   }
 
-  // Метка уровня триггера
   canvas->fillTriangle(0, midY - 5, 0, midY + 5, 7, midY, ST77XX_YELLOW);
 
-  // Отправка кадра
   tft.drawRGBBitmap(0, GRAPH_TOP, canvas->getBuffer(),
                     GRAPH_WIDTH, GRAPH_HEIGHT);
 }
@@ -307,7 +376,7 @@ void drawHeader() {
   tft.setTextSize(2);
   tft.setTextColor(ST77XX_WHITE);
   tft.setCursor(5, 2);
-  tft.print("OSC AUTO");
+  tft.print("OSC + PWM");
 }
 
 void updateHeader(int vpp, float freq, bool hasSignal) {
@@ -317,7 +386,9 @@ void updateHeader(int vpp, float freq, bool hasSignal) {
 
   if (!hasSignal) {
     tft.setTextColor(ST77XX_RED);
-    tft.print("--- no signal ---");
+    tft.print("--- no signal ---  PWM=");
+    tft.print(testFreq, 0);
+    tft.print("Hz");
     return;
   }
 
@@ -326,7 +397,7 @@ void updateHeader(int vpp, float freq, bool hasSignal) {
   tft.setTextColor(ST77XX_CYAN);
   tft.print("Vpp=");
   tft.print(vppVolts, 2);
-  tft.print("V  ");
+  tft.print("V ");
   tft.print(freq, 1);
   tft.print("Hz");
 }
