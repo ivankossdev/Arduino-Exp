@@ -6,3 +6,4 @@ void uartWatchdogPoll();
 
 // Состояние: true — сейчас тишина (таймаут активен)
 bool uartWatchdogIsSilent();
+void uartWatchdogFeed();

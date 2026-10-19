@@ -28,7 +28,7 @@ void loop() {
       uartSendLine(CMD_BTN1);
       break;
     case BTN2_PRESSED:
-      heartbeatShowNow();
+      uartSendLine("stat");
       break;
     default:
       break;

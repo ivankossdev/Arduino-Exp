@@ -39,14 +39,20 @@ void loop() {
       if (star) {
         int payloadLen = star - rxBuf;
         long expected = strtol(star + 1, NULL, 16);
+
         if (calcCS(rxBuf, payloadLen) == (uint8_t)expected) {
           char clean[32];
           strncpy(clean, rxBuf, payloadLen);
           clean[payloadLen] = '\0';
-          
+
           if (strcmp(clean, "show") == 0) {
-            digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN)); // Мигаем
-            sendPacket("ACK:show"); // Отвечаем
+            digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+            sendPacket("ACK:show");
+          } else if (strcmp(clean, "stat") == 0) {  // <--- НОВОЕ
+            char statPayload[32];
+            unsigned long up_s = millis() / 1000UL;
+            snprintf(statPayload, sizeof(statPayload), "STAT:up=%lus", up_s);
+            sendPacket(statPayload);
           }
         }
       }
@@ -63,8 +69,8 @@ void loop() {
   unsigned long now = millis();
   if (now - last < PERIOD_MS) return;
   last = now;
-  
-  seq++; // Увеличиваем номер пакета
+
+  seq++;  // Увеличиваем номер пакета
 
   float t = 25.0f + 5.0f * sin(now / 3000.0f);
   int a = analogRead(A0);
