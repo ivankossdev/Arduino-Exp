@@ -35,3 +35,7 @@ void uartPoll() {
 
   if (len > 0 && (millis() - lastCharTime > IDLE_TIMEOUT)) flush();
 }
+
+unsigned long uartLastActivity() {
+  return lastCharTime;
+}
