@@ -23,7 +23,7 @@
 #define BTN_ACTIVE_LOW  true   // кнопка на GND, резистор на 3.3V
 
 // ---------- Лог ----------
-#define MAX_LINES           8
+#define MAX_LINES           6
 #define LINE_HEIGHT         8
 #define CHAR_WIDTH          6
 #define MAX_CHARS_PER_LINE  (SCREEN_WIDTH / CHAR_WIDTH)

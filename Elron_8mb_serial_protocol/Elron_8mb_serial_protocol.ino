@@ -1,6 +1,6 @@
 #include <Arduino.h>
 
-const unsigned long PERIOD_MS = 1000;
+const unsigned long PERIOD_MS = 250; 
 
 void setup() {
   Serial.begin(9600);

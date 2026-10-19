@@ -1,4 +1,3 @@
-// telemetry.cpp
 #include "telemetry.h"
 #include "config.h"
 #include "display_log.h"
@@ -40,19 +39,21 @@ void telemetryHandle(const char *line) {
   Telemetry t;
 
   if (!telemetryParse(line, t)) {
+    // Ошибки парсинга шлем в обычный лог
     char msg[UART_BUF_LEN + 16];
     snprintf(msg, sizeof(msg), "[ERR] rx: %s", line);
     logLine(msg);
     return;
   }
 
+  // Успешный парсинг -> шлем в статусную строку
   char msg[32];
   if (t.hasTemp && t.hasAdc) {
-    snprintf(msg, sizeof(msg), "[T] %.1fC A0=%d", t.temp, t.adc);
+    snprintf(msg, sizeof(msg), "T:%.1fC  A0:%d", t.temp, t.adc);
   } else if (t.hasTemp) {
-    snprintf(msg, sizeof(msg), "[T] %.1fC", t.temp);
+    snprintf(msg, sizeof(msg), "T:%.1fC", t.temp);
   } else {
-    snprintf(msg, sizeof(msg), "[A] A0=%d", t.adc);
+    snprintf(msg, sizeof(msg), "A0:%d", t.adc);
   }
-  logLine(msg);
+  statusLine(msg);
 }

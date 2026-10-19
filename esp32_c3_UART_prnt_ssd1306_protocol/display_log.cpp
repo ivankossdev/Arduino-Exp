@@ -11,6 +11,9 @@ static char lines[MAX_LINES][MAX_LINE_LEN];
 static int  head  = 0;
 static int  count = 0;
 
+// Статусная строка
+static char statusText[MAX_LINE_LEN] = "";
+
 static void addLine(const char *s) {
   strncpy(lines[head], s, MAX_CHARS_PER_LINE);
   lines[head][MAX_CHARS_PER_LINE] = '\0';
@@ -23,10 +26,19 @@ static void redraw() {
   display.setTextSize(1);
   display.setTextColor(SSD1306_WHITE);
 
+  // 1. Рисуем статус (строка 0)
+  display.setCursor(0, 0);
+  display.print(statusText);
+
+  // 2. Рисуем разделитель (строка 1)
+  display.setCursor(0, LINE_HEIGHT);
+  display.print("--------------------");
+
+  // 3. Рисуем лог (строки 2..7)
   int start = (head - count + MAX_LINES) % MAX_LINES;
   for (int i = 0; i < count; i++) {
     int idx = (start + i) % MAX_LINES;
-    display.setCursor(0, i * LINE_HEIGHT);
+    display.setCursor(0, (i + 2) * LINE_HEIGHT); // +2, чтобы пропустить статус и линию
     display.print(lines[idx]);
   }
   display.display();
@@ -57,8 +69,15 @@ void logLine(const char *s) {
   redraw();
 }
 
+void statusLine(const char *s) {
+  strncpy(statusText, s, MAX_CHARS_PER_LINE);
+  statusText[MAX_CHARS_PER_LINE] = '\0';
+  redraw();
+}
+
 void logClear() {
   head = 0;
   count = 0;
+  statusText[0] = '\0';
   redraw();
 }
