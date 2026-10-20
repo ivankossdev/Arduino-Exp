@@ -3,9 +3,9 @@
 
 class Convertor {
 public:
-  int FromEightToDec(int c);
-  int FromDecToEight(int c);
-  int TenFormat(int c);
-  int OneFormat(int c);
+  int bcdToDec(int c);
+  int decToBcd(int c);
+  int tensDigit(int c);
+  int onesDigit(int c);
 };
 #endif

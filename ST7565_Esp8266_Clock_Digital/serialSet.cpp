@@ -29,7 +29,6 @@ void SerialSet::CmdHandler(String &data) {
   data.getBytes((unsigned char *)cmd, 4);
   String dataCmd(cmd);
   dataCmd.trim();
-  int res = 0;
 
   if (dataCmd.equals("set")) {
     dataCmd = data.substring(3);
@@ -38,7 +37,7 @@ void SerialSet::CmdHandler(String &data) {
     switch (param % 10) {
       case 1: setTime(param); break;
       case 2: setDate(param); break;
-      case 3: setDay(conv.TenFormat(param)); break;
+      case 3: setDay(conv.tensDigit(param)); break;
       default: Serial.println("-1");
     }
   } else if (dataCmd.equals("get")) {
@@ -111,7 +110,7 @@ void SerialSet::setDate(long date) {
 void SerialSet::formatData(long data, int *intData) {
   long temp = data / 10;
   for (int i = 0; i < 3; i++) {
-    insertData[i] = int(temp % 100);
+    intData[i] = int(temp % 100);
     temp = temp / 100;
   }
 }

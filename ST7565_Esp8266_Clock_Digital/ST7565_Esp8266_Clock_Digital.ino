@@ -20,6 +20,9 @@ unsigned long lastRTCPoll     = 0;
 const unsigned long COLON_BLINK_MS = 500;   // период мигания двоеточия
 const unsigned long RTC_POLL_MS    = 100;   // как часто читаем RTC
 
+// DS3231 хранит только 2 цифры года; считаем, что век — 2000-е
+constexpr int YEAR_BASE = 2000;
+
 // Кеш предыдущих значений — чтобы перерисовывать только при изменениях
 int  prevHours   = -1;
 int  prevMinutes = -1;
@@ -152,7 +155,8 @@ void drawSecondaryInfo(int year, int month, int dateday) {
   char date[16] = {'\0'};
 
   sprintf(secondStr, "%02d", seconds);
-  sprintf(date, "20%d.%02d.%02d", year, month, dateday);
+  // YEAR_BASE + year даёт полный 4-значный год ("2025", "2005", ...)
+  sprintf(date, "%04d.%02d.%02d", YEAR_BASE + year, month, dateday);
 
   // Секунды (под основным временем)
   u8g2.setFont(u8g2_font_logisoso16_tf); // 16px высотой
