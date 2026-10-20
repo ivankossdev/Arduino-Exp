@@ -51,10 +51,10 @@ void SystemTime::getTime() {
   }
 }
 
-void SystemTime::SetTime(int *time) {
-  for (int i = 0; i < 3; i++) {
-    WriteToRegister(i, time[i]);
-  }
+void SystemTime::SetTime(int hours, int minutes, int seconds) {
+  WriteToRegister(REG_SEC,  (uint8_t)seconds);
+  WriteToRegister(REG_MIN,  (uint8_t)minutes);
+  WriteToRegister(REG_HOUR, (uint8_t)hours);
 }
 
 void SystemTime::getDate() {

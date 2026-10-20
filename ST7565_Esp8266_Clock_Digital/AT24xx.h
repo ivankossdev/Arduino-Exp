@@ -12,9 +12,13 @@ public:
   byte readByte(unsigned int memAddress);
   void writeArrayByte(unsigned int memAddress, byte *data, int length);
   void readArrayByte(unsigned int memAddress, byte *buffer, int length);
-  byte buffer[64] = {'\0'};
+  // Читает до `length` байт и возвращает указатель на внутренний
+  // нуль-терминированный буфер. Действителен до следующего вызова readString().
+  const char* readString(unsigned int memAddress, int length);
+
 private:
-uint8_t address;
+  uint8_t address;
+  byte    buffer[65] = { '\0' };
 };
 
 #endif /* _AT24XX_H_ */

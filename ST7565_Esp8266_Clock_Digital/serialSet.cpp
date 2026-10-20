@@ -26,7 +26,11 @@ void SerialSet::SetCMD() {
 
 void SerialSet::CmdHandler(String &data) {
   data.trim();
+
+  // Локальный буфер: 3 символа команды + '\0'
+  char cmd[4] = { '\0' };
   data.getBytes((unsigned char *)cmd, 4);
+
   String dataCmd(cmd);
   dataCmd.trim();
 
@@ -52,9 +56,7 @@ void SerialSet::CmdHandler(String &data) {
 
   } else if (dataCmd.equals("mem")) {
     Serial.println("Read memory address 0x00 + 10: ");
-
-    at24.readArrayByte(0x00, at24.buffer, 10);
-    Serial.println((char *)at24.buffer);
+    Serial.println(at24.readString(0x00, 10));
 
   } else {
     Serial.println(data + " - cmd is not found");
@@ -95,18 +97,23 @@ void SerialSet::setDay(int day) {
 }
 
 void SerialSet::setTime(long time) {
-  formatData(time, insertData);
-  systime.SetTime(insertData);
+  int hms[3] = { 0 };
+  formatData(time, hms);
+  // hms[0]=sec, hms[1]=min, hms[2]=hr
+  systime.SetTime(hms[2], hms[1], hms[0]);
 }
 
 void SerialSet::setDate(long date) {
-  formatData(date, insertData);
-  systime.setDate(insertData[0]);
-  systime.setMonth(insertData[1]);
-  systime.SetYear(insertData[2]);
+  int ymd[3] = { 0 };
+  formatData(date, ymd);
+  // ymd[0]=day, ymd[1]=month, ymd[2]=year
+  systime.setDate(ymd[0]);
+  systime.setMonth(ymd[1]);
+  systime.SetYear(ymd[2]);
 }
 
-
+// Раскладывает `data` (без последней цифры-команды) на три двузначных поля
+// [0] = младший байт (sec/day), [1] = средний (min/month), [2] = старший (hr/year)
 void SerialSet::formatData(long data, int *intData) {
   long temp = data / 10;
   for (int i = 0; i < 3; i++) {

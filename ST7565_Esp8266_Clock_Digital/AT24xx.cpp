@@ -48,3 +48,16 @@ void At24::readArrayByte(unsigned int memAddress, byte *buffer, int length) {
     buffer[i] = Wire.read();
   }
 }
+
+const char* At24::readString(unsigned int memAddress, int length) {
+  if (length < 0) length = 0;
+  if (length > (int)sizeof(buffer) - 1) length = (int)sizeof(buffer) - 1;
+
+  // Обнуляем диапазон, чтобы при коротком чтении не было мусора
+  for (int i = 0; i <= length; i++) {
+    buffer[i] = 0;
+  }
+  readArrayByte(memAddress, buffer, length);
+  buffer[length] = '\0';
+  return (const char*)buffer;
+}

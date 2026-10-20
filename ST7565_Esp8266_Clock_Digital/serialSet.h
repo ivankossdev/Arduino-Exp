@@ -13,12 +13,11 @@ public:
 
 private:
   SystemTime& systime;
-  At24& at24;
-  Convertor conv;
+  At24&       at24;
+  Convertor   conv;
   unsigned long speed = 0;
+
   void CmdHandler(String &data);
-  char cmd[8] = {'\0'};
-  int  insertData[3] = {'\0'};
   void setDay(int day);
   void setTime(long time);
   void setDate(long date);
