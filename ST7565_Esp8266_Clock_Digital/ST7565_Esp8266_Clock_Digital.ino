@@ -1,14 +1,11 @@
 #include <Arduino.h>
 #include <Wire.h>
-#include <U8g2lib.h>
-#include <SPI.h>
 #include "ds3231.h"
 #include "serialSet.h"
-
-U8G2_ST7565_ERC12864_F_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/D8, /* dc=*/D4, /* reset=*/ 0);
+#include "display.h"
 
 // Текущее состояние времени
-int hours = 0;
+int hours   = 0;
 int minutes = 0;
 int seconds = 0;
 
@@ -20,9 +17,6 @@ unsigned long lastRTCPoll     = 0;
 const unsigned long COLON_BLINK_MS = 500;   // период мигания двоеточия
 const unsigned long RTC_POLL_MS    = 100;   // как часто читаем RTC
 
-// DS3231 хранит только 2 цифры года; считаем, что век — 2000-е
-constexpr int YEAR_BASE = 2000;
-
 // Кеш последних известных значений — чтобы перерисовывать только при изменениях
 int  prevHours   = -1;
 int  prevMinutes = -1;
@@ -32,17 +26,15 @@ int  prevMonth   = -1;
 int  prevYear    = -1;
 bool needRedraw  = true;
 
-// Инициализация системных часов, EEPROM и обработчика команд
+// Инициализация устройств и обработчика команд
+Display    display;
 SystemTime sysTime(DS3231);
 At24       eeprom(EEPROM_I2C_ADDRESS);
 SerialSet  serialSet(115200, sysTime, eeprom);
 
 void setup() {
   Wire.begin();
-  u8g2.begin();
-  u8g2.setContrast(5);   // Оптимально для ST7565: 5 - 15
-  u8g2.setFontMode(0);   // Режим с заливкой фона
-  u8g2.setFontDirection(0);
+  display.begin();
   serialSet.Init();
 
   // Первое чтение RTC — чтобы на экране сразу были реальные значения
@@ -71,7 +63,9 @@ void loop() {
   // 3. Перерисовываем только при изменениях
   if (needRedraw) {
     needRedraw = false;
-    drawDigitalDisplay();
+    display.draw(hours, minutes, seconds,
+                 prevYear, prevMonth, prevDate,
+                 colonVisible);
   }
 }
 
@@ -99,84 +93,4 @@ void pollRTC() {
     prevYear    = y;
     needRedraw  = true;
   }
-}
-
-void drawDigitalDisplay() {
-  u8g2.firstPage();
-  do {
-    // Очищаем дисплей
-    u8g2.setDrawColor(0);
-    u8g2.drawBox(0, 0, 128, 64);
-    u8g2.setDrawColor(1);
-
-    // 1. ОСНОВНОЕ ВРЕМЯ (14:30)
-    drawMainTime();
-
-    // 2. СЕКУНДЫ И ДАТА (prev* после pollRTC содержат актуальные значения)
-    drawSecondaryInfo(prevYear, prevMonth, prevDate);
-
-    // 3. ДЕКОРАТИВНЫЕ ЭЛЕМЕНТЫ
-    drawDecorations();
-
-  } while (u8g2.nextPage());
-}
-
-void drawMainTime() {
-  char hourStr[3], minuteStr[3];
-
-  // Форматирование с ведущим нулем
-  sprintf(hourStr, "%02d", hours);
-  sprintf(minuteStr, "%02d", minutes);
-
-  u8g2.setFont(u8g2_font_logisoso20_tn);
-
-  // Рассчитываем позиции
-  int colonWidth = 10; // Ширина двоеточия
-  int digitWidth = u8g2.getStrWidth("88"); // Ширина двух цифр
-  int totalWidth = digitWidth * 2 + colonWidth;
-  int startX = (128 - totalWidth) / 2;
-  int yPos = 23; // Отступ сверху
-
-  // Часы
-  u8g2.drawStr(startX, yPos, hourStr);
-
-  // Двоеточие (мигающее)
-  if (colonVisible) {
-    u8g2.setFont(u8g2_font_logisoso20_tn);
-    u8g2.drawStr(startX + digitWidth, yPos, ":");
-  }
-
-  // Минуты
-  u8g2.drawStr(startX + digitWidth + colonWidth, yPos, minuteStr);
-}
-
-void drawSecondaryInfo(int year, int month, int dateday) {
-  char secondStr[3] = {'\0'};
-  char date[16] = {'\0'};
-
-  sprintf(secondStr, "%02d", seconds);
-  // YEAR_BASE + year даёт полный 4-значный год ("2025", "2005", ...)
-  sprintf(date, "%04d.%02d.%02d", YEAR_BASE + year, month, dateday);
-
-  // Секунды (под основным временем)
-  u8g2.setFont(u8g2_font_logisoso16_tf); // 16px высотой
-  int secWidth = u8g2.getStrWidth(secondStr);
-  int secX = (128 - secWidth) / 2;
-  u8g2.drawStr(secX, 40, secondStr);
-
-  // Дата (пример)
-  u8g2.setFont(u8g2_font_7x13B_tf); // 13px высотой
-  u8g2.drawStr(30, 55, date);
-}
-
-void drawDecorations() {
-  // Верхняя разделительная линия
-  u8g2.drawHLine(10, 41, 108);
-
-  // Угловые элементы
-  u8g2.drawFrame(0, 0, 128, 64);
-  u8g2.drawPixel(0, 0);
-  u8g2.drawPixel(127, 0);
-  u8g2.drawPixel(0, 63);
-  u8g2.drawPixel(127, 63);
 }
