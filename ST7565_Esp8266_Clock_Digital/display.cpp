@@ -1,7 +1,6 @@
 #include "display.h"
 
 namespace {
-  // DS3231 хранит только 2 цифры года; считаем, что век — 2000-е
   constexpr int YEAR_BASE = 2000;
 }
 
@@ -11,83 +10,72 @@ Display::Display()
 
 void Display::begin() {
   u8g2.begin();
-  u8g2.setContrast(5);   // Оптимально для ST7565: 5 - 15
-  u8g2.setFontMode(0);   // Режим с заливкой фона
+  u8g2.setContrast(5);
+  u8g2.setFontMode(0);
   u8g2.setFontDirection(0);
 }
 
 void Display::draw(int hours, int minutes, int seconds,
                    int year, int month, int date,
-                   bool colonVisible) {
+                   bool colonVisible,
+                   const char* temperature) {
   u8g2.firstPage();
   do {
-    // Очищаем дисплей
+    // Очистка
     u8g2.setDrawColor(0);
     u8g2.drawBox(0, 0, 128, 64);
     u8g2.setDrawColor(1);
 
-    drawMainTime(hours, minutes, colonVisible);
-    drawSecondaryInfo(seconds, year, month, date);
-    drawDecorations();
+    // Рамка
+    u8g2.drawFrame(0, 0, 128, 64);
+
+    // Разделители строк (чуть внутри рамки)
+    u8g2.drawHLine(2, 21, 124);
+    u8g2.drawHLine(2, 42, 124);
+
+    drawTime(hours, minutes, seconds, colonVisible);
+    drawTemperature(temperature);
+    drawDate(year, month, date);
   } while (u8g2.nextPage());
 }
 
-void Display::drawMainTime(int hours, int minutes, bool colonVisible) {
-  char hourStr[3], minuteStr[3];
+void Display::drawTime(int h, int m, int s, bool colonVisible) {
+  char hh[3], mm[3], ss[3];
+  sprintf(hh, "%02d", h);
+  sprintf(mm, "%02d", m);
+  sprintf(ss, "%02d", s);
 
-  // Форматирование с ведущим нулем
-  sprintf(hourStr, "%02d", hours);
-  sprintf(minuteStr, "%02d", minutes);
+  u8g2.setFont(u8g2_font_logisoso16_tn);
+  int digitW = u8g2.getStrWidth("00");  // ширина двух цифр
+  int colonW = u8g2.getStrWidth(":");
+  int totalW = digitW * 3 + colonW * 2;
+  int x = (128 - totalW) / 2;
+  int y = 19;  // базовая линия в строке y=1..20
 
-  u8g2.setFont(u8g2_font_logisoso20_tn);
-
-  // Рассчитываем позиции
-  int colonWidth = 10;                      // Ширина двоеточия
-  int digitWidth = u8g2.getStrWidth("88");  // Ширина двух цифр
-  int totalWidth = digitWidth * 2 + colonWidth;
-  int startX = (128 - totalWidth) / 2;
-  int yPos = 23;                            // Отступ сверху
-
-  // Часы
-  u8g2.drawStr(startX, yPos, hourStr);
-
-  // Двоеточие (мигающее)
-  if (colonVisible) {
-    u8g2.setFont(u8g2_font_logisoso20_tn);
-    u8g2.drawStr(startX + digitWidth, yPos, ":");
-  }
-
-  // Минуты
-  u8g2.drawStr(startX + digitWidth + colonWidth, yPos, minuteStr);
+  // Позиции жёстко зафиксированы — при скрытии двоеточий текст не "прыгает".
+  u8g2.drawStr(x, y, hh);
+  if (colonVisible) u8g2.drawStr(x + digitW, y, ":");
+  u8g2.drawStr(x + digitW + colonW, y, mm);
+  if (colonVisible) u8g2.drawStr(x + digitW * 2 + colonW, y, ":");
+  u8g2.drawStr(x + digitW * 2 + colonW * 2, y, ss);
 }
 
-void Display::drawSecondaryInfo(int seconds, int year, int month, int date) {
-  char secondStr[3] = { '\0' };
-  char dateStr[16]  = { '\0' };
+void Display::drawTemperature(const char* temp) {
+  // \xB0 — байт 0xB0 (символ ° в Latin-1). Разделённые литералы,
+  // чтобы компилятор не склеил "\xB0C" в один (невалидный) escape.
+  char buf[16];
+  snprintf(buf, sizeof(buf), "%s\xB0" "C", temp);
 
-  sprintf(secondStr, "%02d", seconds);
-  // YEAR_BASE + year даёт полный 4-значный год ("2025", "2005", ...)
-  sprintf(dateStr, "%04d.%02d.%02d", YEAR_BASE + year, month, date);
-
-  // Секунды (под основным временем)
-  u8g2.setFont(u8g2_font_logisoso16_tf);    // 16px высотой
-  int secWidth = u8g2.getStrWidth(secondStr);
-  int secX = (128 - secWidth) / 2;
-  u8g2.drawStr(secX, 40, secondStr);
-
-  // Дата
-  u8g2.setFont(u8g2_font_7x13B_tf);         // 13px высотой
-  u8g2.drawStr(30, 55, dateStr);
+  u8g2.setFont(u8g2_font_7x13B_tf);
+  int w = u8g2.getStrWidth(buf);
+  u8g2.drawStr((128 - w) / 2, 37, buf);
 }
 
-void Display::drawDecorations() {
-  // Верхняя разделительная линия
-  u8g2.drawHLine(10, 41, 108);
+void Display::drawDate(int year, int month, int date) {
+  char buf[16];
+  sprintf(buf, "%04d.%02d.%02d", YEAR_BASE + year, month, date);
 
-  // Угловые элементы
-  u8g2.drawFrame(0, 0, 128, 64);
-  u8g2.drawPixel(0, 0);
-  u8g2.drawPixel(127, 0);
-  u8g2.drawPixel(0, 63);
-  u8g2.drawPixel(127, 63);
+  u8g2.setFont(u8g2_font_7x13B_tf);
+  int w = u8g2.getStrWidth(buf);
+  u8g2.drawStr((128 - w) / 2, 58, buf);
 }

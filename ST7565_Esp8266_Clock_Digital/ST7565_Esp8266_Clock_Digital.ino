@@ -1,32 +1,29 @@
 #include <Arduino.h>
 #include <Wire.h>
+#include <string.h>
 #include "ds3231.h"
 #include "serialSet.h"
 #include "display.h"
 
-// Текущее состояние времени
-int hours   = 0;
-int minutes = 0;
-int seconds = 0;
-
-// Состояние анимации и таймеры
-bool          colonVisible    = true;
+// Таймеры
 unsigned long lastColonToggle = 0;
 unsigned long lastRTCPoll     = 0;
 
-const unsigned long COLON_BLINK_MS = 500;   // период мигания двоеточия
-const unsigned long RTC_POLL_MS    = 100;   // как часто читаем RTC
+const unsigned long COLON_BLINK_MS = 500;
+const unsigned long RTC_POLL_MS    = 100;
 
-// Кеш последних известных значений — чтобы перерисовывать только при изменениях
-int  prevHours   = -1;
-int  prevMinutes = -1;
-int  prevSeconds = -1;
-int  prevDate    = -1;
-int  prevMonth   = -1;
-int  prevYear    = -1;
-bool needRedraw  = true;
+// Кеш последних значений
+int  prevHours    = -1;
+int  prevMinutes  = -1;
+int  prevSeconds  = -1;
+int  prevDate     = -1;
+int  prevMonth    = -1;
+int  prevYear     = -1;
+char prevTemp[8]  = "";
+bool colonVisible = true;
+bool needRedraw   = true;
 
-// Инициализация устройств и обработчика команд
+// Устройства
 Display    display;
 SystemTime sysTime(DS3231);
 At24       eeprom(EEPROM_I2C_ADDRESS);
@@ -37,7 +34,6 @@ void setup() {
   display.begin();
   serialSet.Init();
 
-  // Первое чтение RTC — чтобы на экране сразу были реальные значения
   pollRTC();
   lastRTCPoll     = millis();
   lastColonToggle = millis();
@@ -47,50 +43,58 @@ void loop() {
   unsigned long currentMillis = millis();
   serialSet.SetCMD();
 
-  // 1. Читаем RTC не чаще, чем раз в RTC_POLL_MS
+  // 1. Опрос RTC не чаще RTC_POLL_MS
   if (currentMillis - lastRTCPoll >= RTC_POLL_MS) {
     lastRTCPoll = currentMillis;
     pollRTC();
   }
 
-  // 2. Мигание двоеточия
+  // 2. Мигание двоеточий
   if (currentMillis - lastColonToggle >= COLON_BLINK_MS) {
     lastColonToggle = currentMillis;
     colonVisible = !colonVisible;
     needRedraw = true;
   }
 
-  // 3. Перерисовываем только при изменениях
+  // 3. Перерисовка только при изменениях
   if (needRedraw) {
     needRedraw = false;
-    display.draw(hours, minutes, seconds,
+    display.draw(prevHours, prevMinutes, prevSeconds,
                  prevYear, prevMonth, prevDate,
-                 colonVisible);
+                 colonVisible,
+                 prevTemp);
   }
 }
 
 void pollRTC() {
-  sysTime.getTime();           // одно чтение RTC — кэширует h/m/s
-  int y = sysTime.getYear();   // каждое из трёх — отдельная I2C-транзакция
-  int m = sysTime.getMonth();
-  int d = sysTime.getDate();
+  sysTime.getTime();
+  int h  = sysTime.getHours();
+  int mi = sysTime.getMinutes();
+  int s  = sysTime.getSeconds();
+  int y  = sysTime.getYear();
+  int mo = sysTime.getMonth();
+  int d  = sysTime.getDate();
 
-  hours   = sysTime.getHours();
-  minutes = sysTime.getMinutes();
-  seconds = sysTime.getSeconds();
+  const char* t = sysTime.getTemperature();
 
-  if (hours != prevHours
-      || minutes != prevMinutes
-      || seconds != prevSeconds
-      || d != prevDate
-      || m != prevMonth
-      || y != prevYear) {
-    prevHours   = hours;
-    prevMinutes = minutes;
-    prevSeconds = seconds;
+  bool changed = false;
+
+  if (h != prevHours || mi != prevMinutes || s != prevSeconds
+      || d != prevDate || mo != prevMonth || y != prevYear) {
+    prevHours   = h;
+    prevMinutes = mi;
+    prevSeconds = s;
     prevDate    = d;
-    prevMonth   = m;
+    prevMonth   = mo;
     prevYear    = y;
-    needRedraw  = true;
+    changed = true;
   }
+
+  if (strcmp(t, prevTemp) != 0) {
+    strncpy(prevTemp, t, sizeof(prevTemp) - 1);
+    prevTemp[sizeof(prevTemp) - 1] = '\0';
+    changed = true;
+  }
+
+  if (changed) needRedraw = true;
 }
