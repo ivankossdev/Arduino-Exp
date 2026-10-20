@@ -3,7 +3,6 @@
 
 At24::At24(uint8_t address_){
   this->address = address_;
-  Wire.begin();
 }
 
 void At24::writeByte(unsigned int memAddress, byte data) {

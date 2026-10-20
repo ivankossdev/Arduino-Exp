@@ -3,7 +3,6 @@
 
 SystemTime::SystemTime(uint8_t address_) {
   this->address = address_;
-  Wire.begin();
 }
 
 void SystemTime::WriteToRegister(uint8_t regAddr, uint8_t data) {

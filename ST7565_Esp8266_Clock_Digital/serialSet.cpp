@@ -1,6 +1,7 @@
 #include "serialSet.h"
 
-SerialSet::SerialSet(unsigned long speed_) {
+SerialSet::SerialSet(unsigned long speed_, SystemTime& systime_, At24& at24_)
+  : systime(systime_), at24(at24_) {
   this->speed = speed_;
 }
 
