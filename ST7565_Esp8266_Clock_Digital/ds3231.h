@@ -5,12 +5,6 @@
 
 #define DS3231 0x68
 
-enum class TimeData {
-  sec,
-  min,
-  hr
-};
-
 class SystemTime {
 public:
   SystemTime(uint8_t address_);
@@ -21,7 +15,7 @@ public:
   int Month = 0;
   int Year = 0;
   String Day = "";
-  char Temp[6] = { '0', '0', '.',  '0', '0'};
+  char Temp[7] = { '0', '0', '.', '0', '0', '\0', '\0' };
   void getDate();
   void setDate(uint8_t data);
   void getMonth();

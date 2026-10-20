@@ -17,10 +17,10 @@ void SerialSet::SetCMD() {
 }
 
 /*
-  CMD: 
-    set2359591   (1 - com set time 23:59:59)
-    set2512312.  (2 - com set date 25-12-31)
-    set13 ... 53 (3 - com set 5 day fri)
+  CMD:
+    set2359591   — установить время 23:59:59 (последняя цифра — 1)
+    set2512312   — установить дату 25-12-31  (последняя цифра — 2)
+    set13..set53 — установить день недели: set13=Пн, set53=Пт (последняя цифра — 3)
 */
 
 void SerialSet::CmdHandler(String &data) {
