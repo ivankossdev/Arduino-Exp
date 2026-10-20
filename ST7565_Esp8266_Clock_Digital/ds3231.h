@@ -8,27 +8,34 @@
 class SystemTime {
 public:
   SystemTime(uint8_t address_);
+
+  // Время: getTime() читает RTC один раз, затем getHours/Minutes/Seconds
+  // возвращают значения из кэша — без обращения к шине.
   void getTime();
   void SetTime(int hours, int minutes, int seconds);
-  int timeString[3] = { '\0' };
-  int Date = 0;
-  int Month = 0;
-  int Year = 0;
-  String Day = "";
-  char Temp[7] = { '0', '0', '.', '0', '0', '\0', '\0' };
-  void getDate();
+  int  getHours()   const { return timeString[2]; }
+  int  getMinutes() const { return timeString[1]; }
+  int  getSeconds() const { return timeString[0]; }
+
+  // Дата: каждое чтение — I2C-транзакция.
+  int  getDate();          // день месяца 1..31
   void setDate(uint8_t data);
-  void getMonth();
+  int  getMonth();         // месяц 1..12
   void setMonth(uint8_t data);
-  void getYear();
+  int  getYear();          // год 0..99 (после 2000)
   void SetYear(uint8_t data);
-  void getDay();
+  const char* getDay();    // "Mon".."Sun" или "Err"
   void setDay(uint8_t data);
-  void getTemperature();
+
+  // Температура: указатель на внутренний буфер (действителен до следующего вызова).
+  const char* getTemperature();
 
 private:
   uint8_t address;
   Convertor conv;
+  int  timeString[3] = { 0 };
+  char temp[7]       = { '0', '0', '.', '0', '0', '\0', '\0' };
+
   void WriteToRegister(uint8_t regAddr, uint8_t data);
   void ReadRegister(uint8_t regAddr, uint8_t size, uint8_t *data);
 };

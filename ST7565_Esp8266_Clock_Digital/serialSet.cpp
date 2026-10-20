@@ -66,26 +66,27 @@ void SerialSet::CmdHandler(String &data) {
 void SerialSet::showTime() {
   systime.getTime();
   Serial.print("Time: ");
-  Serial.print(systime.timeString[2]);
+  Serial.print(systime.getHours());
   Serial.print(":");
-  Serial.print(systime.timeString[1]);
+  Serial.print(systime.getMinutes());
   Serial.print(":");
-  Serial.println(systime.timeString[0]);
+  Serial.println(systime.getSeconds());
 }
 
 void SerialSet::showDate() {
-  systime.getDate();
-  systime.getMonth();
-  systime.getYear();
-  systime.getDay();
+  int year  = systime.getYear();
+  int month = systime.getMonth();
+  int date  = systime.getDate();
+  const char* day = systime.getDay();
+
   Serial.print("Date: ");
-  Serial.print(systime.Year);
+  Serial.print(year);
   Serial.print("-");
-  Serial.print(systime.Month);
+  Serial.print(month);
   Serial.print("-");
-  Serial.print(systime.Date);
+  Serial.print(date);
   Serial.print(" ");
-  Serial.println(systime.Day);
+  Serial.println(day);
 }
 
 void SerialSet::setDay(int day) {

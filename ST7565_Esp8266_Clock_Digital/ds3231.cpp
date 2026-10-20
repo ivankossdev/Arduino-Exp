@@ -57,50 +57,49 @@ void SystemTime::SetTime(int hours, int minutes, int seconds) {
   WriteToRegister(REG_HOUR, (uint8_t)hours);
 }
 
-void SystemTime::getDate() {
+int SystemTime::getDate() {
   uint8_t raw = 0;
   ReadRegister(REG_DATE, 1, &raw);
-  Date = conv.bcdToDec(raw & MASK_DATE);
+  return conv.bcdToDec(raw & MASK_DATE);
 }
 
 void SystemTime::setDate(uint8_t data) {
   WriteToRegister(REG_DATE, data & MASK_DATE);
 }
 
-void SystemTime::getMonth() {
+int SystemTime::getMonth() {
   uint8_t raw = 0;
   ReadRegister(REG_MONTH, 1, &raw);
-  Month = conv.bcdToDec(raw & MASK_MONTH);
+  return conv.bcdToDec(raw & MASK_MONTH);
 }
 
 void SystemTime::setMonth(uint8_t data) {
   WriteToRegister(REG_MONTH, data & MASK_MONTH);
 }
 
-void SystemTime::getYear() {
+int SystemTime::getYear() {
   uint8_t raw = 0;
   ReadRegister(REG_YEAR, 1, &raw);
-  Year = conv.bcdToDec(raw);
+  return conv.bcdToDec(raw);
 }
 
 void SystemTime::SetYear(uint8_t data) {
   WriteToRegister(REG_YEAR, data);
 }
 
-void SystemTime::getDay() {
+const char* SystemTime::getDay() {
   uint8_t raw = 0;
   ReadRegister(REG_DAY, 1, &raw);
   int day = conv.bcdToDec(raw & MASK_DAY);
-  Day = "";
   switch (day) {
-    case 1: Day = "Mon"; break;
-    case 2: Day = "Tue"; break;
-    case 3: Day = "Wed"; break;
-    case 4: Day = "Thu"; break;
-    case 5: Day = "Fri"; break;
-    case 6: Day = "Sat"; break;
-    case 7: Day = "Sun"; break;
-    default: Day = "Err"; break;
+    case 1: return "Mon";
+    case 2: return "Tue";
+    case 3: return "Wed";
+    case 4: return "Thu";
+    case 5: return "Fri";
+    case 6: return "Sat";
+    case 7: return "Sun";
+    default: return "Err";
   }
 }
 
@@ -108,7 +107,7 @@ void SystemTime::setDay(uint8_t data) {
   WriteToRegister(REG_DAY, data);
 }
 
-void SystemTime::getTemperature() {
+const char* SystemTime::getTemperature() {
   // Регистр 0x11 — знаковое 8-битное целое (НЕ BCD)
   uint8_t rawInt = 0;
   ReadRegister(REG_TEMP_INT, 1, &rawInt);
@@ -123,11 +122,12 @@ void SystemTime::getTemperature() {
   int absInt = negative ? -intPart : intPart;
 
   int i = 0;
-  if (negative)       Temp[i++] = '-';
-  Temp[i++] = (char)('0' + (absInt / 10));
-  Temp[i++] = (char)('0' + (absInt % 10));
-  Temp[i++] = '.';
-  Temp[i++] = (char)('0' + (frac / 10));
-  Temp[i++] = (char)('0' + (frac % 10));
-  Temp[i]   = '\0';
+  if (negative) temp[i++] = '-';
+  temp[i++] = (char)('0' + (absInt / 10));
+  temp[i++] = (char)('0' + (absInt % 10));
+  temp[i++] = '.';
+  temp[i++] = (char)('0' + (frac / 10));
+  temp[i++] = (char)('0' + (frac % 10));
+  temp[i]   = '\0';
+  return temp;
 }

@@ -23,7 +23,7 @@ const unsigned long RTC_POLL_MS    = 100;   // как часто читаем RT
 // DS3231 хранит только 2 цифры года; считаем, что век — 2000-е
 constexpr int YEAR_BASE = 2000;
 
-// Кеш предыдущих значений — чтобы перерисовывать только при изменениях
+// Кеш последних известных значений — чтобы перерисовывать только при изменениях
 int  prevHours   = -1;
 int  prevMinutes = -1;
 int  prevSeconds = -1;
@@ -76,27 +76,27 @@ void loop() {
 }
 
 void pollRTC() {
-  sysTime.getTime();
-  sysTime.getDate();
-  sysTime.getMonth();
-  sysTime.getYear();
+  sysTime.getTime();           // одно чтение RTC — кэширует h/m/s
+  int y = sysTime.getYear();   // каждое из трёх — отдельная I2C-транзакция
+  int m = sysTime.getMonth();
+  int d = sysTime.getDate();
 
-  hours   = sysTime.timeString[2];
-  minutes = sysTime.timeString[1];
-  seconds = sysTime.timeString[0];
+  hours   = sysTime.getHours();
+  minutes = sysTime.getMinutes();
+  seconds = sysTime.getSeconds();
 
   if (hours != prevHours
       || minutes != prevMinutes
       || seconds != prevSeconds
-      || sysTime.Date  != prevDate
-      || sysTime.Month != prevMonth
-      || sysTime.Year  != prevYear) {
+      || d != prevDate
+      || m != prevMonth
+      || y != prevYear) {
     prevHours   = hours;
     prevMinutes = minutes;
     prevSeconds = seconds;
-    prevDate    = sysTime.Date;
-    prevMonth   = sysTime.Month;
-    prevYear    = sysTime.Year;
+    prevDate    = d;
+    prevMonth   = m;
+    prevYear    = y;
     needRedraw  = true;
   }
 }
@@ -112,8 +112,8 @@ void drawDigitalDisplay() {
     // 1. ОСНОВНОЕ ВРЕМЯ (14:30)
     drawMainTime();
 
-    // 2. СЕКУНДЫ И ДАТА
-    drawSecondaryInfo(sysTime.Year, sysTime.Month, sysTime.Date);
+    // 2. СЕКУНДЫ И ДАТА (prev* после pollRTC содержат актуальные значения)
+    drawSecondaryInfo(prevYear, prevMonth, prevDate);
 
     // 3. ДЕКОРАТИВНЫЕ ЭЛЕМЕНТЫ
     drawDecorations();
