@@ -20,6 +20,7 @@ int  prevDate     = -1;
 int  prevMonth    = -1;
 int  prevYear     = -1;
 char prevTemp[8]  = "";
+char prevDay[4]   = "";
 bool colonVisible = true;
 bool needRedraw   = true;
 
@@ -62,7 +63,8 @@ void loop() {
     display.draw(prevHours, prevMinutes, prevSeconds,
                  prevYear, prevMonth, prevDate,
                  colonVisible,
-                 prevTemp);
+                 prevTemp,
+                 prevDay);
   }
 }
 
@@ -74,8 +76,8 @@ void pollRTC() {
   int y  = sysTime.getYear();
   int mo = sysTime.getMonth();
   int d  = sysTime.getDate();
-
-  const char* t = sysTime.getTemperature();
+  const char* t   = sysTime.getTemperature();
+  const char* day = sysTime.getDay();
 
   bool changed = false;
 
@@ -93,6 +95,12 @@ void pollRTC() {
   if (strcmp(t, prevTemp) != 0) {
     strncpy(prevTemp, t, sizeof(prevTemp) - 1);
     prevTemp[sizeof(prevTemp) - 1] = '\0';
+    changed = true;
+  }
+
+  if (strcmp(day, prevDay) != 0) {
+    strncpy(prevDay, day, sizeof(prevDay) - 1);
+    prevDay[sizeof(prevDay) - 1] = '\0';
     changed = true;
   }
 

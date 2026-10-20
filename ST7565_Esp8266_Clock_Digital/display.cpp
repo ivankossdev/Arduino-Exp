@@ -18,7 +18,8 @@ void Display::begin() {
 void Display::draw(int hours, int minutes, int seconds,
                    int year, int month, int date,
                    bool colonVisible,
-                   const char* temperature) {
+                   const char* temperature,
+                   const char* weekday) {
   u8g2.firstPage();
   do {
     // Очистка
@@ -29,13 +30,13 @@ void Display::draw(int hours, int minutes, int seconds,
     // Рамка
     u8g2.drawFrame(0, 0, 128, 64);
 
-    // Разделители строк (чуть внутри рамки)
+    // Разделители строк
     u8g2.drawHLine(2, 21, 124);
     u8g2.drawHLine(2, 42, 124);
 
     drawTime(hours, minutes, seconds, colonVisible);
     drawTemperature(temperature);
-    drawDate(year, month, date);
+    drawDate(year, month, date, weekday);
   } while (u8g2.nextPage());
 }
 
@@ -46,13 +47,12 @@ void Display::drawTime(int h, int m, int s, bool colonVisible) {
   sprintf(ss, "%02d", s);
 
   u8g2.setFont(u8g2_font_logisoso16_tn);
-  int digitW = u8g2.getStrWidth("00");  // ширина двух цифр
+  int digitW = u8g2.getStrWidth("00");
   int colonW = u8g2.getStrWidth(":");
   int totalW = digitW * 3 + colonW * 2;
   int x = (128 - totalW) / 2;
-  int y = 19;  // базовая линия в строке y=1..20
+  int y = 19;  // baseline в строке y=1..20
 
-  // Позиции жёстко зафиксированы — при скрытии двоеточий текст не "прыгает".
   u8g2.drawStr(x, y, hh);
   if (colonVisible) u8g2.drawStr(x + digitW, y, ":");
   u8g2.drawStr(x + digitW + colonW, y, mm);
@@ -61,8 +61,6 @@ void Display::drawTime(int h, int m, int s, bool colonVisible) {
 }
 
 void Display::drawTemperature(const char* temp) {
-  // \xB0 — байт 0xB0 (символ ° в Latin-1). Разделённые литералы,
-  // чтобы компилятор не склеил "\xB0C" в один (невалидный) escape.
   char buf[16];
   snprintf(buf, sizeof(buf), "%s\xB0" "C", temp);
 
@@ -71,9 +69,11 @@ void Display::drawTemperature(const char* temp) {
   u8g2.drawStr((128 - w) / 2, 37, buf);
 }
 
-void Display::drawDate(int year, int month, int date) {
-  char buf[16];
-  sprintf(buf, "%04d.%02d.%02d", YEAR_BASE + year, month, date);
+void Display::drawDate(int year, int month, int date, const char* weekday) {
+  char buf[24];
+  // "YYYY.MM.DD  Mon" — дата и день недели через два пробела
+  snprintf(buf, sizeof(buf), "%04d.%02d.%02d  %s",
+           YEAR_BASE + year, month, date, weekday);
 
   u8g2.setFont(u8g2_font_7x13B_tf);
   int w = u8g2.getStrWidth(buf);

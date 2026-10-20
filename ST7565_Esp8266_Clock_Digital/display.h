@@ -13,18 +13,20 @@ public:
 
   // Полная перерисовка. year — 0..99 (после 2000, как хранит DS3231);
   // temperature — строка вида "25.00" или "-5.25";
+  // weekday — строка вида "Mon".."Sun";
   // colonVisible — рисовать ли оба двоеточия в текущем кадре.
   void draw(int hours, int minutes, int seconds,
             int year, int month, int date,
             bool colonVisible,
-            const char* temperature);
+            const char* temperature,
+            const char* weekday);
 
 private:
   U8G2_ST7565_ERC12864_F_4W_HW_SPI u8g2;
 
   void drawTime(int h, int m, int s, bool colonVisible);
   void drawTemperature(const char* temp);
-  void drawDate(int year, int month, int date);
+  void drawDate(int year, int month, int date, const char* weekday);
 };
 
 #endif
