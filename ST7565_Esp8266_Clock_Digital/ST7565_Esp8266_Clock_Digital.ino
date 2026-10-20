@@ -7,13 +7,27 @@
 
 U8G2_ST7565_ERC12864_F_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/D8, /* dc=*/D4, /* reset=*/ 0);
 
-// Переменные времени
+// Текущее состояние времени
 int hours = 0;
 int minutes = 0;
 int seconds = 0;
 
-bool colonVisible = true;
-unsigned long lastUpdate = 0;
+// Состояние анимации и таймеры
+bool          colonVisible    = true;
+unsigned long lastColonToggle = 0;
+unsigned long lastRTCPoll     = 0;
+
+const unsigned long COLON_BLINK_MS = 500;   // период мигания двоеточия
+const unsigned long RTC_POLL_MS    = 100;   // как часто читаем RTC
+
+// Кеш предыдущих значений — чтобы перерисовывать только при изменениях
+int  prevHours   = -1;
+int  prevMinutes = -1;
+int  prevSeconds = -1;
+int  prevDate    = -1;
+int  prevMonth   = -1;
+int  prevYear    = -1;
+bool needRedraw  = true;
 
 // Инициализация системных часов, EEPROM и обработчика команд
 SystemTime sysTime(DS3231);
@@ -21,33 +35,66 @@ At24       eeprom(EEPROM_I2C_ADDRESS);
 SerialSet  serialSet(115200, sysTime, eeprom);
 
 void setup() {
-  Wire.begin();          // один I2C-инициализатор на весь проект
+  Wire.begin();
   u8g2.begin();
   u8g2.setContrast(5);   // Оптимально для ST7565: 5 - 15
   u8g2.setFontMode(0);   // Режим с заливкой фона
   u8g2.setFontDirection(0);
   serialSet.Init();
+
+  // Первое чтение RTC — чтобы на экране сразу были реальные значения
+  pollRTC();
+  lastRTCPoll     = millis();
+  lastColonToggle = millis();
 }
 
 void loop() {
   unsigned long currentMillis = millis();
   serialSet.SetCMD();
+
+  // 1. Читаем RTC не чаще, чем раз в RTC_POLL_MS
+  if (currentMillis - lastRTCPoll >= RTC_POLL_MS) {
+    lastRTCPoll = currentMillis;
+    pollRTC();
+  }
+
+  // 2. Мигание двоеточия
+  if (currentMillis - lastColonToggle >= COLON_BLINK_MS) {
+    lastColonToggle = currentMillis;
+    colonVisible = !colonVisible;
+    needRedraw = true;
+  }
+
+  // 3. Перерисовываем только при изменениях
+  if (needRedraw) {
+    needRedraw = false;
+    drawDigitalDisplay();
+  }
+}
+
+void pollRTC() {
   sysTime.getTime();
-
-  hours = sysTime.timeString[2];
-  minutes = sysTime.timeString[1];
-  seconds = sysTime.timeString[0];
-
   sysTime.getDate();
   sysTime.getMonth();
   sysTime.getYear();
 
-  drawDigitalDisplay();
+  hours   = sysTime.timeString[2];
+  minutes = sysTime.timeString[1];
+  seconds = sysTime.timeString[0];
 
-  // Мигающие точки
-  if (currentMillis - lastUpdate >= 500) {
-    lastUpdate = currentMillis;
-    colonVisible = !colonVisible;
+  if (hours != prevHours
+      || minutes != prevMinutes
+      || seconds != prevSeconds
+      || sysTime.Date  != prevDate
+      || sysTime.Month != prevMonth
+      || sysTime.Year  != prevYear) {
+    prevHours   = hours;
+    prevMinutes = minutes;
+    prevSeconds = seconds;
+    prevDate    = sysTime.Date;
+    prevMonth   = sysTime.Month;
+    prevYear    = sysTime.Year;
+    needRedraw  = true;
   }
 }
 
