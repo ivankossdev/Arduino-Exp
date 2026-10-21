@@ -65,3 +65,20 @@ float MIK32Temp::readAveraged(uint8_t samples) {
 
     return ok > 0 ? (sum / ok) : NAN;
 }
+
+void MIK32Temp::startRead() {
+    if (!_initialized) return;
+    __HAL_TSENS_SINGLE_START(&s_htsens);
+}
+
+bool MIK32Temp::isReady() {
+    if (!_initialized) return false;
+    return __HAL_TSENS_GET_EOC(&s_htsens);
+}
+
+float MIK32Temp::getResult() {
+    if (!_initialized) return NAN;
+    uint32_t raw = __HAL_TSENS_READ_MEASUREMENT(&s_htsens);
+    int32_t  centi = TSENS_VALUE_TO_CELSIUS(raw);
+    return centi / 100.0f + _offset;
+}

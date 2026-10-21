@@ -20,32 +20,51 @@
  */
 class MIK32Temp {
 public:
-    MIK32Temp() = default;
+  MIK32Temp() = default;
 
-    /** Инициализация TSENS. Возвращает false при ошибке. */
-    bool begin();
+  /** Инициализация TSENS. Возвращает false при ошибке. */
+  bool begin();
 
-    /** Одиночное измерение. Возвращает °C или NAN при таймауте. */
-    float read();
+  /** Одиночное измерение. Возвращает °C или NAN при таймауте. */
+  float read();
 
-    /** Усреднённое измерение. Возвращает °C или NAN, если ни одно не удалось. */
-    float readAveraged(uint8_t samples = 4);
+  /** Запустить измерение в фоне (не блокирует) */
+  void startRead();
 
-    /** Готов ли датчик к работе (был ли успешный begin). */
-    bool isReady() const { return _initialized; }
+  /** Проверить, готов ли результат */
+  bool isReady();
 
-    /** Калибровочная поправка, добавляемая к каждому измерению, °C. */
-    void  setOffset(float offset) { _offset = offset; }
-    float getOffset() const       { return _offset; }
+  /** Забрать результат (вызывать только если isReady() вернул true) */
+  float getResult();
 
-    /** Таймаут одного измерения, мс (по умолчанию 500). */
-    void     setTimeout(uint32_t ms) { _timeoutMs = ms; }
-    uint32_t getTimeout() const      { return _timeoutMs; }
+  /** Усреднённое измерение. Возвращает °C или NAN, если ни одно не удалось. */
+  float readAveraged(uint8_t samples = 4);
+
+  /** Готов ли датчик к работе (был ли успешный begin). */
+  bool isReady() const {
+    return _initialized;
+  }
+
+  /** Калибровочная поправка, добавляемая к каждому измерению, °C. */
+  void setOffset(float offset) {
+    _offset = offset;
+  }
+  float getOffset() const {
+    return _offset;
+  }
+
+  /** Таймаут одного измерения, мс (по умолчанию 500). */
+  void setTimeout(uint32_t ms) {
+    _timeoutMs = ms;
+  }
+  uint32_t getTimeout() const {
+    return _timeoutMs;
+  }
 
 private:
-    bool     _initialized = false;
-    float    _offset      = 0.0f;
-    uint32_t _timeoutMs   = 500;
+  bool _initialized = false;
+  float _offset = 0.0f;
+  uint32_t _timeoutMs = 500;
 };
 
-#endif // MIK32_TEMP_H
+#endif  // MIK32_TEMP_H
