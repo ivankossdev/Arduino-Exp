@@ -10,16 +10,25 @@ char rxBuf[32];
 int rxIdx = 0;
 unsigned long lastRxTime = 0;
 
-// Подсчет XOR для CRC
-uint8_t calcCS(const char *str, int len) {
-  uint8_t cs = 0;
-  for (int i = 0; i < len; i++) cs ^= (uint8_t)str[i];
-  return cs;
+// Заменяем старую функцию calcCS на эту:
+uint8_t calcCRC8(const char *str, int len) {
+  uint8_t crc = 0;
+  for (int i = 0; i < len; i++) {
+    crc ^= (uint8_t)str[i];
+    for (int j = 0; j < 8; j++) {
+      if (crc & 0x80) {
+        crc = (crc << 1) ^ 0x07;
+      } else {
+        crc <<= 1;
+      }
+    }
+  }
+  return crc;
 }
 
 // Отправка пакета с CRC
 void sendPacket(const char *payload) {
-  uint8_t cs = calcCS(payload, strlen(payload));
+  uint8_t cs = calcCRC8(payload, strlen(payload));
   Serial.print(payload);
   Serial.print('*');
   if (cs < 16) Serial.print('0');
@@ -55,7 +64,7 @@ void loop() {
         int payloadLen = star - rxBuf;
         long expected = strtol(star + 1, NULL, 16);
         
-        if (calcCS(rxBuf, payloadLen) == (uint8_t)expected) {
+        if (calcCRC8(rxBuf, payloadLen) == (uint8_t)expected) {
           char clean[32];
           strncpy(clean, rxBuf, payloadLen);
           clean[payloadLen] = '\0';

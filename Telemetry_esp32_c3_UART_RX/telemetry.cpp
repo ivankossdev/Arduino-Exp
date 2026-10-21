@@ -5,10 +5,17 @@
 #include <string.h>
 #include <stdlib.h>
 
-static uint8_t calculateChecksum(const char *str, int len) {
-  uint8_t cs = 0;
-  for (int i = 0; i < len; i++) cs ^= (uint8_t)str[i];
-  return cs;
+// В самом начале telemetry.cpp замени функцию:
+static uint8_t calculateCRC8(const char *str, int len) {
+  uint8_t crc = 0;
+  for (int i = 0; i < len; i++) {
+    crc ^= (uint8_t)str[i];
+    for (int j = 0; j < 8; j++) {
+      if (crc & 0x80) crc = (crc << 1) ^ 0x07;
+      else crc <<= 1;
+    }
+  }
+  return crc;
 }
 
 bool telemetryParse(const char *line, Telemetry &out) {
@@ -27,7 +34,7 @@ bool telemetryParse(const char *line, Telemetry &out) {
   long expectedCs = strtol(star + 1, &end, 16);
   if (end == star + 1) return false; // Не смогли прочитать HEX
 
-  if (calculateChecksum(line, payloadLen) != (uint8_t)expectedCs) {
+  if (calculateCRC8(line, payloadLen) != (uint8_t)expectedCs) {
     return false; // CRC не сошлось — данные побились
   }
 
