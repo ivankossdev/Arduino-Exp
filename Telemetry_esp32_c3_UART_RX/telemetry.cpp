@@ -117,13 +117,10 @@ void telemetryHandle(const char *line) {
   // 6. Обновление статуса (только если это реально телеметрия)
   char msg[32];
   if (t.hasTemp && t.hasAdc) {
-    snprintf(msg, sizeof(msg), "T:%.1fC  A0:%d", t.temp, t.adc);
+    snprintf(msg, sizeof(msg), "T:%.2fC  A0:%d", t.temp, t.adc); // было %.1f
     statusLine(msg);
   } else if (t.hasTemp) {
-    snprintf(msg, sizeof(msg), "T:%.1fC", t.temp);
-    statusLine(msg);
-  } else if (t.hasAdc) {
-    snprintf(msg, sizeof(msg), "A0:%d", t.adc);
+    snprintf(msg, sizeof(msg), "T:%.2fC", t.temp); // было %.1f
     statusLine(msg);
   }
 }
