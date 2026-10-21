@@ -7,7 +7,6 @@
 #include "heartbeat.h"
 #include "telemetry.h"
 
-
 static void onUartLine(const char *line) {
   telemetryHandle(line);
 }
@@ -25,16 +24,17 @@ void setup() {
 void loop() {
   switch (buttonsPoll()) {
     case BTN1_PRESSED:
-      uartSendLine(CMD_BTN1);
+      uartSendReliable(CMD_BTN1); // Изменено
       break;
     case BTN2_PRESSED:
-      uartSendLine("stat");
+      uartSendReliable("stat");   // Изменено
       break;
     default:
       break;
   }
 
   uartPoll();
+  uartRetryPoll(); // Добавлено: обработка повторов
   uartWatchdogPoll();
   heartbeatPoll();
 }

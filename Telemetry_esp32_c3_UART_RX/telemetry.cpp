@@ -2,10 +2,10 @@
 #include "config.h"
 #include "display_log.h"
 #include "uart_watchdog.h"
+#include "uart_sender.h" // Важно для uartClearRetry
 #include <string.h>
 #include <stdlib.h>
 
-// В самом начале telemetry.cpp замени функцию:
 static uint8_t calculateCRC8(const char *str, int len) {
   uint8_t crc = 0;
   for (int i = 0; i < len; i++) {
@@ -27,19 +27,17 @@ bool telemetryParse(const char *line, Telemetry &out) {
   out.seq     = 0;
 
   const char *star = strrchr(line, '*');
-  if (!star) return false; // Нет контрольной суммы — брак
+  if (!star) return false;
 
   int payloadLen = star - line;
   char *end;
   long expectedCs = strtol(star + 1, &end, 16);
-  if (end == star + 1) return false; // Не смогли прочитать HEX
+  if (end == star + 1) return false;
 
   if (calculateCRC8(line, payloadLen) != (uint8_t)expectedCs) {
-    return false; // CRC не сошлось — данные побились
+    return false;
   }
 
-  // --- ЕСЛИ ДОШЛИ ДО СЮДА, ПАКЕТ ЦЕЛЫЙ ---
-  
   char cleanLine[UART_BUF_LEN];
   strncpy(cleanLine, line, payloadLen);
   cleanLine[payloadLen] = '\0';
@@ -64,22 +62,20 @@ bool telemetryParse(const char *line, Telemetry &out) {
     if (e != p + 2) { out.adc = (int)v; out.hasAdc = true; }
   }
 
-  // ВАЖНО: Возвращаем true, так как CRC сошлась (даже если это просто ACK)
   return true; 
 }
 
 void telemetryHandle(const char *line) {
-  // 1. Проверяем CRC
   Telemetry t;
   if (!telemetryParse(line, t)) {
     logLine("[ERR] bad frame");
     return;
   }
 
-  // 2. Пакет валидный! Кормим watchdog
+  // Пакет валидный! Кормим watchdog
   uartWatchdogFeed();
 
-  // 3. Обработка ответов (ACK)
+  // 1. Обработка ответов (ACK)
   if (strncmp(line, "ACK:", 4) == 0) {
     char clean[32];
     const char *st = strrchr(line, '*');
@@ -90,10 +86,12 @@ void telemetryHandle(const char *line) {
     char msg[64];
     snprintf(msg, sizeof(msg), "[RX] %s", clean);
     logLine(msg);
-    return; // Выходим, чтобы не обновлять телеметрию
+    
+    uartClearRetry("show"); // Останавливаем повторы
+    return; 
   }
 
-  // 4. Обработка статуса (STAT)
+  // 2. Обработка статуса (STAT)
   if (strncmp(line, "STAT:", 5) == 0) {
     char msg[64];
     const char *st = strrchr(line, '*');
@@ -102,10 +100,12 @@ void telemetryHandle(const char *line) {
     msg[l] = '\0';
     
     logLine(msg);
-    return; // Выходим, чтобы не обновлять телеметрию
+    
+    uartClearRetry("stat"); // Останавливаем повторы
+    return; 
   }
 
-  // 5. Проверка пропущенных пакетов (Sequence)
+  // 3. Проверка пропущенных пакетов (Sequence)
   static unsigned int lastSeq = 0;
   static bool firstSeq = true;
 
@@ -121,13 +121,16 @@ void telemetryHandle(const char *line) {
     firstSeq = false;
   }
 
-  // 6. Обновление статуса (только если это реально телеметрия)
+  // 4. Обновление статуса
   char msg[32];
   if (t.hasTemp && t.hasAdc) {
-    snprintf(msg, sizeof(msg), "T:%.2fC  A0:%d", t.temp, t.adc); // было %.1f
+    snprintf(msg, sizeof(msg), "T:%.2fC  A0:%d", t.temp, t.adc);
     statusLine(msg);
   } else if (t.hasTemp) {
-    snprintf(msg, sizeof(msg), "T:%.2fC", t.temp); // было %.1f
+    snprintf(msg, sizeof(msg), "T:%.2fC", t.temp);
+    statusLine(msg);
+  } else if (t.hasAdc) {
+    snprintf(msg, sizeof(msg), "A0:%d", t.adc);
     statusLine(msg);
   }
 }
