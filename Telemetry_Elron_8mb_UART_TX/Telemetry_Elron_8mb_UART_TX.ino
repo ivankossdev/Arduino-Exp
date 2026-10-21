@@ -36,6 +36,30 @@ void sendPacket(const char *payload) {
   Serial.print('\n');
 }
 
+// Медианный фильтр для АЦП (5 замеров)
+int readFilteredADC(uint8_t pin) {
+  int samples[5];
+  // Делаем 5 быстрых замеров
+  for (int i = 0; i < 5; i++) {
+    samples[i] = analogRead(pin);
+    delayMicroseconds(100);  // Микро-пауза для стабильности АЦП
+  }
+
+  // Сортируем массив методом пузырька (для 5 элементов это мгновенно)
+  for (int i = 0; i < 4; i++) {
+    for (int j = i + 1; j < 5; j++) {
+      if (samples[i] > samples[j]) {
+        int temp = samples[i];
+        samples[i] = samples[j];
+        samples[j] = temp;
+      }
+    }
+  }
+
+  // Возвращаем медиану (центральный элемент)
+  return samples[2];
+}
+
 // Переменные для неблокирующего измерения
 unsigned long lastSend = 0;
 bool isMeasuring = false;
@@ -43,11 +67,11 @@ unsigned long measureStart = 0;
 
 void setup() {
   Serial.begin(9600);
-  
+
   if (!chipTemp.begin()) {
     Serial.println("ERR:TSENS_init\n");
   }
-  
+
   pinMode(LED_BUILTIN, OUTPUT);
 }
 
@@ -58,22 +82,21 @@ void loop() {
     lastRxTime = millis();
     if (c == '\n') {
       rxBuf[rxIdx] = '\0';
-      
+
       char *star = strrchr(rxBuf, '*');
       if (star) {
         int payloadLen = star - rxBuf;
         long expected = strtol(star + 1, NULL, 16);
-        
+
         if (calcCRC8(rxBuf, payloadLen) == (uint8_t)expected) {
           char clean[32];
           strncpy(clean, rxBuf, payloadLen);
           clean[payloadLen] = '\0';
-          
+
           if (strcmp(clean, "show") == 0) {
             digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
             sendPacket("ACK:show");
-          } 
-          else if (strcmp(clean, "stat") == 0) {
+          } else if (strcmp(clean, "stat") == 0) {
             char statPayload[32];
             unsigned long up_s = millis() / 1000UL;
             snprintf(statPayload, sizeof(statPayload), "STAT:up=%lus", up_s);
@@ -86,7 +109,7 @@ void loop() {
       if (rxIdx < sizeof(rxBuf) - 1) rxBuf[rxIdx++] = c;
     }
   }
-  
+
   if (rxIdx > 0 && millis() - lastRxTime > 100) rxIdx = 0;
 
   // --- 2. Неблокирующее чтение датчика и отправка ---
@@ -95,7 +118,7 @@ void loop() {
   // Если пора отправлять и мы не ждем датчик — запускаем замер
   if (!isMeasuring && (now - lastSend >= PERIOD_MS)) {
     lastSend = now;
-    chipTemp.startRead(); // Запустили в фоне
+    chipTemp.startRead();  // Запустили в фоне
     isMeasuring = true;
     measureStart = now;
   }
@@ -105,16 +128,16 @@ void loop() {
     // Датчик готов ИЛИ прошло 500 мс (защита от зависания)
     if (chipTemp.isReady() || (now - measureStart > 500)) {
       float t = chipTemp.getResult();
-      if (isnan(t)) t = 0.0f; 
-      
-      int a = analogRead(A0); // Читаем АЦП
+      if (isnan(t)) t = 0.0f;
+
+      int a = readFilteredADC(A0);  // Читаем АЦП с фильтрацией
 
       seq++;
       char payload[64];
       snprintf(payload, sizeof(payload), "S=%u;T=%.2f;A=%d", seq, t, a);
       sendPacket(payload);
-      
-      isMeasuring = false; // Сбрасываем флаг, ждем следующей секунды
+
+      isMeasuring = false;  // Сбрасываем флаг, ждем следующей секунды
     }
   }
 }
