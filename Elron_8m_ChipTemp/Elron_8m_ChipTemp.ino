@@ -1,59 +1,40 @@
-#include <Arduino.h>
+#include "MIK32Temp.h"
 
-extern "C" {
-#include "mik32_hal_tsens.h"
-#include "analog_reg.h"
-}
-
-TSENS_HandleTypeDef htsens;
-
-bool tsensInit() {
-  htsens.Instance  = ANALOG_REG;
-  htsens.Clock     = HAL_TSENS_SYS_CLK;
-  htsens.Frequency = TSENS_OPTIMAL_FREQUENCY;
-
-  if (HAL_TSENS_Init(&htsens) != HAL_OK) {
-    return false;
-  }
-  delay(50); // стабилизация после включения
-  return true;
-}
-
-// Возвращает температуру в °C или NAN при ошибке
-float tsensRead() {
-  __HAL_TSENS_SINGLE_START(&htsens);
-
-  uint32_t start = millis();
-  while (!__HAL_TSENS_GET_EOC(&htsens)) {
-    if (millis() - start > 500) {
-      return NAN; // таймаут
-    }
-  }
-
-  uint32_t raw = __HAL_TSENS_READ_MEASUREMENT(&htsens);
-  int32_t  centi = TSENS_VALUE_TO_CELSIUS(raw);
-  return centi / 100.0f;
-}
+MIK32Temp chipTemp;
 
 void setup() {
-  Serial.begin(115200);
-  while (!Serial);
+    Serial.begin(115200);
+    while (!Serial);
 
-  if (!tsensInit()) {
-    Serial.println("TSENS init failed");
-    while (1);
-  }
-  Serial.println("TSENS ready");
+    if (!chipTemp.begin()) {
+        Serial.println("TSENS init failed");
+        while (1);
+    }
+
+    // При желании — разовая калибровка:
+    // chipTemp.setOffset(-1.2f);  // если знаете, что датчик завышает на 1.2 °C
+
+    Serial.println("MIK32Temp ready");
 }
 
 void loop() {
-  float t = tsensRead();
-  if (isnan(t)) {
-    Serial.println("TSENS read error");
-  } else {
-    Serial.print("Chip temp: ");
-    Serial.print(t, 2);
-    Serial.println(" °C");
-  }
-  delay(1000);
+    // Одиночное чтение
+    float t = chipTemp.read();
+    if (isnan(t)) {
+        Serial.println("read error");
+    } else {
+        Serial.print("Temp: ");
+        Serial.print(t, 2);
+        Serial.println(" °C");
+    }
+
+    // Или усреднённое (4 измерения × ~100 мс ≈ 400 мс)
+    float avg = chipTemp.readAveraged(4);
+    if (!isnan(avg)) {
+        Serial.print("Avg : ");
+        Serial.print(avg, 2);
+        Serial.println(" °C");
+    }
+
+    delay(2000);
 }
