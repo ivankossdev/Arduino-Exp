@@ -19,7 +19,8 @@ void Display::draw(int hours, int minutes, int seconds,
                    int year, int month, int date,
                    bool colonVisible,
                    const char* temperature,
-                   const char* weekday) {
+                   const char* weekday,
+                   RtcStatus rtcStatus) {
   u8g2.firstPage();
   do {
     // Очистка
@@ -27,16 +28,26 @@ void Display::draw(int hours, int minutes, int seconds,
     u8g2.drawBox(0, 0, 128, 64);
     u8g2.setDrawColor(1);
 
-    // Рамка
+    // Рамка и разделители
     u8g2.drawFrame(0, 0, 128, 64);
-
-    // Разделители строк
     u8g2.drawHLine(2, 21, 124);
     u8g2.drawHLine(2, 42, 124);
 
-    drawTime(hours, minutes, seconds, colonVisible);
-    drawTemperature(temperature);
-    drawDate(year, month, date, weekday);
+    switch (rtcStatus) {
+      case RtcStatus::Ok:
+        drawTime(hours, minutes, seconds, colonVisible);
+        drawTemperature(temperature);
+        drawDate(year, month, date, weekday);
+        break;
+
+      case RtcStatus::NoComm:
+        drawRtcNoComm();
+        break;
+
+      case RtcStatus::InvalidTime:
+        drawRtcInvalidTime(temperature);
+        break;
+    }
   } while (u8g2.nextPage());
 }
 
@@ -51,7 +62,7 @@ void Display::drawTime(int h, int m, int s, bool colonVisible) {
   int colonW = u8g2.getStrWidth(":");
   int totalW = digitW * 3 + colonW * 2;
   int x = (128 - totalW) / 2;
-  int y = 19;  // baseline в строке y=1..20
+  int y = 19;
 
   u8g2.drawStr(x, y, hh);
   if (colonVisible) u8g2.drawStr(x + digitW, y, ":");
@@ -71,11 +82,36 @@ void Display::drawTemperature(const char* temp) {
 
 void Display::drawDate(int year, int month, int date, const char* weekday) {
   char buf[24];
-  // "YYYY.MM.DD  Mon" — дата и день недели через два пробела
   snprintf(buf, sizeof(buf), "%04d.%02d.%02d  %s",
            YEAR_BASE + year, month, date, weekday);
 
   u8g2.setFont(u8g2_font_7x13B_tf);
   int w = u8g2.getStrWidth(buf);
   u8g2.drawStr((128 - w) / 2, 58, buf);
+}
+
+void Display::drawRtcNoComm() {
+  // Связи нет — показываем крупную ошибку по центру
+  u8g2.setFont(u8g2_font_7x13B_tf);
+  const char* msg = "RTC ERR";
+  int w = u8g2.getStrWidth(msg);
+  u8g2.drawStr((128 - w) / 2, 35, msg);
+}
+
+void Display::drawRtcInvalidTime(const char* temperature) {
+  // Связь есть, но время не установлено (OSF стоял).
+  // Верхняя строка: "--:--:--"
+  u8g2.setFont(u8g2_font_logisoso16_tn);
+  const char* placeholder = "--:--:--";
+  int w = u8g2.getStrWidth(placeholder);
+  u8g2.drawStr((128 - w) / 2, 19, placeholder);
+
+  // Температура валидна (связь есть)
+  drawTemperature(temperature);
+
+  // Нижняя строка: прочерки вместо даты
+  u8g2.setFont(u8g2_font_7x13B_tf);
+  const char* datePlaceholder = "----.--.--";
+  w = u8g2.getStrWidth(datePlaceholder);
+  u8g2.drawStr((128 - w) / 2, 58, datePlaceholder);
 }

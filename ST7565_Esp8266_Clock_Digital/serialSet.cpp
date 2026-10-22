@@ -11,7 +11,6 @@ namespace {
     "get date            - show current date + weekday\n"
     "================\n";
 
-  // 2000-2099: високосный = (year % 4 == 0). 2100 в диапазон не входит.
   int daysInMonth(int month, int year99) {
     static const int days[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
     if (month < 1 || month > 12) return 0;
@@ -77,7 +76,10 @@ void SerialSet::CmdHandler(String &data) {
 }
 
 void SerialSet::showTime() {
-  systime.getTime();
+  if (!systime.getTime()) {
+    Serial.println("Error: RTC not responding");
+    return;
+  }
   Serial.print("Time: ");
   Serial.print(systime.getHours());
   Serial.print(":");
@@ -87,6 +89,10 @@ void SerialSet::showTime() {
 }
 
 void SerialSet::showDate() {
+  if (!systime.getTime()) {
+    Serial.println("Error: RTC not responding");
+    return;
+  }
   int year  = systime.getYear();
   int month = systime.getMonth();
   int date  = systime.getDate();
@@ -124,7 +130,10 @@ void SerialSet::setTime(long time) {
     return;
   }
 
-  systime.SetTime(hr, min, sec);
+  if (!systime.SetTime(hr, min, sec)) {
+    Serial.println("Error: I2C write failed (RTC not responding)");
+    return;
+  }
   Serial.print("Time set to ");
   Serial.print(hr);  Serial.print(":");
   Serial.print(min); Serial.print(":");

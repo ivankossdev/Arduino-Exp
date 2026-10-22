@@ -8,8 +8,11 @@
 // ===== Timers =====
 unsigned long lastColonToggle = 0;
 unsigned long lastRTCPoll     = 0;
+unsigned long lastOsfCheck    = 0;
+
 const unsigned long COLON_BLINK_MS = 500;
 const unsigned long RTC_POLL_MS    = 100;
+const unsigned long OSF_CHECK_MS   = 1000;
 
 // ===== Cached display state =====
 int  prevHours    = -1;
@@ -23,6 +26,8 @@ char prevDay[8]   = "";
 bool colonVisible = true;
 bool needRedraw   = true;
 
+RtcStatus rtcStatus = RtcStatus::Ok;
+
 // ===== Devices =====
 Display    display;
 SystemTime sysTime(DS3231);
@@ -33,44 +38,82 @@ void setup() {
   display.begin();
   serialSet.Init();
 
+  // Проверка RTC: связь + OSF-флаг
+  if (!sysTime.initCheck()) {
+    rtcStatus = RtcStatus::NoComm;
+  } else if (!sysTime.isTimeValid()) {
+    rtcStatus = RtcStatus::InvalidTime;
+  } else {
+    rtcStatus = RtcStatus::Ok;
+  }
+
   pollRTC();
   lastRTCPoll     = millis();
   lastColonToggle = millis();
+  lastOsfCheck    = millis();
 
-  // Включаем hardware watchdog: 8-секундный таймаут.
-  // Если loop() где-то зависнет (например, I2C-шина), плата перезагрузится.
+  // Hardware watchdog: 8-секундный таймаут
   ESP.wdtEnable(WDTO_8S);
 }
 
 void loop() {
-  ESP.wdtFeed();  // сбрасываем 8-секундный счётчик
+  ESP.wdtFeed();
 
   unsigned long currentMillis = millis();
   serialSet.SetCMD();
 
+  // 1. Опрос RTC не чаще RTC_POLL_MS
   if (currentMillis - lastRTCPoll >= RTC_POLL_MS) {
     lastRTCPoll = currentMillis;
     pollRTC();
   }
 
+  // 2. Проверка OSF раз в секунду (потеря питания RTC в процессе работы)
+  if (currentMillis - lastOsfCheck >= OSF_CHECK_MS) {
+    lastOsfCheck = currentMillis;
+    sysTime.refreshTimeValid();
+  }
+
+  // 3. Мигание двоеточий
   if (currentMillis - lastColonToggle >= COLON_BLINK_MS) {
     lastColonToggle = currentMillis;
     colonVisible = !colonVisible;
     needRedraw = true;
   }
 
+  // 4. Перерисовка только при изменениях
   if (needRedraw) {
     needRedraw = false;
     display.draw(prevHours, prevMinutes, prevSeconds,
                  prevYear, prevMonth, prevDate,
                  colonVisible,
                  prevTemp,
-                 prevDay);
+                 prevDay,
+                 rtcStatus);
   }
 }
 
 void pollRTC() {
-  sysTime.getTime();
+  // Проверяем состояние связи и OSF
+  RtcStatus newStatus;
+  if (!sysTime.getTime()) {
+    newStatus = RtcStatus::NoComm;
+  } else if (!sysTime.isTimeValid()) {
+    newStatus = RtcStatus::InvalidTime;
+  } else {
+    newStatus = RtcStatus::Ok;
+  }
+
+  if (newStatus != rtcStatus) {
+    rtcStatus = newStatus;
+    needRedraw = true;
+  }
+
+  if (rtcStatus == RtcStatus::NoComm) {
+    return;
+  }
+
+  // Читаем данные (при InvalidTime тоже — температура доступна)
   int h  = sysTime.getHours();
   int mi = sysTime.getMinutes();
   int s  = sysTime.getSeconds();
