@@ -3,17 +3,15 @@
 #include <Arduino.h>
 #include "ds3231.h"
 #include "convertor.h"
-#include "AT24xx.h"
 
 class SerialSet {
 public:
-  SerialSet(unsigned long speed_, SystemTime& systime_, At24& at24_);
+  SerialSet(unsigned long speed_, SystemTime& systime_);
   void Init();
   void SetCMD();
 
 private:
   SystemTime& systime;
-  At24&       at24;
   Convertor   conv;
   unsigned long speed = 0;
 

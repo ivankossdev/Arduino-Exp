@@ -9,7 +9,6 @@ namespace {
     "set<D>3             - set weekday 1..7 (e.g. set53 = Fri)\n"
     "get time            - show current time\n"
     "get date            - show current date + weekday\n"
-    "mem                 - read first 10 bytes of EEPROM\n"
     "================\n";
 
   // 2000-2099: високосный = (year % 4 == 0). 2100 в диапазон не входит.
@@ -21,8 +20,8 @@ namespace {
   }
 }
 
-SerialSet::SerialSet(unsigned long speed_, SystemTime& systime_, At24& at24_)
-  : systime(systime_), at24(at24_) {
+SerialSet::SerialSet(unsigned long speed_, SystemTime& systime_)
+  : systime(systime_) {
   this->speed = speed_;
 }
 
@@ -38,17 +37,9 @@ void SerialSet::SetCMD() {
   }
 }
 
-/*
-  CMD:
-    set2359591   — установить время 23:59:59 (последняя цифра — 1)
-    set2512312   — установить дату 25-12-31  (последняя цифра — 2)
-    set13..set73 — установить день недели: set13=Пн, set73=Вс (последняя цифра — 3)
-*/
-
 void SerialSet::CmdHandler(String &data) {
   data.trim();
 
-  // "help" длиннее 3 символов — проверяем до getBytes(cmd, 4)
   if (data.equalsIgnoreCase("help") || data.equals("?")) {
     Serial.print(CMD_HELP);
     return;
@@ -79,10 +70,6 @@ void SerialSet::CmdHandler(String &data) {
     if (dataCmd.equals(" date")) {
       showDate();
     }
-
-  } else if (dataCmd.equals("mem")) {
-    Serial.println("Read memory address 0x00 + 10: ");
-    Serial.println(at24.readString(0x00, 10));
 
   } else {
     Serial.println(data + " - cmd is not found (try 'help')");
@@ -128,7 +115,6 @@ void SerialSet::setDay(int day) {
 void SerialSet::setTime(long time) {
   int hms[3] = { 0 };
   formatData(time, hms);
-  // hms[0]=sec, hms[1]=min, hms[2]=hr
   int sec = hms[0];
   int min = hms[1];
   int hr  = hms[2];
@@ -148,7 +134,6 @@ void SerialSet::setTime(long time) {
 void SerialSet::setDate(long date) {
   int ymd[3] = { 0 };
   formatData(date, ymd);
-  // ymd[0]=day, ymd[1]=month, ymd[2]=year
   int day   = ymd[0];
   int month = ymd[1];
   int year  = ymd[2];
@@ -179,8 +164,6 @@ void SerialSet::setDate(long date) {
   Serial.println(day);
 }
 
-// Раскладывает `data` (без последней цифры-команды) на три двузначных поля
-// [0] = младший байт (sec/day), [1] = средний (min/month), [2] = старший (hr/year)
 void SerialSet::formatData(long data, int *intData) {
   long temp = data / 10;
   for (int i = 0; i < 3; i++) {

@@ -5,14 +5,13 @@
 #include "serialSet.h"
 #include "display.h"
 
-// Таймеры
+// ===== Timers =====
 unsigned long lastColonToggle = 0;
 unsigned long lastRTCPoll     = 0;
-
 const unsigned long COLON_BLINK_MS = 500;
 const unsigned long RTC_POLL_MS    = 100;
 
-// Кеш последних значений
+// ===== Cached display state =====
 int  prevHours    = -1;
 int  prevMinutes  = -1;
 int  prevSeconds  = -1;
@@ -20,15 +19,14 @@ int  prevDate     = -1;
 int  prevMonth    = -1;
 int  prevYear     = -1;
 char prevTemp[8]  = "";
-char prevDay[4]   = "";
+char prevDay[8]   = "";
 bool colonVisible = true;
 bool needRedraw   = true;
 
-// Устройства
+// ===== Devices =====
 Display    display;
 SystemTime sysTime(DS3231);
-At24       eeprom(EEPROM_I2C_ADDRESS);
-SerialSet  serialSet(115200, sysTime, eeprom);
+SerialSet  serialSet(115200, sysTime);
 
 void setup() {
   Wire.begin();
@@ -38,26 +36,29 @@ void setup() {
   pollRTC();
   lastRTCPoll     = millis();
   lastColonToggle = millis();
+
+  // Включаем hardware watchdog: 8-секундный таймаут.
+  // Если loop() где-то зависнет (например, I2C-шина), плата перезагрузится.
+  ESP.wdtEnable(WDTO_8S);
 }
 
 void loop() {
+  ESP.wdtFeed();  // сбрасываем 8-секундный счётчик
+
   unsigned long currentMillis = millis();
   serialSet.SetCMD();
 
-  // 1. Опрос RTC не чаще RTC_POLL_MS
   if (currentMillis - lastRTCPoll >= RTC_POLL_MS) {
     lastRTCPoll = currentMillis;
     pollRTC();
   }
 
-  // 2. Мигание двоеточий
   if (currentMillis - lastColonToggle >= COLON_BLINK_MS) {
     lastColonToggle = currentMillis;
     colonVisible = !colonVisible;
     needRedraw = true;
   }
 
-  // 3. Перерисовка только при изменениях
   if (needRedraw) {
     needRedraw = false;
     display.draw(prevHours, prevMinutes, prevSeconds,
