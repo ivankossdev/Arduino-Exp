@@ -7,6 +7,7 @@
 #include "heartbeat.h"
 #include "telemetry.h"
 #include "stats.h"
+#include "storage.h" 
 
 static void onUartLine(const char *line) {
   telemetryHandle(line);
@@ -16,6 +17,7 @@ void setup() {
   Serial.begin(115200); // USB порт для CLI
   logInit();
   statsInit();
+  storageInit(); // <--- НОВОЕ: Загружаем старую статистику
   buttonsInit();
   uartInit(UART_BAUD, UART_RX, UART_TX, onUartLine);
   uartWatchdogInit(UART_TIMEOUT_MS);
@@ -42,9 +44,15 @@ void loop() {
     String cmd = Serial.readStringUntil('\n');
     cmd.trim();
     if (cmd.length() > 0) {
-      uartSendReliable(cmd.c_str());
-      Serial.print("Sent: ");
-      Serial.println(cmd);
+      if (cmd == "reset") {
+        storageReset(); // <--- НОВОЕ: Локальный сброс статистики
+        logLine("[SYS] Stats reset");
+        Serial.println("Stats reset to 0");
+      } else {
+        uartSendReliable(cmd.c_str()); // Отправляем на MIK32
+        Serial.print("Sent: ");
+        Serial.println(cmd);
+      }
     }
   }
 
@@ -53,4 +61,5 @@ void loop() {
   uartRetryPoll(); 
   uartWatchdogPoll();
   heartbeatPoll();
+  storageUpdate(); // <--- НОВОЕ: Периодическое сохранение во флеш
 }
