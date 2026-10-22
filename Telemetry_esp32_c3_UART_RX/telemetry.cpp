@@ -2,7 +2,8 @@
 #include "config.h"
 #include "display_log.h"
 #include "uart_watchdog.h"
-#include "uart_sender.h" // Важно для uartClearRetry
+#include "uart_sender.h"
+#include "stats.h"
 #include <string.h>
 #include <stdlib.h>
 
@@ -72,10 +73,8 @@ void telemetryHandle(const char *line) {
     return;
   }
 
-  // Пакет валидный! Кормим watchdog
   uartWatchdogFeed();
 
-  // 1. Обработка ответов (ACK)
   if (strncmp(line, "ACK:", 4) == 0) {
     char clean[32];
     const char *st = strrchr(line, '*');
@@ -87,11 +86,11 @@ void telemetryHandle(const char *line) {
     snprintf(msg, sizeof(msg), "[RX] %s", clean);
     logLine(msg);
     
-    uartClearRetry("show"); // Останавливаем повторы
+    // Очищаем ЛЮБУЮ ожидающую команду при получении ACK
+    uartClearRetry(""); 
     return; 
   }
 
-  // 2. Обработка статуса (STAT)
   if (strncmp(line, "STAT:", 5) == 0) {
     char msg[64];
     const char *st = strrchr(line, '*');
@@ -100,20 +99,24 @@ void telemetryHandle(const char *line) {
     msg[l] = '\0';
     
     logLine(msg);
-    
-    uartClearRetry("stat"); // Останавливаем повторы
+    uartClearRetry(""); // Очищаем ожидание
     return; 
   }
 
-  // 3. Проверка пропущенных пакетов (Sequence)
   static unsigned int lastSeq = 0;
   static bool firstSeq = true;
+  
+  static float lastTemp = 0.0f;
+  static int lastAdc = 0;
 
   if (t.hasSeq) {
     if (!firstSeq) {
       if (t.seq != lastSeq + 1 && t.seq > lastSeq) {
+        uint32_t lost = t.seq - lastSeq - 1;
+        g_lostPackets += lost;
+        
         char msg[32];
-        snprintf(msg, sizeof(msg), "[!] lost %u pkt", t.seq - lastSeq - 1);
+        snprintf(msg, sizeof(msg), "[!] lost %u pkt", lost);
         logLine(msg);
       }
     }
@@ -121,16 +124,10 @@ void telemetryHandle(const char *line) {
     firstSeq = false;
   }
 
-  // 4. Обновление статуса
+  if (t.hasTemp) lastTemp = t.temp;
+  if (t.hasAdc)  lastAdc = t.adc;
+
   char msg[32];
-  if (t.hasTemp && t.hasAdc) {
-    snprintf(msg, sizeof(msg), "T:%.2fC  A0:%d", t.temp, t.adc);
-    statusLine(msg);
-  } else if (t.hasTemp) {
-    snprintf(msg, sizeof(msg), "T:%.2fC", t.temp);
-    statusLine(msg);
-  } else if (t.hasAdc) {
-    snprintf(msg, sizeof(msg), "A0:%d", t.adc);
-    statusLine(msg);
-  }
+  snprintf(msg, sizeof(msg), "T:%.1f A:%d L:%lu R:%lu", lastTemp, lastAdc, g_lostPackets, g_retries);
+  statusLine(msg);
 }

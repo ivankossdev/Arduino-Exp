@@ -1,6 +1,7 @@
 #include "uart_sender.h"
 #include "config.h"
 #include "display_log.h"
+#include "stats.h" // <--- НОВОЕ
 #include <string.h>
 
 static uint8_t calculateCRC8(const char *str, int len) {
@@ -32,7 +33,6 @@ void uartSendLine(const char *cmd) {
   logLine(msg);
 }
 
-// --- Логика повторов ---
 #define CMD_TIMEOUT_MS 500
 #define MAX_RETRIES 3
 
@@ -46,7 +46,7 @@ void uartSendReliable(const char *cmd) {
   retriesLeft = MAX_RETRIES;
   lastCmdTime = millis();
   
-  uartSendLine(cmd); // Шлем первый раз (с логом)
+  uartSendLine(cmd); 
 }
 
 void uartRetryPoll() {
@@ -55,14 +55,15 @@ void uartRetryPoll() {
     lastCmdTime = millis();
 
     if (retriesLeft == 0) {
-      // Все попытки исчерпаны
       char msg[32];
       snprintf(msg, sizeof(msg), "[!] CMD timeout: %s", pendingCmd);
       logLine(msg);
       pendingCmd[0] = '\0';
     } else {
-      // Отправляем повторно (без лога [TX], чтобы не спамить)
       uartSendRaw(pendingCmd); 
+      
+      g_retries++; // <--- УВЕЛИЧИВАЕМ СЧЕТЧИК ПОВТОРОВ
+      
       char msg[32];
       snprintf(msg, sizeof(msg), "[TX] retry %s (%d)", pendingCmd, MAX_RETRIES - retriesLeft);
       logLine(msg);
@@ -71,8 +72,8 @@ void uartRetryPoll() {
 }
 
 void uartClearRetry(const char *cmd) {
-  // Если пришел ответ на нашу команду — отменяем повторы
-  if (pendingCmd[0] != '\0' && strncmp(pendingCmd, cmd, strlen(pendingCmd)) == 0) {
+  // Если передана пустая строка (cmd[0] == '\0'), сбрасываем любую команду
+  if (cmd[0] == '\0' || (pendingCmd[0] != '\0' && strncmp(pendingCmd, cmd, strlen(pendingCmd)) == 0)) {
     retriesLeft = 0;
     pendingCmd[0] = '\0';
   }

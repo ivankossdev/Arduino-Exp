@@ -1,6 +1,6 @@
 #include "heartbeat.h"
 #include "display_log.h"
-#include <esp_heap_caps.h>
+#include <Arduino.h> // Этого достаточно для объекта ESP
 
 static uint32_t period = 10000;
 static unsigned long lastHB = 0;
@@ -8,7 +8,8 @@ static unsigned long lastHB = 0;
 void heartbeatShowNow() {
   unsigned long up_s   = millis() / 1000UL;
   unsigned long hfree  = ESP.getFreeHeap() / 1024UL;
-  unsigned long hlarge = heap_caps_get_largest_free_block(MALLOC_CAP_DEFAULT) / 1024UL;
+  // Используем ESP.getMaxAllocHeap() для размера наибольшего свободного блока
+  unsigned long hlarge = ESP.getMaxAllocHeap() / 1024UL;
 
   char l1[24];
   char l2[24];
