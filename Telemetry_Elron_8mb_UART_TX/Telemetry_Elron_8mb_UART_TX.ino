@@ -3,12 +3,21 @@
 
 MIK32Temp chipTemp;
 
-unsigned long telemetryRate = 1000; // Частота опроса (мс)
+unsigned long telemetryRate = 1000; 
 unsigned int seq = 0;
 
 char rxBuf[32];
 int rxIdx = 0;
 unsigned long lastRxTime = 0;
+
+// Пороги для аварийных событий
+const float TEMP_THRESHOLD_HIGH = 40.0f;
+const float TEMP_THRESHOLD_LOW  = 38.0f;
+const int   ADC_THRESHOLD_HIGH  = 800;
+const int   ADC_THRESHOLD_LOW   = 750;
+
+bool isTempAlarm = false;
+bool isAdcAlarm  = false;
 
 uint8_t calcCRC8(const char *str, int len) {
   uint8_t crc = 0;
@@ -31,7 +40,6 @@ void sendPacket(const char *payload) {
   Serial.print('\n');
 }
 
-// Медианный фильтр для АЦП
 int readFilteredADC(uint8_t pin) {
   int samples[5];
   for (int i = 0; i < 5; i++) {
@@ -61,7 +69,6 @@ void setup() {
 }
 
 void loop() {
-  // --- 1. Чтение команд с ESP32 ---
   while (Serial.available()) {
     char c = Serial.read();
     lastRxTime = millis();
@@ -97,7 +104,7 @@ void loop() {
           }
           else if (strncmp(clean, "rate=", 5) == 0) {
             telemetryRate = atoi(clean + 5);
-            if (telemetryRate < 50) telemetryRate = 50; // Защита от слишком частого опроса
+            if (telemetryRate < 50) telemetryRate = 50; 
             sendPacket("ACK:rate");
           }
         }
@@ -110,7 +117,6 @@ void loop() {
   
   if (rxIdx > 0 && millis() - lastRxTime > 100) rxIdx = 0;
 
-  // --- 2. Неблокирующее чтение датчика и отправка ---
   unsigned long now = millis();
 
   if (!isMeasuring && (now - lastSend >= telemetryRate)) {
@@ -125,6 +131,24 @@ void loop() {
       float t = chipTemp.getResult();
       if (isnan(t)) t = 0.0f; 
       int a = readFilteredADC(A0); 
+
+      // --- ПРОВЕРКА АВАРИЙНЫХ СОБЫТИЙ ---
+      // 1. Проверка температуры (с гистерезисом)
+      if (!isTempAlarm && t >= TEMP_THRESHOLD_HIGH) {
+        isTempAlarm = true;
+        sendPacket("EVT:HOT");
+      } else if (isTempAlarm && t <= TEMP_THRESHOLD_LOW) {
+        isTempAlarm = false;
+      }
+
+      // 2. Проверка АЦП (с гистерезисом)
+      if (!isAdcAlarm && a >= ADC_THRESHOLD_HIGH) {
+        isAdcAlarm = true;
+        sendPacket("EVT:ADC_HIGH");
+      } else if (isAdcAlarm && a <= ADC_THRESHOLD_LOW) {
+        isAdcAlarm = false;
+      }
+      // ----------------------------------
 
       seq++;
       char payload[64];

@@ -21,11 +21,11 @@ static uint8_t calculateCRC8(const char *str, int len) {
 
 bool telemetryParse(const char *line, Telemetry &out) {
   out.hasTemp = false;
-  out.hasAdc  = false;
-  out.hasSeq  = false;
-  out.temp    = 0.0f;
-  out.adc     = 0;
-  out.seq     = 0;
+  out.hasAdc = false;
+  out.hasSeq = false;
+  out.temp = 0.0f;
+  out.adc = 0;
+  out.seq = 0;
 
   const char *star = strrchr(line, '*');
   if (!star) return false;
@@ -47,23 +47,35 @@ bool telemetryParse(const char *line, Telemetry &out) {
 
   p = strstr(cleanLine, "S=");
   if (p) {
-    char *e; long v = strtol(p + 2, &e, 10);
-    if (e != p + 2) { out.seq = (unsigned int)v; out.hasSeq = true; }
+    char *e;
+    long v = strtol(p + 2, &e, 10);
+    if (e != p + 2) {
+      out.seq = (unsigned int)v;
+      out.hasSeq = true;
+    }
   }
 
   p = strstr(cleanLine, "T=");
   if (p) {
-    char *e; float v = strtod(p + 2, &e);
-    if (e != p + 2) { out.temp = v; out.hasTemp = true; }
+    char *e;
+    float v = strtod(p + 2, &e);
+    if (e != p + 2) {
+      out.temp = v;
+      out.hasTemp = true;
+    }
   }
 
   p = strstr(cleanLine, "A=");
   if (p) {
-    char *e; long v = strtol(p + 2, &e, 10);
-    if (e != p + 2) { out.adc = (int)v; out.hasAdc = true; }
+    char *e;
+    long v = strtol(p + 2, &e, 10);
+    if (e != p + 2) {
+      out.adc = (int)v;
+      out.hasAdc = true;
+    }
   }
 
-  return true; 
+  return true;
 }
 
 void telemetryHandle(const char *line) {
@@ -81,14 +93,14 @@ void telemetryHandle(const char *line) {
     int l = st ? (st - line) : strlen(line);
     strncpy(clean, line, l);
     clean[l] = '\0';
-    
+
     char msg[64];
     snprintf(msg, sizeof(msg), "[RX] %s", clean);
     logLine(msg);
-    
+
     // Очищаем ЛЮБУЮ ожидающую команду при получении ACK
-    uartClearRetry(""); 
-    return; 
+    uartClearRetry("");
+    return;
   }
 
   if (strncmp(line, "STAT:", 5) == 0) {
@@ -97,15 +109,30 @@ void telemetryHandle(const char *line) {
     int l = st ? (st - line) : strlen(line);
     strncpy(msg, line, l);
     msg[l] = '\0';
-    
+
     logLine(msg);
-    uartClearRetry(""); // Очищаем ожидание
-    return; 
+    uartClearRetry("");  // Очищаем ожидание
+    return;
+  }
+
+  if (strncmp(line, "EVT:", 4) == 0) {
+    char clean[32];
+    const char *st = strrchr(line, '*');
+    int l = st ? (st - line) : strlen(line);
+    strncpy(clean, line, l);
+    clean[l] = '\0';
+
+    char msg[64];
+    snprintf(msg, sizeof(msg), "[!!!] %s", clean);
+    logLine(msg);  // Выведет "[!!!] EVT:HOT"
+
+    uartClearRetry("");  // На случай, если событие пришло в ответ на команду
+    return;
   }
 
   static unsigned int lastSeq = 0;
   static bool firstSeq = true;
-  
+
   static float lastTemp = 0.0f;
   static int lastAdc = 0;
 
@@ -114,7 +141,7 @@ void telemetryHandle(const char *line) {
       if (t.seq != lastSeq + 1 && t.seq > lastSeq) {
         uint32_t lost = t.seq - lastSeq - 1;
         g_lostPackets += lost;
-        
+
         char msg[32];
         snprintf(msg, sizeof(msg), "[!] lost %u pkt", lost);
         logLine(msg);
@@ -125,7 +152,7 @@ void telemetryHandle(const char *line) {
   }
 
   if (t.hasTemp) lastTemp = t.temp;
-  if (t.hasAdc)  lastAdc = t.adc;
+  if (t.hasAdc) lastAdc = t.adc;
 
   char msg[32];
   snprintf(msg, sizeof(msg), "T:%.1f A:%d L:%lu R:%lu", lastTemp, lastAdc, g_lostPackets, g_retries);
