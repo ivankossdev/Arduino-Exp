@@ -2,7 +2,7 @@
 
 void setup() {
   Serial.begin(9600);
-  matrInit();
+  matrInit(3); // 3 яркость свечения 0 - 255 
 }
 
 void loop() {

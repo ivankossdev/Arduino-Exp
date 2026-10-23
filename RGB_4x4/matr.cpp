@@ -15,12 +15,12 @@ static Adafruit_NeoPixel ring(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 
 int ledArray[12] = { 0, 1, 2, 3, 4, 11, 12, 13, 14, 15, 8, 7 };
 
-void matrInit() {
+void matrInit(uint8_t br) {
   ring.begin();
-  ring.setBrightness(3);
+  ring.setBrightness(br);
 }
 
-// Проверка в каком ряду находится включенный диод
+/* Проверка в тупую в каком ряду находится включенный диод, позже нужно сдлеать интелектальной */
 int rowChecker(int pos) {
   if (pos >= 0 && pos <= 3) return 1;
   else if (pos >= 4 && pos <= 7) return 2;
@@ -29,8 +29,15 @@ int rowChecker(int pos) {
   else return 0;
 }
 
-void dotWalk(){
-    for (int i = 0; i < COUNTER_LINE; i++) {
+// Проверка напраления движения включенного диода (точки)/
+
+int directionChecker(int pos) {
+  
+}
+
+/* Демо функция, просто включает диоды по заданному массиву ledArray */
+void dotWalk() {
+  for (int i = 0; i < COUNTER_LINE; i++) {
     ring.clear();
     ring.setPixelColor(ledArray[i], ring.Color(0, 0, 255));
     ring.show();
@@ -39,4 +46,3 @@ void dotWalk(){
     delay(2000);
   }
 }
-
