@@ -71,28 +71,38 @@ void matrInit(uint8_t br) {
   ring.setBrightness(br);
 }
 
+/* Тик анимации. Вызывается из loop() часто,
+ * шаг делает не чаще раза в STEP_INTERVAL мс. */
 void dotWalk() {
-  int prev = -1;
+  static int           pathIndex  = 0;
+  static int           prevPos    = -1;
+  static unsigned long lastStep   = 0;
+  static bool          firstCall  = true;
 
-  for (int i = 0; i < LED_PATH_LEN; i++) {
-    int pos = LED_PATH[i];
+  const unsigned long STEP_INTERVAL = 1000;
 
-    ring.clear();
-    ring.setPixelColor(pos, ring.Color(0, 0, 255));
-    ring.show();
+  unsigned long now = millis();
+  if (!firstCall && (now - lastStep) < STEP_INTERVAL) return;
+  firstCall = false;
+  lastStep  = now;
 
-    DirectionOfMovement dir = getDirection(prev, pos);
+  int pos = LED_PATH[pathIndex];
 
-    Serial.print("pos ");
-    Serial.print(pos);
-    Serial.print(" (r");
-    Serial.print(pixelRow(pos));
-    Serial.print(", c");
-    Serial.print(pixelCol(pos));
-    Serial.print(") dir ");
-    Serial.println(directionName(dir));
+  ring.clear();
+  ring.setPixelColor(pos, ring.Color(0, 0, 255));
+  ring.show();
 
-    prev = pos;
-    delay(1000);
-  }
+  DirectionOfMovement dir = getDirection(prevPos, pos);
+
+  Serial.print("pos ");
+  Serial.print(pos);
+  Serial.print(" (r");
+  Serial.print(pixelRow(pos));
+  Serial.print(", c");
+  Serial.print(pixelCol(pos));
+  Serial.print(") dir ");
+  Serial.println(directionName(dir));
+
+  prevPos   = pos;
+  pathIndex = (pathIndex + 1) % LED_PATH_LEN;
 }
