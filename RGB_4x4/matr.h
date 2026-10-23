@@ -3,4 +3,4 @@
 
 
 void matrInit(uint8_t br);
-void dotWalk();
+void dotStep();

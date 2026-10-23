@@ -71,20 +71,9 @@ void matrInit(uint8_t br) {
   ring.setBrightness(br);
 }
 
-/* Тик анимации. Вызывается из loop() часто,
- * шаг делает не чаще раза в STEP_INTERVAL мс. */
-void dotWalk() {
-  static int           pathIndex  = 0;
-  static int           prevPos    = -1;
-  static unsigned long lastStep   = 0;
-  static bool          firstCall  = true;
-
-  const unsigned long STEP_INTERVAL = 1000;
-
-  unsigned long now = millis();
-  if (!firstCall && (now - lastStep) < STEP_INTERVAL) return;
-  firstCall = false;
-  lastStep  = now;
+void dotStep() {
+  static int pathIndex = 0;
+  static int prevPos   = -1;
 
   int pos = LED_PATH[pathIndex];
 
