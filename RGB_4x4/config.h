@@ -3,3 +3,5 @@
 // ---------- RGB ----------
 #define LED_PIN 6
 #define LED_COUNT 16
+
+#define COUNTER_LINE 12
