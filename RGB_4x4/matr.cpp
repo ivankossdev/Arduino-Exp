@@ -7,15 +7,15 @@
  *  пиксель → (row, col):
  *
  *   0  1  2  3   | row 0   (col 0..3 слева-направо)
- *   4  5  6  7   | row 1   (col 0..3 слева-направо)
- *  11 10  9  8   | row 2   (col 0..3 справа-налево!)
- *  12 13 14 15   | row 3   (col 0..3 слева-направо)
+ *   7  6  5  4   | row 1   (col 0..3 справа-налево)
+ *   8  9 10 11   | row 2   (col 0..3 слева-направо)
+ *  15 14 13 12   | row 3   (col 0..3 справа-налево)
  *
+ * Перевёрнуты нечётные ряды (1 и 3).
  * =================================================== */
 
 static Adafruit_NeoPixel ring(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 
-/* Демонстрационный путь обхода (12 точек из 16). */
 static const int LED_PATH[] = { 0, 1, 2, 3, 4, 11, 12, 13, 14, 15, 8, 7 };
 static const int LED_PATH_LEN = sizeof(LED_PATH) / sizeof(LED_PATH[0]);
 
@@ -24,25 +24,25 @@ enum DirectionOfMovement {
   DOWN,
   LEFT,
   RIGHT,
-  STOP
+  STANDSTILL,   // точка не сдвинулась: from == to
+  JUMP,         // сдвинулась, но не на соседнюю клетку
+  FIRST         // предыдущей позиции ещё не было (from < 0)
 };
 
-/* ---------- Координаты пикселя ---------- */
-
 static inline int pixelRow(int pos) {
-  return pos / 4;               // 0..3
+  return pos / 4;
 }
 
 static inline int pixelCol(int pos) {
   int row   = pos / 4;
   int inRow = pos % 4;
-  return (row == 2) ? (3 - inRow) : inRow;   // 0..3
+  return (row % 2 == 1) ? (3 - inRow) : inRow;
 }
 
-/* ---------- Направление между двумя соседними пикселями ----------
- * Для несоседних точек (диагональ, прыжок через ряд) вернёт STOP.
- * --------------------------------------------------------------- */
 static DirectionOfMovement getDirection(int from, int to) {
+  if (from < 0)   return FIRST;
+  if (from == to) return STANDSTILL;
+
   int dr = pixelRow(to) - pixelRow(from);
   int dc = pixelCol(to) - pixelCol(from);
 
@@ -50,20 +50,21 @@ static DirectionOfMovement getDirection(int from, int to) {
   if (dr == 0  && dc == -1) return LEFT;
   if (dr ==  1 && dc == 0) return DOWN;
   if (dr == -1 && dc == 0) return UP;
-  return STOP;
+  return JUMP;
 }
 
 static const char* directionName(DirectionOfMovement d) {
   switch (d) {
-    case UP:    return "UP";
-    case DOWN:  return "DOWN";
-    case LEFT:  return "LEFT";
-    case RIGHT: return "RIGHT";
-    default:    return "STOP";
+    case UP:         return "UP";
+    case DOWN:       return "DOWN";
+    case LEFT:       return "LEFT";
+    case RIGHT:      return "RIGHT";
+    case STANDSTILL: return "STANDSTILL";
+    case JUMP:       return "JUMP";
+    case FIRST:      return "FIRST";
+    default:         return "?";
   }
 }
-
-/* ---------- Публичный API ---------- */
 
 void matrInit(uint8_t br) {
   ring.begin();
@@ -71,7 +72,7 @@ void matrInit(uint8_t br) {
 }
 
 void dotWalk() {
-  int prev = -1;   // предыдущая точка — локальная, не глобальная
+  int prev = -1;
 
   for (int i = 0; i < LED_PATH_LEN; i++) {
     int pos = LED_PATH[i];
@@ -80,8 +81,7 @@ void dotWalk() {
     ring.setPixelColor(pos, ring.Color(0, 0, 255));
     ring.show();
 
-    DirectionOfMovement dir =
-        (prev < 0) ? STOP : getDirection(prev, pos);
+    DirectionOfMovement dir = getDirection(prev, pos);
 
     Serial.print("pos ");
     Serial.print(pos);
