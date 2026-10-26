@@ -13,5 +13,6 @@
 #define BTN_DOWN  3
 #define BTN_LEFT  4
 #define BTN_RIGHT 5
+#define BTN_MODE  7
 
 #define START_POS 6
