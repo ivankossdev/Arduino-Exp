@@ -14,6 +14,11 @@
 
 static Adafruit_NeoPixel ring(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 
+/* ---------- Состояние точки (одно на весь файл) ---------- */
+
+static int g_currentPos = -1;
+static int g_prevPos    = -1;
+
 /* ---------- Координаты пикселя ---------- */
 
 static inline int pixelRow(int pos) {
@@ -31,7 +36,7 @@ static inline int pixelFromRowCol(int row, int col) {
   return row * 4 + inRow;
 }
 
-/* ---------- Направление между двумя соседними пикселями ---------- */
+/* ---------- Направление между двумя пикселями ---------- */
 
 static DirectionOfMovement getDirection(int from, int to) {
   if (from < 0)   return FIRST;
@@ -60,10 +65,23 @@ const char* directionName(DirectionOfMovement d) {
   }
 }
 
-/* ---------- Случайный сосед по 4 направлениям ----------
- * avoid — не выбирать этот пиксель, если есть другие варианты
- * (чтобы точка не дёргалась туда-обратно).
- * ------------------------------------------------------ */
+/* ---------- Служебное: собрать DotState + отрисовать ---------- */
+
+static DotState drawAt(int pos, DirectionOfMovement dir) {
+  ring.clear();
+  if (pos >= 0) ring.setPixelColor(pos, ring.Color(0, 0, 255));
+  ring.show();
+
+  DotState s;
+  s.pos = pos;
+  s.row = (pos >= 0) ? pixelRow(pos) : -1;
+  s.col = (pos >= 0) ? pixelCol(pos) : -1;
+  s.dir = dir;
+  return s;
+}
+
+/* ---------- Случайный сосед (для dotStep) ---------- */
+
 static int pickNeighbor(int pos, int avoid) {
   int r = pixelRow(pos);
   int c = pixelCol(pos);
@@ -76,7 +94,7 @@ static int pickNeighbor(int pos, int avoid) {
   if (c > 0) { int p = pixelFromRowCol(r, c - 1); if (p != avoid) candidates[n++] = p; }
   if (c < 3) { int p = pixelFromRowCol(r, c + 1); if (p != avoid) candidates[n++] = p; }
 
-  if (n == 0) return avoid;   // на 4x4 недостижимо, но пусть будет
+  if (n == 0) return avoid;
   return candidates[random(n)];
 }
 
@@ -87,29 +105,56 @@ void matrInit(uint8_t br) {
   ring.setBrightness(br);
 }
 
-DotState dotStep() {
-  static int currentPos = -1;   // где точка сейчас (-1 = ещё не было)
-  static int prevPos    = -1;   // откуда пришла
+DotState dotInit(int startPos) {
+  g_currentPos = startPos;
+  g_prevPos    = -1;
+  return drawAt(startPos, FIRST);
+}
 
+DotState dotStep() {
   int pos;
-  if (currentPos < 0) {
-    pos = random(LED_COUNT);            // первый раз — любая клетка
+  if (g_currentPos < 0) {
+    pos = random(LED_COUNT);
   } else {
-    pos = pickNeighbor(currentPos, prevPos);
+    pos = pickNeighbor(g_currentPos, g_prevPos);
   }
 
-  ring.clear();
-  ring.setPixelColor(pos, ring.Color(0, 0, 255));
-  ring.show();
+  DirectionOfMovement dir = getDirection(g_currentPos, pos);
 
-  DotState state;
-  state.pos = pos;
-  state.row = pixelRow(pos);
-  state.col = pixelCol(pos);
-  state.dir = getDirection(currentPos, pos);   // при currentPos < 0 → FIRST
+  g_prevPos    = g_currentPos;
+  g_currentPos = pos;
 
-  prevPos    = currentPos;
-  currentPos = pos;
+  return drawAt(pos, dir);
+}
 
-  return state;
+DotState dotMoveDirection(DirectionOfMovement dir) {
+  if (g_currentPos < 0) {
+    return drawAt(-1, FIRST);   // точки ещё нет
+  }
+
+  int r = pixelRow(g_currentPos);
+  int c = pixelCol(g_currentPos);
+
+  int nr = r, nc = c;
+  switch (dir) {
+    case UP:    nr = r - 1; break;
+    case DOWN:  nr = r + 1; break;
+    case LEFT:  nc = c - 1; break;
+    case RIGHT: nc = c + 1; break;
+    default:
+      // STANDSTILL / JUMP / FIRST — ничего не двигаем
+      return drawAt(g_currentPos, STANDSTILL);
+  }
+
+  // Край матрицы — не двигаемся
+  if (nr < 0 || nr > 3 || nc < 0 || nc > 3) {
+    return drawAt(g_currentPos, STANDSTILL);
+  }
+
+  int newPos = pixelFromRowCol(nr, nc);
+
+  g_prevPos    = g_currentPos;
+  g_currentPos = newPos;
+
+  return drawAt(newPos, dir);
 }

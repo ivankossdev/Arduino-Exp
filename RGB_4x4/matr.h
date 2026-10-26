@@ -2,16 +2,10 @@
 #include <Arduino.h>
 
 enum DirectionOfMovement {
-  UP,
-  DOWN,
-  LEFT,
-  RIGHT,
-  STANDSTILL,   // точка не сдвинулась: from == to
-  JUMP,         // сдвинулась, но не на соседнюю клетку
-  FIRST         // предыдущей позиции ещё не было (from < 0)
+  UP, DOWN, LEFT, RIGHT,
+  STANDSTILL, JUMP, FIRST
 };
 
-/* Информация об одном шаге точки. Возвращается из dotStep(). */
 struct DotState {
   int                 pos;
   int                 row;
@@ -21,9 +15,14 @@ struct DotState {
 
 void matrInit(uint8_t br);
 
-/* Один шаг точки по пути. Обновляет матрицу и возвращает,
- * куда и как сдвинулась точка. Про Serial, millis и таймеры не знает. */
+/* Установить точку в стартовую позицию и отрисовать её. */
+DotState dotInit(int startPos);
+
+/* Авто-шаг: случайный сосед (рандомное блуждание). */
 DotState dotStep();
 
-/* Строковое имя направления (для логов/отладки). */
+/* Ручной шаг: сдвинуть точку на одну клетку в заданном направлении.
+ * Если сдвиг невозможен (край матрицы) — точка остаётся, dir = STANDSTILL. */
+DotState dotMoveDirection(DirectionOfMovement dir);
+
 const char* directionName(DirectionOfMovement d);
