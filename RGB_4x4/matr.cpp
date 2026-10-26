@@ -14,8 +14,7 @@
 
 static Adafruit_NeoPixel ring(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 
-static const int LED_PATH[] = { 0, 1, 2, 3, 4, 11, 12, 13, 14, 15, 8, 7 };
-static const int LED_PATH_LEN = sizeof(LED_PATH) / sizeof(LED_PATH[0]);
+/* ---------- Координаты пикселя ---------- */
 
 static inline int pixelRow(int pos) {
   return pos / 4;
@@ -26,6 +25,13 @@ static inline int pixelCol(int pos) {
   int inRow = pos % 4;
   return (row % 2 == 1) ? (3 - inRow) : inRow;
 }
+
+static inline int pixelFromRowCol(int row, int col) {
+  int inRow = (row % 2 == 1) ? (3 - col) : col;
+  return row * 4 + inRow;
+}
+
+/* ---------- Направление между двумя соседними пикселями ---------- */
 
 static DirectionOfMovement getDirection(int from, int to) {
   if (from < 0)   return FIRST;
@@ -54,16 +60,43 @@ const char* directionName(DirectionOfMovement d) {
   }
 }
 
+/* ---------- Случайный сосед по 4 направлениям ----------
+ * avoid — не выбирать этот пиксель, если есть другие варианты
+ * (чтобы точка не дёргалась туда-обратно).
+ * ------------------------------------------------------ */
+static int pickNeighbor(int pos, int avoid) {
+  int r = pixelRow(pos);
+  int c = pixelCol(pos);
+
+  int candidates[4];
+  int n = 0;
+
+  if (r > 0) { int p = pixelFromRowCol(r - 1, c); if (p != avoid) candidates[n++] = p; }
+  if (r < 3) { int p = pixelFromRowCol(r + 1, c); if (p != avoid) candidates[n++] = p; }
+  if (c > 0) { int p = pixelFromRowCol(r, c - 1); if (p != avoid) candidates[n++] = p; }
+  if (c < 3) { int p = pixelFromRowCol(r, c + 1); if (p != avoid) candidates[n++] = p; }
+
+  if (n == 0) return avoid;   // на 4x4 недостижимо, но пусть будет
+  return candidates[random(n)];
+}
+
+/* ---------- Публичный API ---------- */
+
 void matrInit(uint8_t br) {
   ring.begin();
   ring.setBrightness(br);
 }
 
 DotState dotStep() {
-  static int pathIndex = 0;
-  static int prevPos   = -1;
+  static int currentPos = -1;   // где точка сейчас (-1 = ещё не было)
+  static int prevPos    = -1;   // откуда пришла
 
-  int pos = LED_PATH[pathIndex];
+  int pos;
+  if (currentPos < 0) {
+    pos = random(LED_COUNT);            // первый раз — любая клетка
+  } else {
+    pos = pickNeighbor(currentPos, prevPos);
+  }
 
   ring.clear();
   ring.setPixelColor(pos, ring.Color(0, 0, 255));
@@ -73,10 +106,10 @@ DotState dotStep() {
   state.pos = pos;
   state.row = pixelRow(pos);
   state.col = pixelCol(pos);
-  state.dir = getDirection(prevPos, pos);
+  state.dir = getDirection(currentPos, pos);   // при currentPos < 0 → FIRST
 
-  prevPos   = pos;
-  pathIndex = (pathIndex + 1) % LED_PATH_LEN;
+  prevPos    = currentPos;
+  currentPos = pos;
 
   return state;
 }

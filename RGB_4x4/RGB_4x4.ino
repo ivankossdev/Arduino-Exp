@@ -1,9 +1,10 @@
 #include "matr.h"
 #include "EventTimer.h"
 
-static EventTimer stepTimer(1000);
+static EventTimer stepTimer(80);
 
-/* Адаптер: EventTimer ждёт void(*)(), а dotStep() возвращает DotState. */
+/* Адаптер: EventTimer ждёт void(*)(), а dotStep() возвращает DotState.
+ * Здесь — место, где решается, что делать с результатом шага. */
 static void onStep() {
   DotState s = dotStep();
 
@@ -19,8 +20,9 @@ static void onStep() {
 
 void setup() {
   Serial.begin(9600);
+  randomSeed(analogRead(A0));   // иначе последовательность одинаковая при каждом ресете
   matrInit(3);
-  stepTimer.setCallback(onStep);
+  stepTimer.setCallback(dotStep);
 }
 
 void loop() {
