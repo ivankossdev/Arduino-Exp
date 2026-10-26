@@ -4,8 +4,6 @@
 
 /* == матрица 4x4 ==
  *
- *  пиксель → (row, col):
- *
  *   0  1  2  3   | row 0   (col 0..3 слева-направо)
  *   7  6  5  4   | row 1   (col 0..3 справа-налево)
  *   8  9 10 11   | row 2   (col 0..3 слева-направо)
@@ -18,16 +16,6 @@ static Adafruit_NeoPixel ring(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 
 static const int LED_PATH[] = { 0, 1, 2, 3, 4, 11, 12, 13, 14, 15, 8, 7 };
 static const int LED_PATH_LEN = sizeof(LED_PATH) / sizeof(LED_PATH[0]);
-
-enum DirectionOfMovement {
-  UP,
-  DOWN,
-  LEFT,
-  RIGHT,
-  STANDSTILL,   // точка не сдвинулась: from == to
-  JUMP,         // сдвинулась, но не на соседнюю клетку
-  FIRST         // предыдущей позиции ещё не было (from < 0)
-};
 
 static inline int pixelRow(int pos) {
   return pos / 4;
@@ -53,7 +41,7 @@ static DirectionOfMovement getDirection(int from, int to) {
   return JUMP;
 }
 
-static const char* directionName(DirectionOfMovement d) {
+const char* directionName(DirectionOfMovement d) {
   switch (d) {
     case UP:         return "UP";
     case DOWN:       return "DOWN";
@@ -71,7 +59,7 @@ void matrInit(uint8_t br) {
   ring.setBrightness(br);
 }
 
-void dotStep() {
+DotState dotStep() {
   static int pathIndex = 0;
   static int prevPos   = -1;
 
@@ -81,17 +69,14 @@ void dotStep() {
   ring.setPixelColor(pos, ring.Color(0, 0, 255));
   ring.show();
 
-  DirectionOfMovement dir = getDirection(prevPos, pos);
-
-  Serial.print("pos ");
-  Serial.print(pos);
-  Serial.print(" (r");
-  Serial.print(pixelRow(pos));
-  Serial.print(", c");
-  Serial.print(pixelCol(pos));
-  Serial.print(") dir ");
-  Serial.println(directionName(dir));
+  DotState state;
+  state.pos = pos;
+  state.row = pixelRow(pos);
+  state.col = pixelCol(pos);
+  state.dir = getDirection(prevPos, pos);
 
   prevPos   = pos;
   pathIndex = (pathIndex + 1) % LED_PATH_LEN;
+
+  return state;
 }
