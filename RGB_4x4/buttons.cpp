@@ -37,7 +37,7 @@ IInput::Event Buttons::poll() {
   const unsigned long DEBOUNCE = 25;
   unsigned long now = millis();
 
-  // -------- MODE: фронт --------
+  // --- MODE: фронт ---
   bool modeNow = isPressed(BTN_MODE);
   if (modeNow != m_modeRaw) {
     m_modeRaw    = modeNow;
@@ -48,7 +48,7 @@ IInput::Event Buttons::poll() {
     if (m_modeStable) return EV_MODE;
   }
 
-  // -------- Направления: latch --------
+  // --- Направления: latch ---
   int dirNow = -1;
   if      (isPressed(BTN_UP))    dirNow = BTN_UP;
   else if (isPressed(BTN_DOWN))  dirNow = BTN_DOWN;

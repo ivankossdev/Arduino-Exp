@@ -3,9 +3,9 @@
 
 class Buttons : public IInput {
 public:
-  void begin() override;
-  Event poll() override;
-  void suppressUntilNeutral() override;
+  void          begin() override;
+  IInput::Event poll() override;
+  void          suppressUntilNeutral() override;
 
 private:
   // --- MODE ---
