@@ -8,11 +8,15 @@
 enum ControlMode { MODE_AUTO, MODE_BUTTONS, MODE_ACCEL };
 
 static EventTimer inputTimer(10);
-static EventTimer stepTimer(500);
+static EventTimer stepTimer(1000);
 
 static ControlMode   mode = MODE_BUTTONS;
 static Buttons       buttons;
 static Accelerometer accel;
+
+static int g_score = 0;
+
+/* ---------- Имя режима (нужно и для лога, и потенциально для UI) ---------- */
 
 static const char* modeName(ControlMode m) {
   switch (m) {
@@ -23,9 +27,13 @@ static const char* modeName(ControlMode m) {
   return "?";
 }
 
-static int g_score = 0;
+/* ---------- Обработка результата шага ----------
+ * Счёт — всегда. Лог — только если включён. */
 
-static void logStep(const DotState& s) {
+static void processStep(const DotState& s) {
+  if (s.reachedTarget) g_score++;
+
+#if LOG_ENABLED
   Serial.print("pos ");
   Serial.print(s.pos);
   Serial.print(" (r");
@@ -34,30 +42,31 @@ static void logStep(const DotState& s) {
   Serial.print(s.col);
   Serial.print(") dir ");
   Serial.print(directionName(s.dir));
-
   if (s.reachedTarget) {
-    g_score++;
     Serial.print("  GOAL! score=");
     Serial.print(g_score);
   }
   Serial.println();
+#else
+  (void)s;   // s используется только для лога — когда лог выключен, подавляем warning
+#endif
 }
 
 /* ---------- Переключение режимов ---------- */
 
 static void enterMode(ControlMode m) {
   mode = m;
+
+#if LOG_ENABLED
   Serial.print("mode: ");
   Serial.println(modeName(mode));
+#endif
 
   if (mode == MODE_AUTO) {
-    // Автопилот: первый шаг сразу, дальше — по stepTimer
-    DotState s = dotStep();
-    logStep(s);
+    processStep(dotStep());
     stepTimer.start();
   } else {
     stepTimer.stop();
-    // В MANUAL-режимах: не давать фантомный шаг от зажатого ввода
     if (mode == MODE_BUTTONS) buttons.suppressUntilNeutral();
     if (mode == MODE_ACCEL)   accel.suppressUntilNeutral();
   }
@@ -88,8 +97,6 @@ static DirectionOfMovement dirFromEvent(IInput::Event ev) {
 /* ---------- Тик опроса ввода ---------- */
 
 static void onInputTick() {
-  // Кнопки опрашиваем ВСЕГДА: EV_MODE должен срабатывать
-  // в любом режиме, включая ACCEL.
   IInput::Event btnEv = buttons.poll();
 
   if (btnEv == IInput::EV_MODE) {
@@ -98,23 +105,21 @@ static void onInputTick() {
     return;
   }
 
-  // Направление — от активного источника
   IInput::Event dirEv = IInput::EV_NONE;
 
   switch (mode) {
     case MODE_BUTTONS:
-      dirEv = btnEv;         // уже опросили выше — переиспользуем
+      dirEv = btnEv;
       break;
     case MODE_ACCEL:
       dirEv = accel.poll();
       break;
     case MODE_AUTO:
-      break;                 // автопилот сам двигает точку
+      break;
   }
 
   if (dirEv != IInput::EV_NONE) {
-    DotState s = dotMoveDirection(dirFromEvent(dirEv));
-    logStep(s);
+    processStep(dotMoveDirection(dirFromEvent(dirEv)));
   }
 
   dotVisualTick();
@@ -124,23 +129,26 @@ static void onInputTick() {
 
 static void onStepTick() {
   if (mode != MODE_AUTO) return;
-  DotState s = dotStep();
-  logStep(s);
+  processStep(dotStep());
 }
 
 /* ---------- setup / loop ---------- */
 
 void setup() {
+#if LOG_ENABLED
   Serial.begin(9600);
+#endif
   randomSeed(analogRead(A0));
 
   buttons.begin();
-  accel.begin();            // датчик калибруется один раз при старте
+  accel.begin();
   matrInit(3);
   dotInit(START_POS);
 
+#if LOG_ENABLED
   Serial.print("=== BOOT === mode: ");
   Serial.println(modeName(mode));
+#endif
 
   inputTimer.setCallback(onInputTick);
   stepTimer.setCallback(onStepTick);

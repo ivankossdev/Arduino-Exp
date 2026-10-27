@@ -23,7 +23,7 @@ static void readRegs(uint8_t reg, uint8_t *buf, uint8_t len) {
   Wire.beginTransmission(ADXL345_ADDR);
   Wire.write(reg);
   Wire.endTransmission(false);
-  Wire.requestFrom(ADXL345_ADDR, len, true);
+  Wire.requestFrom((uint8_t)ADXL345_ADDR, len);
   for (uint8_t i = 0; i < len && Wire.available(); i++) {
     buf[i] = Wire.read();
   }
