@@ -8,24 +8,26 @@
  *   (используется при переключении AUTO → MANUAL). */
 class Accelerometer : public IInput {
 public:
-  void  begin() override;
+  void begin() override;
   Event poll() override;
-  void  suppressUntilNeutral() override;
+  void suppressUntilNeutral() override;
 
 private:
   // --- Настройки ---
-  static constexpr float    TILT_THRESHOLD_G = 0.35f; // порог наклона (~20°)
-  static constexpr uint16_t STEP_COOLDOWN_MS = 200;   // пауза между шагами
-  static constexpr float    NEUTRAL_ZONE_G   = 0.15f; // зона «покоя»
-
+  static constexpr float TILT_THRESHOLD_G = 0.35f;       // порог срабатывания (~20°)
+  static constexpr float TILT_MAX_G = 0.60f;             // «полный газ» (~37°)
+  static constexpr uint16_t STEP_COOLDOWN_MIN_MS = 100;  // пауза при полном наклоне
+  static constexpr uint16_t STEP_COOLDOWN_MAX_MS = 300;  // пауза у порога
+  static constexpr float NEUTRAL_ZONE_G = 0.15f;         // зона «покоя»
+  
   // --- Состояние ---
   unsigned long m_lastStepTime = 0;
-  bool          m_needNeutral  = false;   // ставится только suppressUntilNeutral()
-  float         m_offsetX = 0.0f;
-  float         m_offsetY = 0.0f;
+  bool m_needNeutral = false;  // ставится только suppressUntilNeutral()
+  float m_offsetX = 0.0f;
+  float m_offsetY = 0.0f;
 
   // --- Внутренние методы ---
-  void  readRaw(float &ax, float &ay, float &az);
-  void  calibrate();
+  void readRaw(float &ax, float &ay, float &az);
+  void calibrate();
   Event decideEvent(float ax, float ay);
 };

@@ -90,7 +90,6 @@ IInput::Event Accelerometer::decideEvent(float ax, float ay) {
   float dy = ay - m_offsetY;
 
   // --- Мягкий стоп после suppressUntilNeutral() ---
-  // Пока плата не вернётся в нейтраль — шагов нет.
   if (m_needNeutral) {
     bool inNeutral = (fabs(dx) < NEUTRAL_ZONE_G && fabs(dy) < NEUTRAL_ZONE_G);
     if (inNeutral) {
@@ -101,29 +100,40 @@ IInput::Event Accelerometer::decideEvent(float ax, float ay) {
   }
 
   // --- Наклона нет → точка стоит ---
-  if (fabs(dx) < TILT_THRESHOLD_G && fabs(dy) < TILT_THRESHOLD_G) {
+  float ax_mag = fabs(dx);
+  float ay_mag = fabs(dy);
+  if (ax_mag < TILT_THRESHOLD_G && ay_mag < TILT_THRESHOLD_G) {
     return EV_NONE;
   }
 
-  // --- Кулдаун между шагами (скорость движения точки) ---
+  // --- Доминирующая ось (по ней же — и направление, и сила) ---
+  bool  useX = (ax_mag > ay_mag);
+  float mag  = useX ? ax_mag : ay_mag;   // 0..~1 (в единицах g)
+
+  // --- Кулдаун зависит от силы наклона ---
+  // t = 0 при пороге (TILT_THRESHOLD_G), t = 1 при TILT_MAX_G и выше.
+  float t = (mag - TILT_THRESHOLD_G) / (TILT_MAX_G - TILT_THRESHOLD_G);
+  if (t < 0.0f) t = 0.0f;
+  if (t > 1.0f) t = 1.0f;
+
+  uint16_t cooldownMs =
+      STEP_COOLDOWN_MAX_MS -
+      (uint16_t)(t * (STEP_COOLDOWN_MAX_MS - STEP_COOLDOWN_MIN_MS));
+
+  // --- Проверка паузы ---
   unsigned long now = millis();
-  if (now - m_lastStepTime < STEP_COOLDOWN_MS) {
+  if (now - m_lastStepTime < cooldownMs) {
     return EV_NONE;
   }
 
-  // --- Доминирующая ось → направление ---
-  Event ev = EV_NONE;
-  if (fabs(dx) > fabs(dy)) {
-    // Наклон по X: вправо → RIGHT, влево → LEFT
+  // --- Направление по доминирующей оси ---
+  Event ev;
+  if (useX) {
     ev = (dx > 0) ? EV_RIGHT : EV_LEFT;
   } else {
-    // Наклон по Y: вперёд → UP, назад → DOWN
-    // Если физически наоборот — поменяй EV_UP и EV_DOWN местами.
     ev = (dy > 0) ? EV_UP : EV_DOWN;
   }
 
-  // Запоминаем время шага. m_needNeutral НЕ ставим —
-  // поэтому, пока наклон держится, точка шагает непрерывно.
   m_lastStepTime = now;
   return ev;
 }
