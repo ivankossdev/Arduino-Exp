@@ -1,9 +1,9 @@
 #include "matr.h"
 #include "EventTimer.h"
 #include "input.h"
-#include "buttons.h"
+// #include "buttons.h"
 #include "config.h"
-// #include "accel.h"   // ← раскомментируешь, когда подключишь датчик
+#include "accel.h"  
 
 enum ControlMode { MODE_MANUAL, MODE_AUTO };
 
@@ -12,12 +12,12 @@ static EventTimer stepTimer(1000);
 
 static ControlMode mode = MODE_MANUAL;
 
-/* ---- Точка подключения конкретного класса ---- *
- * Чтобы сменить устройство ввода — меняешь эти две строки:
- *   static Buttons buttons;      → static Accelerometer buttons;
- *   static IInput* input = &buttons; */
-static Buttons buttons;
-static IInput* input = &buttons;
+
+// static Buttons buttons;
+// static IInput* input = &buttons;
+
+static Accelerometer accel;
+static IInput* input = &accel;
 
 static void logStep(const DotState& s) {
   Serial.print("pos ");
