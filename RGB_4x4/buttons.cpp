@@ -24,8 +24,6 @@ void Buttons::begin() {
   pinMode(BTN_MODE,  INPUT);
 #endif
 
-  // Фиксируем «сырое» состояние как baseline, чтобы первое же
-  // нажатие не потерялось из-за дебаунса от стартового нуля.
   m_modeRaw    = isPressed(BTN_MODE);
   m_modeStable = m_modeRaw;
   m_modeChange = millis();
@@ -35,11 +33,11 @@ void Buttons::begin() {
   m_dirLocked = false;
 }
 
-Buttons::Event Buttons::poll() {
+IInput::Event Buttons::poll() {
   const unsigned long DEBOUNCE = 25;
   unsigned long now = millis();
 
-  // -------- MODE: фронт нажатия --------
+  // -------- MODE: фронт --------
   bool modeNow = isPressed(BTN_MODE);
   if (modeNow != m_modeRaw) {
     m_modeRaw    = modeNow;
@@ -47,12 +45,10 @@ Buttons::Event Buttons::poll() {
   }
   if ((now - m_modeChange) >= DEBOUNCE && modeNow != m_modeStable) {
     m_modeStable = modeNow;
-    if (m_modeStable) {
-      return EV_MODE;   // MODE приоритетнее направлений
-    }
+    if (m_modeStable) return EV_MODE;
   }
 
-  // -------- Направляющие: latch --------
+  // -------- Направления: latch --------
   int dirNow = -1;
   if      (isPressed(BTN_UP))    dirNow = BTN_UP;
   else if (isPressed(BTN_DOWN))  dirNow = BTN_DOWN;
@@ -74,7 +70,6 @@ Buttons::Event Buttons::poll() {
   if (dirNow == -1) return EV_NONE;
   if ((now - m_dirChange) < DEBOUNCE) return EV_NONE;
 
-  // Сработало: latch + вернуть событие
   m_dirLocked = true;
   switch (dirNow) {
     case BTN_UP:    return EV_UP;
@@ -85,8 +80,8 @@ Buttons::Event Buttons::poll() {
   return EV_NONE;
 }
 
-void Buttons::lockUntilRelease() {
+void Buttons::suppressUntilNeutral() {
   m_dirLocked = true;
-  m_dirRaw    = -1;       // сбросить baseline
-  m_dirChange = millis(); // дебаунс «отпущено» начнёт отсчёт заново
+  m_dirRaw    = -1;
+  m_dirChange = millis();
 }

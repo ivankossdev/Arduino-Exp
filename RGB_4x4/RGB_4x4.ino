@@ -1,17 +1,23 @@
 #include "matr.h"
 #include "EventTimer.h"
+#include "input.h"
 #include "buttons.h"
 #include "config.h"
+// #include "accel.h"   // ← раскомментируешь, когда подключишь датчик
 
 enum ControlMode { MODE_MANUAL, MODE_AUTO };
 
-static EventTimer inputTimer(10);    // опрос кнопок 100 Гц
-static EventTimer stepTimer(50);   // авто-шаг 1 Гц
+static EventTimer inputTimer(10);
+static EventTimer stepTimer(1000);
 
 static ControlMode mode = MODE_MANUAL;
-static Buttons     buttons;
 
-/* ---------- Вывод ---------- */
+/* ---- Точка подключения конкретного класса ---- *
+ * Чтобы сменить устройство ввода — меняешь эти две строки:
+ *   static Buttons buttons;      → static Accelerometer buttons;
+ *   static IInput* input = &buttons; */
+static Buttons buttons;
+static IInput* input = &buttons;
 
 static void logStep(const DotState& s) {
   Serial.print("pos ");
@@ -24,8 +30,6 @@ static void logStep(const DotState& s) {
   Serial.println(directionName(s.dir));
 }
 
-/* ---------- Режимы ---------- */
-
 static void switchMode() {
   mode = (mode == MODE_MANUAL) ? MODE_AUTO : MODE_MANUAL;
 
@@ -33,37 +37,32 @@ static void switchMode() {
   Serial.println(mode == MODE_AUTO ? "AUTO" : "MANUAL");
 
   if (mode == MODE_AUTO) {
-    DotState s = dotStep();   // первый шаг сразу, без секунды ожидания
+    DotState s = dotStep();
     logStep(s);
     stepTimer.start();
   } else {
     stepTimer.stop();
-    buttons.lockUntilRelease();   // зажатая кнопка не даст фантомный шаг
+    input->suppressUntilNeutral();
   }
 }
 
-/* ---------- Событие → направление ---------- */
-
-static DirectionOfMovement dirFromEvent(Buttons::Event ev) {
+static DirectionOfMovement dirFromEvent(IInput::Event ev) {
   switch (ev) {
-    case Buttons::EV_UP:    return UP;
-    case Buttons::EV_DOWN:  return DOWN;
-    case Buttons::EV_LEFT:  return LEFT;
-    case Buttons::EV_RIGHT: return RIGHT;
-    default:                return STANDSTILL;
+    case IInput::EV_UP:    return UP;
+    case IInput::EV_DOWN:  return DOWN;
+    case IInput::EV_LEFT:  return LEFT;
+    case IInput::EV_RIGHT: return RIGHT;
+    default:               return STANDSTILL;
   }
 }
-
-/* ---------- Тики ---------- */
 
 static void onInputTick() {
-  Buttons::Event ev = buttons.poll();
-
+  IInput::Event ev = input->poll();
   dotVisualTick();
 
-  if (ev == Buttons::EV_NONE) return;
+  if (ev == IInput::EV_NONE) return;
 
-  if (ev == Buttons::EV_MODE) {
+  if (ev == IInput::EV_MODE) {
     switchMode();
     return;
   }
@@ -80,13 +79,11 @@ static void onStepTick() {
   logStep(s);
 }
 
-/* ---------- setup / loop ---------- */
-
 void setup() {
   Serial.begin(9600);
   randomSeed(analogRead(A0));
 
-  buttons.begin();
+  input->begin();
   matrInit(3);
   dotInit(START_POS);
 
