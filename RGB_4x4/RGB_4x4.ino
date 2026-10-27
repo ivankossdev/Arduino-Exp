@@ -8,7 +8,7 @@
 enum ControlMode { MODE_AUTO, MODE_BUTTONS, MODE_ACCEL };
 
 static EventTimer inputTimer(10);
-static EventTimer stepTimer(50);
+static EventTimer stepTimer(500);
 
 static ControlMode   mode = MODE_BUTTONS;
 static Buttons       buttons;
@@ -23,6 +23,8 @@ static const char* modeName(ControlMode m) {
   return "?";
 }
 
+static int g_score = 0;
+
 static void logStep(const DotState& s) {
   Serial.print("pos ");
   Serial.print(s.pos);
@@ -31,7 +33,14 @@ static void logStep(const DotState& s) {
   Serial.print(", c");
   Serial.print(s.col);
   Serial.print(") dir ");
-  Serial.println(directionName(s.dir));
+  Serial.print(directionName(s.dir));
+
+  if (s.reachedTarget) {
+    g_score++;
+    Serial.print("  GOAL! score=");
+    Serial.print(g_score);
+  }
+  Serial.println();
 }
 
 /* ---------- Переключение режимов ---------- */

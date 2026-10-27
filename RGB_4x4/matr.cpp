@@ -14,20 +14,24 @@
 
 static Adafruit_NeoPixel ring(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 
-/* ---------- Состояние точки ---------- */
+/* ---------- Состояние ---------- */
 
 static int g_currentPos = -1;
 static int g_prevPos    = -1;
+static int g_targetPos  = -1;
 
-/* ---------- Состояние вспышки ---------- */
+static bool          g_flashing       = false;   // STANDSTILL
+static unsigned long g_flashStart     = 0;
 
-static bool          g_flashing   = false;
-static unsigned long g_flashStart = 0;
+static bool          g_goalFlashing   = false;   // достижение цели
+static unsigned long g_goalFlashStart = 0;
 
 /* ---------- Цвета ---------- */
 
-static uint32_t colorDot()   { return ring.Color(COLOR_DOT_R,   COLOR_DOT_G,   COLOR_DOT_B); }
-static uint32_t colorFlash() { return ring.Color(COLOR_FLASH_R, COLOR_FLASH_G, COLOR_FLASH_B); }
+static uint32_t colorDot()    { return ring.Color(COLOR_DOT_R,    COLOR_DOT_G,    COLOR_DOT_B); }
+static uint32_t colorFlash()  { return ring.Color(COLOR_FLASH_R,  COLOR_FLASH_G,  COLOR_FLASH_B); }
+static uint32_t colorTarget() { return ring.Color(COLOR_TARGET_R, COLOR_TARGET_G, COLOR_TARGET_B); }
+static uint32_t colorGoal()   { return ring.Color(COLOR_GOAL_R,   COLOR_GOAL_G,   COLOR_GOAL_B); }
 
 /* ---------- Координаты пикселя ---------- */
 
@@ -73,19 +77,36 @@ const char* directionName(DirectionOfMovement d) {
   }
 }
 
-/* ---------- Служебное: отрисовать пиксель нужным цветом ---------- */
-
-static DotState drawAt(int pos, DirectionOfMovement dir, uint32_t color) {
+/* ---------- Отрисовка кадра ----------
+ * Рисует цель (если не совпадает с точкой) и точку.
+ * Цвет точки зависит от состояния вспышек. */
+static void renderFrame() {
   ring.clear();
-  if (pos >= 0) ring.setPixelColor(pos, color);
-  ring.show();
 
-  DotState s;
-  s.pos = pos;
-  s.row = (pos >= 0) ? pixelRow(pos) : -1;
-  s.col = (pos >= 0) ? pixelCol(pos) : -1;
-  s.dir = dir;
-  return s;
+  if (g_targetPos >= 0 && g_targetPos != g_currentPos) {
+    ring.setPixelColor(g_targetPos, colorTarget());
+  }
+
+  if (g_currentPos >= 0) {
+    uint32_t c;
+    if      (g_goalFlashing) c = colorGoal();    // приоритет у успеха
+    else if (g_flashing)     c = colorFlash();
+    else                     c = colorDot();
+    ring.setPixelColor(g_currentPos, c);
+  }
+
+  ring.show();
+}
+
+/* ---------- Выбор новой цели ---------- */
+
+static int pickTarget(int exclude) {
+  if (LED_COUNT <= 1) return exclude;
+  int t;
+  do {
+    t = random(LED_COUNT);
+  } while (t == exclude);
+  return t;
 }
 
 /* ---------- Случайный сосед (для dotStep) ---------- */
@@ -114,10 +135,20 @@ void matrInit(uint8_t br) {
 }
 
 DotState dotInit(int startPos) {
-  g_currentPos = startPos;
-  g_prevPos    = -1;
-  g_flashing   = false;
-  return drawAt(startPos, FIRST, colorDot());
+  g_currentPos     = startPos;
+  g_prevPos        = -1;
+  g_flashing       = false;
+  g_goalFlashing   = false;
+  g_targetPos      = pickTarget(startPos);
+  renderFrame();
+
+  DotState s;
+  s.pos           = startPos;
+  s.row           = pixelRow(startPos);
+  s.col           = pixelCol(startPos);
+  s.dir           = FIRST;
+  s.reachedTarget = false;
+  return s;
 }
 
 DotState dotStep() {
@@ -132,14 +163,34 @@ DotState dotStep() {
 
   g_prevPos    = g_currentPos;
   g_currentPos = pos;
-  g_flashing   = false;   // авто-шаг отменяет любую незавершённую вспышку
+  g_flashing   = false;
 
-  return drawAt(pos, dir, colorDot());
+  DotState s;
+  s.pos           = g_currentPos;
+  s.row           = pixelRow(g_currentPos);
+  s.col           = pixelCol(g_currentPos);
+  s.dir           = dir;
+  s.reachedTarget = false;
+
+  if (g_currentPos == g_targetPos) {
+    s.reachedTarget   = true;
+    g_goalFlashing    = true;
+    g_goalFlashStart  = millis();
+    g_targetPos       = pickTarget(g_currentPos);
+  }
+
+  renderFrame();
+  return s;
 }
 
 DotState dotMoveDirection(DirectionOfMovement dir) {
+  DotState s;
+  s.reachedTarget = false;
+
   if (g_currentPos < 0) {
-    return drawAt(-1, FIRST, colorDot());
+    s.pos = -1; s.row = -1; s.col = -1;
+    s.dir = FIRST;
+    return s;
   }
 
   int r = pixelRow(g_currentPos);
@@ -152,31 +203,54 @@ DotState dotMoveDirection(DirectionOfMovement dir) {
     case LEFT:  nc = c - 1; break;
     case RIGHT: nc = c + 1; break;
     default:
-      return drawAt(g_currentPos, STANDSTILL, colorDot());
+      s.pos = g_currentPos; s.row = r; s.col = c;
+      s.dir = STANDSTILL;
+      return s;
   }
 
-  // Упор в край — вспышка
+  // Упор в край — вспышка, точка стоит
   if (nr < 0 || nr > 3 || nc < 0 || nc > 3) {
     g_flashing   = true;
     g_flashStart = millis();
-    return drawAt(g_currentPos, STANDSTILL, colorFlash());
+    renderFrame();
+    s.pos = g_currentPos; s.row = r; s.col = c;
+    s.dir = STANDSTILL;
+    return s;
   }
 
   int newPos = pixelFromRowCol(nr, nc);
 
   g_prevPos    = g_currentPos;
   g_currentPos = newPos;
-  g_flashing   = false;   // движение отменяет вспышку
+  g_flashing   = false;
 
-  return drawAt(newPos, dir, colorDot());
+  s.pos = g_currentPos;
+  s.row = pixelRow(g_currentPos);
+  s.col = pixelCol(g_currentPos);
+  s.dir = dir;
+
+  if (g_currentPos == g_targetPos) {
+    s.reachedTarget  = true;
+    g_goalFlashing   = true;
+    g_goalFlashStart = millis();
+    g_targetPos      = pickTarget(g_currentPos);
+  }
+
+  renderFrame();
+  return s;
 }
 
 void dotVisualTick() {
-  if (!g_flashing) return;
-  if (millis() - g_flashStart < STANDSTILL_FLASH_MS) return;
+  bool needRender = false;
 
-  g_flashing = false;
-  if (g_currentPos >= 0) {
-    drawAt(g_currentPos, STANDSTILL, colorDot());
+  if (g_flashing && (millis() - g_flashStart) >= STANDSTILL_FLASH_MS) {
+    g_flashing = false;
+    needRender = true;
   }
+  if (g_goalFlashing && (millis() - g_goalFlashStart) >= GOAL_FLASH_MS) {
+    g_goalFlashing = false;
+    needRender = true;
+  }
+
+  if (needRender) renderFrame();
 }

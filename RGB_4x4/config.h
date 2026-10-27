@@ -24,5 +24,16 @@
 #define COLOR_FLASH_G 0
 #define COLOR_FLASH_B 0
 
-// ---------- Длительность вспышки при упоре в край ----------
+// ---------- Цвета игровых элементов ----------
+#define COLOR_TARGET_R 0
+#define COLOR_TARGET_G 255
+#define COLOR_TARGET_B 0
+
+// Вспышка при достижении цели (белая — заметнее всего)
+#define COLOR_GOAL_R 255
+#define COLOR_GOAL_G 255
+#define COLOR_GOAL_B 255
+
+// ---------- Длительности вспышек ----------
 #define STANDSTILL_FLASH_MS 150
+#define GOAL_FLASH_MS       300

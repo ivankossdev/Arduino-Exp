@@ -11,6 +11,7 @@ struct DotState {
   int                 row;
   int                 col;
   DirectionOfMovement dir;
+  bool                reachedTarget; 
 };
 
 void matrInit(uint8_t br);
