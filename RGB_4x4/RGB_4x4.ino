@@ -6,7 +6,7 @@
 enum ControlMode { MODE_MANUAL, MODE_AUTO };
 
 static EventTimer inputTimer(10);    // опрос кнопок 100 Гц
-static EventTimer stepTimer(1000);   // авто-шаг 1 Гц
+static EventTimer stepTimer(50);   // авто-шаг 1 Гц
 
 static ControlMode mode = MODE_MANUAL;
 static Buttons     buttons;
@@ -58,6 +58,9 @@ static DirectionOfMovement dirFromEvent(Buttons::Event ev) {
 
 static void onInputTick() {
   Buttons::Event ev = buttons.poll();
+
+  dotVisualTick();
+
   if (ev == Buttons::EV_NONE) return;
 
   if (ev == Buttons::EV_MODE) {

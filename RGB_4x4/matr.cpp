@@ -14,16 +14,24 @@
 
 static Adafruit_NeoPixel ring(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 
-/* ---------- Состояние точки (одно на весь файл) ---------- */
+/* ---------- Состояние точки ---------- */
 
 static int g_currentPos = -1;
 static int g_prevPos    = -1;
 
+/* ---------- Состояние вспышки ---------- */
+
+static bool          g_flashing   = false;
+static unsigned long g_flashStart = 0;
+
+/* ---------- Цвета ---------- */
+
+static uint32_t colorDot()   { return ring.Color(COLOR_DOT_R,   COLOR_DOT_G,   COLOR_DOT_B); }
+static uint32_t colorFlash() { return ring.Color(COLOR_FLASH_R, COLOR_FLASH_G, COLOR_FLASH_B); }
+
 /* ---------- Координаты пикселя ---------- */
 
-static inline int pixelRow(int pos) {
-  return pos / 4;
-}
+static inline int pixelRow(int pos) { return pos / 4; }
 
 static inline int pixelCol(int pos) {
   int row   = pos / 4;
@@ -65,11 +73,11 @@ const char* directionName(DirectionOfMovement d) {
   }
 }
 
-/* ---------- Служебное: собрать DotState + отрисовать ---------- */
+/* ---------- Служебное: отрисовать пиксель нужным цветом ---------- */
 
-static DotState drawAt(int pos, DirectionOfMovement dir) {
+static DotState drawAt(int pos, DirectionOfMovement dir, uint32_t color) {
   ring.clear();
-  if (pos >= 0) ring.setPixelColor(pos, ring.Color(0, 0, 255));
+  if (pos >= 0) ring.setPixelColor(pos, color);
   ring.show();
 
   DotState s;
@@ -108,7 +116,8 @@ void matrInit(uint8_t br) {
 DotState dotInit(int startPos) {
   g_currentPos = startPos;
   g_prevPos    = -1;
-  return drawAt(startPos, FIRST);
+  g_flashing   = false;
+  return drawAt(startPos, FIRST, colorDot());
 }
 
 DotState dotStep() {
@@ -123,13 +132,14 @@ DotState dotStep() {
 
   g_prevPos    = g_currentPos;
   g_currentPos = pos;
+  g_flashing   = false;   // авто-шаг отменяет любую незавершённую вспышку
 
-  return drawAt(pos, dir);
+  return drawAt(pos, dir, colorDot());
 }
 
 DotState dotMoveDirection(DirectionOfMovement dir) {
   if (g_currentPos < 0) {
-    return drawAt(-1, FIRST);   // точки ещё нет
+    return drawAt(-1, FIRST, colorDot());
   }
 
   int r = pixelRow(g_currentPos);
@@ -142,19 +152,31 @@ DotState dotMoveDirection(DirectionOfMovement dir) {
     case LEFT:  nc = c - 1; break;
     case RIGHT: nc = c + 1; break;
     default:
-      // STANDSTILL / JUMP / FIRST — ничего не двигаем
-      return drawAt(g_currentPos, STANDSTILL);
+      return drawAt(g_currentPos, STANDSTILL, colorDot());
   }
 
-  // Край матрицы — не двигаемся
+  // Упор в край — вспышка
   if (nr < 0 || nr > 3 || nc < 0 || nc > 3) {
-    return drawAt(g_currentPos, STANDSTILL);
+    g_flashing   = true;
+    g_flashStart = millis();
+    return drawAt(g_currentPos, STANDSTILL, colorFlash());
   }
 
   int newPos = pixelFromRowCol(nr, nc);
 
   g_prevPos    = g_currentPos;
   g_currentPos = newPos;
+  g_flashing   = false;   // движение отменяет вспышку
 
-  return drawAt(newPos, dir);
+  return drawAt(newPos, dir, colorDot());
+}
+
+void dotVisualTick() {
+  if (!g_flashing) return;
+  if (millis() - g_flashStart < STANDSTILL_FLASH_MS) return;
+
+  g_flashing = false;
+  if (g_currentPos >= 0) {
+    drawAt(g_currentPos, STANDSTILL, colorDot());
+  }
 }

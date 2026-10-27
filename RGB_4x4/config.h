@@ -5,8 +5,6 @@
 #define LED_COUNT 16
 
 // ---------- Кнопки / джойстик ----------
-// 1 = общий провод GND, INPUT_PULLUP, нажатие = LOW  (стандарт)
-// 0 = общий провод VCC, внешние pull-down, нажатие = HIGH
 #define BTN_ACTIVE_LOW 1
 
 #define BTN_UP    2
@@ -16,3 +14,15 @@
 #define BTN_MODE  7
 
 #define START_POS 6
+
+// ---------- Цвета точки (RGB) ----------
+#define COLOR_DOT_R   0
+#define COLOR_DOT_G   0
+#define COLOR_DOT_B   255
+
+#define COLOR_FLASH_R 255
+#define COLOR_FLASH_G 0
+#define COLOR_FLASH_B 0
+
+// ---------- Длительность вспышки при упоре в край ----------
+#define STANDSTILL_FLASH_MS 150
