@@ -8,7 +8,7 @@
 enum ControlMode { MODE_AUTO, MODE_BUTTONS, MODE_ACCEL };
 
 static EventTimer inputTimer(10);
-static EventTimer stepTimer(1000);
+static EventTimer stepTimer(100);
 
 static ControlMode   mode = MODE_BUTTONS;
 static Buttons       buttons;
