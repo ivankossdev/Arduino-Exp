@@ -42,3 +42,8 @@
 // 1 = логировать в Serial
 // 0 = не логировать (экономия flash и времени; Serial даже не инициализируется)
 #define LOG_ENABLED 0
+
+// Цвет матрицы во время калибровки акселерометра
+#define COLOR_CALIB_R 255
+#define COLOR_CALIB_G 255
+#define COLOR_CALIB_B 0

@@ -1,33 +1,31 @@
 #pragma once
 #include "input.h"
 
-/* Управление наклоном.
- * - Наклон удерживается → точка шагает каждые STEP_COOLDOWN_MS мс.
- * - Нейтраль → точка стоит.
- * - suppressUntilNeutral() → блокирует шаги, пока плата не вернётся в нейтраль
- *   (используется при переключении AUTO → MANUAL). */
 class Accelerometer : public IInput {
 public:
-  void begin() override;
+  void  begin() override;
   Event poll() override;
-  void suppressUntilNeutral() override;
+  void  suppressUntilNeutral() override;
+
+  /* Перекалибровать: текущее положение платы становится «нейтралью».
+   * Блокирует ~100–120 мс (20 отсчётов × 5 мс + I2C).
+   * Вызывать при входе в ACCEL, чтобы не тащить за собой
+   * калибровку, сделанную при старте. */
+  void  recalibrate();
 
 private:
-  // --- Настройки ---
-  static constexpr float TILT_THRESHOLD_G = 0.35f;       // порог срабатывания (~20°)
-  static constexpr float TILT_MAX_G = 0.60f;             // «полный газ» (~37°)
-  static constexpr uint16_t STEP_COOLDOWN_MIN_MS = 100;  // пауза при полном наклоне
-  static constexpr uint16_t STEP_COOLDOWN_MAX_MS = 300;  // пауза у порога
-  static constexpr float NEUTRAL_ZONE_G = 0.15f;         // зона «покоя»
-  
-  // --- Состояние ---
-  unsigned long m_lastStepTime = 0;
-  bool m_needNeutral = false;  // ставится только suppressUntilNeutral()
-  float m_offsetX = 0.0f;
-  float m_offsetY = 0.0f;
+  static constexpr float    TILT_THRESHOLD_G     = 0.35f;
+  static constexpr float    TILT_MAX_G           = 0.60f;
+  static constexpr uint16_t STEP_COOLDOWN_MIN_MS = 100;
+  static constexpr uint16_t STEP_COOLDOWN_MAX_MS = 300;
+  static constexpr float    NEUTRAL_ZONE_G       = 0.15f;
 
-  // --- Внутренние методы ---
-  void readRaw(float &ax, float &ay, float &az);
-  void calibrate();
+  unsigned long m_lastStepTime = 0;
+  bool          m_needNeutral  = false;
+  float         m_offsetX = 0.0f;
+  float         m_offsetY = 0.0f;
+
+  void  readRaw(float &ax, float &ay, float &az);
+  void  calibrate();
   Event decideEvent(float ax, float ay);
 };

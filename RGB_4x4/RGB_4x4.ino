@@ -16,8 +16,6 @@ static Accelerometer accel;
 
 static int g_score = 0;
 
-/* ---------- Имя режима (нужно и для лога, и потенциально для UI) ---------- */
-
 static const char* modeName(ControlMode m) {
   switch (m) {
     case MODE_AUTO:    return "AUTO";
@@ -26,9 +24,6 @@ static const char* modeName(ControlMode m) {
   }
   return "?";
 }
-
-/* ---------- Обработка результата шага ----------
- * Счёт — всегда. Лог — только если включён. */
 
 static void processStep(const DotState& s) {
   if (s.reachedTarget) g_score++;
@@ -48,11 +43,9 @@ static void processStep(const DotState& s) {
   }
   Serial.println();
 #else
-  (void)s;   // s используется только для лога — когда лог выключен, подавляем warning
+  (void)s;
 #endif
 }
-
-/* ---------- Переключение режимов ---------- */
 
 static void enterMode(ControlMode m) {
   mode = m;
@@ -67,8 +60,17 @@ static void enterMode(ControlMode m) {
     stepTimer.start();
   } else {
     stepTimer.stop();
-    if (mode == MODE_BUTTONS) buttons.suppressUntilNeutral();
-    if (mode == MODE_ACCEL)   accel.suppressUntilNeutral();
+    if (mode == MODE_BUTTONS) {
+      buttons.suppressUntilNeutral();
+    }
+    if (mode == MODE_ACCEL) {
+      // Заставка «калибровка»: жёлтая матрица на ~100 мс,
+      // пока идёт recalibrate() (20 × 5 мс + I2C-чтения).
+      matrShowCalibrating();
+      accel.recalibrate();
+      matrRefresh();
+      accel.suppressUntilNeutral();
+    }
   }
 }
 
@@ -82,8 +84,6 @@ static void cycleMode() {
   enterMode(next);
 }
 
-/* ---------- Событие → направление ---------- */
-
 static DirectionOfMovement dirFromEvent(IInput::Event ev) {
   switch (ev) {
     case IInput::EV_UP:    return UP;
@@ -93,8 +93,6 @@ static DirectionOfMovement dirFromEvent(IInput::Event ev) {
     default:               return STANDSTILL;
   }
 }
-
-/* ---------- Тик опроса ввода ---------- */
 
 static void onInputTick() {
   IInput::Event btnEv = buttons.poll();
@@ -125,14 +123,10 @@ static void onInputTick() {
   dotVisualTick();
 }
 
-/* ---------- Тик автопилота ---------- */
-
 static void onStepTick() {
   if (mode != MODE_AUTO) return;
   processStep(dotStep());
 }
-
-/* ---------- setup / loop ---------- */
 
 void setup() {
 #if LOG_ENABLED

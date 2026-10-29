@@ -20,10 +20,10 @@ static int g_currentPos = -1;
 static int g_prevPos    = -1;
 static int g_targetPos  = -1;
 
-static bool          g_flashing       = false;   // STANDSTILL
+static bool          g_flashing       = false;
 static unsigned long g_flashStart     = 0;
 
-static bool          g_goalFlashing   = false;   // достижение цели
+static bool          g_goalFlashing   = false;
 static unsigned long g_goalFlashStart = 0;
 
 /* ---------- Цвета ---------- */
@@ -32,6 +32,7 @@ static uint32_t colorDot()    { return ring.Color(COLOR_DOT_R,    COLOR_DOT_G,  
 static uint32_t colorFlash()  { return ring.Color(COLOR_FLASH_R,  COLOR_FLASH_G,  COLOR_FLASH_B); }
 static uint32_t colorTarget() { return ring.Color(COLOR_TARGET_R, COLOR_TARGET_G, COLOR_TARGET_B); }
 static uint32_t colorGoal()   { return ring.Color(COLOR_GOAL_R,   COLOR_GOAL_G,   COLOR_GOAL_B); }
+static uint32_t colorCalib()  { return ring.Color(COLOR_CALIB_R,  COLOR_CALIB_G,  COLOR_CALIB_B); }
 
 /* ---------- Координаты пикселя ---------- */
 
@@ -77,9 +78,8 @@ const char* directionName(DirectionOfMovement d) {
   }
 }
 
-/* ---------- Отрисовка кадра ----------
- * Рисует цель (если не совпадает с точкой) и точку.
- * Цвет точки зависит от состояния вспышек. */
+/* ---------- Отрисовка кадра ---------- */
+
 static void renderFrame() {
   ring.clear();
 
@@ -89,7 +89,7 @@ static void renderFrame() {
 
   if (g_currentPos >= 0) {
     uint32_t c;
-    if      (g_goalFlashing) c = colorGoal();    // приоритет у успеха
+    if      (g_goalFlashing) c = colorGoal();
     else if (g_flashing)     c = colorFlash();
     else                     c = colorDot();
     ring.setPixelColor(g_currentPos, c);
@@ -208,7 +208,6 @@ DotState dotMoveDirection(DirectionOfMovement dir) {
       return s;
   }
 
-  // Упор в край — вспышка, точка стоит
   if (nr < 0 || nr > 3 || nc < 0 || nc > 3) {
     g_flashing   = true;
     g_flashStart = millis();
@@ -253,4 +252,17 @@ void dotVisualTick() {
   }
 
   if (needRender) renderFrame();
+}
+
+void matrShowCalibrating() {
+  ring.clear();
+  uint32_t c = colorCalib();
+  for (int i = 0; i < LED_COUNT; i++) {
+    ring.setPixelColor(i, c);
+  }
+  ring.show();
+}
+
+void matrRefresh() {
+  renderFrame();
 }
